@@ -1,0 +1,18 @@
+Cuentas | Mi GitHub | github.ico | https://github.com/rubenaraya
+Cuentas | ChatGPT | chatgpt.ico | https://chatgpt.com/
+Cuentas | API OpenAI | openai.ico | https://platform.openai.com/docs/overview
+Cuentas | NIC Chile | nic.ico | https://clientes.nic.cl/
+;Cuentas | Google Play Console | gpc.ico | https://play.google.com/console/developers
+
+Recursos | Traductor | gt.ico | https://translate.google.cl/?hl=es-419&tab=rT&sl=en&tl=es&op=translate
+Recursos | WordReference | wr.ico | https://www.wordreference.com/es/
+Recursos | WORdER | wd.ico | https://es.worder.cat/buscarpalabras
+
+Servidores | Portal cliente HostGator | hostgator.ico | https://cliente.hostgator.cl/
+Servidores | CPanel masexperto.cl | cpanel.ico | http://162.214.161.78:2082/
+Servidores | WHM masexperto.cl | whm.ico | http://162.214.161.78:2086/
+Servidores | A2Hosting | a2hosting.ico | https://my.a2hosting.com/
+
+Utiles | Iconos Bootstrap | bs.ico | https://icons.getbootstrap.com/
+Utiles | Encycolorpedia | ecp.ico | https://encycolorpedia.es/
+Utiles | MarkMap | markmap.ico | https://markmap.js.org/

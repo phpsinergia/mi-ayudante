@@ -1,0 +1,54 @@
+Editar | php.ini | lista.ico | editar | /xampp/php/php.ini
+Editar | my.ini | lista.ico | editar | /xampp/mysql/bin/my.ini
+Editar ||||
+Editar | Config. Apache | apache.ico | editar | /xampp/apache/conf/httpd.conf
+Editar | Config. SSL | apache.ico | editar | /xampp/apache/conf/extra/httpd-ssl.conf
+Editar | Virtual Hosts | apache.ico | editar | /xampp/apache/conf/extra/httpd-vhosts.conf
+Editar ||||
+Editar | Windows Hosts | www.ico | editadmin | [WinDir]\System32\drivers\etc\hosts
+Editar ||||
+Editar | Capturas de pantalla | capturar.ico | sistema | [MisImg]\Capturas de pantalla
+Editar ||||
+Editar | Logs de Apache | script.ico | local | /xampp/apache/logs/
+Editar | Logs de PHP | script.ico | local | /xampp/php/logs
+
+Proyecto | Composer.json | json2.ico | editar | [MisProyectos]/[Proyecto]/composer.json
+Proyecto ||||
+Proyecto | Config cli.cfg | cfg.ico | editar | [MisProyectos]/[Proyecto]/phpsinergia/config/cli.cfg
+Proyecto | Config cli.env | cfg.ico | editar | [MisProyectos]/[Proyecto]/phpsinergia/config/cli.env
+Proyecto ||||
+Proyecto | Directorio Proyecto | carpeta.ico | sistema | [MisProyectos]/[Proyecto]
+Proyecto | Logs del Proyecto | script.ico | sistema | [MisProyectos]/[Proyecto]/logs
+Proyecto ||||
+Proyecto | Memoria de Comandos | cmd.ico | editar | [AppDir]\ini\[Entorno]_[Proyecto].ini
+Proyecto ||||
+Proyecto | Nuevo Proyecto... | agregar.ico | funcion | CrearNuevoProyecto
+
+Programas | MarkText | marktext.ico | sistema | [AppData]\Local\Programs\MarkText\MarkText.exe
+Programas | WinMerge | winmerge.ico | sistema | [ProgramFiles]\WinMerge\WinMergeU.exe
+Programas | AutoHotKey | ahk.ico | sistema | [ProgramFiles]\AutoHotkey\Compiler\Ahk2Exe.exe
+;Programas | Poedit | poedit.ico | sistema | [ProgramFiles]\Poedit\Poedit.exe
+Programas | PostMan | postman.ico | sistema | [AppData]\Local\Postman\Postman.exe
+Programas | Paint.Net | paint.ico | sistema | [ProgramFiles]\paint.net\PaintDotNet.exe
+Programas ||||
+Programas | Pic Pick | picpick.ico | local | /home/herramientas/portables/PicPickPortable/PicPickPortable.exe
+Programas | IcoFX | icofx.ico | local | /home/herramientas/portables/IcoFXPortable/IcoFXPortable.exe
+Programas | Browser SQLite | sqlite.ico | local | /home/herramientas/portables/SQLiteDatabaseBrowserPortable/SQLiteDatabaseBrowserPortable.exe
+Programas ||||
+Programas | Símbolo del sistema | cmd.ico | sistema | [ComSpec]
+
+Ayuda | Manual PHP | php.ico | local | /home/herramientas/ayudas/php_es.chm
+Ayuda | Manual MySQL | mysql.ico | local | /home/herramientas/ayudas/mysql.chm
+Ayuda ||||
+Ayuda | Docs Bootstrap 5.3 | bs.ico | url | https://getbootstrap.com/docs/5.3/getting-started/introduction/
+Ayuda | Docs AutoHotKey v1 | ahk.ico | url | https://www.autohotkey.com/docs/v1/
+Ayuda ||||
+Ayuda | Acerca de... | estrella.ico | funcion | MostrarAcercaDe
+
+> | Configuración | config.ico | editar | [AppDir]\ini\[Entorno].ini
+> ||||
+> | Menús | bloc.ico | editar | [AppDir]\cfg\[Entorno]-menus.txt
+> | Botones | bloc.ico | editar | [AppDir]\cfg\[Entorno]-botones.txt
+> | Favoritos | bloc.ico | editar | [AppDir]\cfg\[Entorno]-favoritos.txt
+> | Proyectos | bloc.ico | editar | [AppDir]\cfg\[Entorno]-proyectos.txt
+> | Comandos | bloc.ico | editar | [AppDir]\cfg\[Entorno]-comandos.txt

@@ -1,0 +1,9 @@
+Directorio Proyecto | carpeta.ico | sistema | [MisProyectos]/[Proyecto]
+XAMPP Control Panel | xampp.ico | local | /xampp/xampp-control.exe
+phpMyAdmin | pma.ico | url | http://localhost/phpmyadmin/
+Notepad++ | notepad.ico | sistema | [ProgramFiles]\Notepad++\notepad++.exe
+GitHub Desktop | ghd.ico | sistema | [AppData]\Local\GitHubDesktop\GitHubDesktop.exe
+PhpStorm | phpstorm.ico | sistema | [ProgramFiles]\JetBrains\PhpStorm 2024.3.3\bin\phpstorm64.exe
+Google | chrome.ico | url | https://www.google.cl/
+Borrar datos de navegación | limpiar.ico | funcion | BorrarCacheChrome
+Capturar Pantalla | capturar.ico | teclas | ^a

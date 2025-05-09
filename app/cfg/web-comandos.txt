@@ -1,0 +1,109 @@
+Dominio | Limpiar Todo | limpiar.ico | php dominio.php | limpiar_todo | 
+Dominio | Respaldar Todo | zip.ico | php dominio.php | respaldar_todo | 
+Dominio | Enviar por FTP… | subir.ico | php dominio.php | enviar_por_ftp | --ar_ftp=<Archivo_a_enviar>
+Dominio |||||
+Dominio | Configurar | cfg.ico | php dominio.php | configurar | 
+
+Docs | Combinar Docs. Markdown… | markdown.ico | php docs.php | combinar_markdown | --pla_md=<Plantilla_MD> --carpeta=<Carpeta_destino> --nombre=<Nombre_archivo> --toc=<Generar_TOC>
+Docs | Indizar Markdown… | markdown.ico | php docs.php | indizar_markdown | --ar_md=<Archivo_MD>
+Docs |||||
+Docs | Convertir Markdown a HTML… | html.ico | php docs.php | markdown_a_html | --ar_md=<Archivo_MD> --toc=<Incluir_TOC> --titulo=<Título_Documento>
+Docs | Convertir HTML a PDF… | pdf.ico | php docs.php | html_a_pdf | --ar_html=<Archivo_HTML> --portada=<Agregar_Portada> --indice=<Incluir_Índice> --niveles=<Nivel_marcadores> --tamano=<Tamaño_de_papel> --orientacion=<Orientación_página> --izq=<Margen_Izq_(mm)> --der=<Margen_Der_(mm)> --sup=<Margen_Sup_(mm)> --inf=<Margen_Inf_(mm)> --version=<Versión> --autor=<Autor(es)> --asunto=<Asunto> --titulo=<Título_Documento>
+Docs |||||
+Docs | Ver Metadatos de PDF… | buscar1.ico | php docs.php | ver_metadatos_pdf | --ar_pdf=<Archivo_PDF>
+Docs | Editar Metadatos de PDF… | lista.ico | php docs.php | editar_metadatos_pdf | --ar_pdf=<Archivo_PDF> --titulo=<Título_Documento> --autor=<Autor(es)> --asunto=<Asunto> --keywords=<Keywords> --version=<Versión>
+Docs |||||
+Docs | Marca de agua en PDF… | estrella.ico | php docs.php | marcar_pdf | --ar_pdf=<Archivo_PDF> --marca=<Texto_de_Marca> --fuente=<Fuente_de_texto> --color=<Color_de_texto>
+Docs | Proteger archivo PDF… | candado.ico | php docs.php | proteger_pdf | --ar_pdf=<Archivo_PDF> --owner_pw=<Contraseña_Dueño> --user_pw=<Contraseña_Usuario> --Printing=<Permitir:_Imprimir> --DegradedPrinting=<Imprimir_degradado> --ModifyContents=<Cambiar_contenido> --Assembly=<Ensamblar> --CopyContents=<Copiar_contenido> --ScreenReaders=<Accesibilidad> --ModifyAnnotations=<Comentarios> --FillIn=<Campos_formulario>
+Docs | Desproteger archivo PDF… | deshacer.ico | php docs.php | desproteger_pdf | --ar_pdfs=<Archivo_PDF_seguro> --input_pw=<Contraseña_acceso>
+Docs |||||
+Docs | Unir archivos PDF… | pdf.ico | php docs.php | unir_pdfs | --A=<Archivo_1> --B=<Archivo_2> --C=<Archivo_3> --D=<Archivo_4> --E=<Archivo_5> --F=<Archivo_6> --G=<Archivo_7> --H=<Archivo_8> --I=<Archivo_9> --J=<Archivo_10> --salida=<PDF_de_salida> --carpeta=<Carpeta_destino> --sobreescribir=<Sobreescribir>
+Docs | Extraer páginas de PDF… | pdf.ico | php docs.php | extraer_pags_pdf | --ar_pdf=<Archivo_PDF> --paginas=<Página(s)> --salida=<PDF_de_salida> --carpeta=<Carpeta_destino> --sobreescribir=<Sobreescribir>
+Docs | Rotar páginas de PDF… | pdf.ico | php docs.php | rotar_pags_pdf | --ar_pdf=<Archivo_PDF> --paginas=<Página(s)> --rotacion=<Rotación_de_páginas> --salida=<PDF_de_salida> --carpeta=<Carpeta_destino> --sobreescribir=<Sobreescribir>
+Docs |||||
+Docs | Comprobar Herramientas | tools.ico | php docs.php | herramientas | 
+
+Aplicaciones | Listar Aplicaciones | lista.ico | php aplicaciones.php | listar_apps | 
+Aplicaciones | Crear App… | mas.ico | php aplicaciones.php | app_crear | --app=<Aplicación>
+Aplicaciones | Verificar App… | check.ico | php aplicaciones.php | app_verificar | --app=<Aplicación>
+Aplicaciones | Exportar App… | subir.ico | php aplicaciones.php | app_exportar | --app=<Aplicación>
+Aplicaciones | Importar App… | bajar.ico | php aplicaciones.php | app_importar | --ar_app=<Archivo_ZIP>
+Aplicaciones | Actualizar App… | actualizar.ico | php aplicaciones.php | app_actualizar | --app=<Aplicación>
+Aplicaciones | Limpiar App… | limpiar.ico | php aplicaciones.php | app_limpiar | --app=<Aplicación>
+Aplicaciones | Eliminar App… | cruz.ico | php aplicaciones.php | app_eliminar | --app=<Aplicación>
+Aplicaciones |||||
+Aplicaciones | Empacar plantilla | zip.ico | php aplicaciones.php | empacar_plantilla | 
+
+Web | Crear Manifest PWA… | manifest.ico | php web.php | crear_manifest | --app=<Aplicación>
+Web | Generar Favicon… | mundo.ico | php web.php | generar_favicon | --app=<Aplicación> --ar_png=<Imagen_base>
+Web | Generar Iconos… | estrella.ico | php web.php | generar_iconos | --app=<Aplicación> --ar_png=<Imagen_base> --resoluciones=<Resoluciones>
+Web |||||
+Web | Compilar SCSS a CSS… | sass.ico | php web.php | scss_a_css | --app=<Aplicación> --ar_scss=<Archivo_SCSS>
+Web | Minificar CSS… | css3.ico | php web.php | css_minificar | --app=<Aplicación> --ar_css=<Archivo_CSS>
+Web |||||
+Web | Minificar JS… | jscompress.ico | php web.php | js_minificar | --app=<Aplicación> --ar_js=<Archivo_JS>
+Web | Formatear JSON… | json2.ico | php web.php | json_formatear | --app=<Aplicación> --ar_json=<Archivo_JSON>
+Web |||||
+Web | Comprobar Herramientas | tools.ico | php web.php | herramientas | 
+
+Idiomas | Listar Idiomas… | lista.ico | php idiomas.php | idiomas_listar | --app=<Aplicación>
+Idiomas | Verificar Idiomas… | check.ico | php idiomas.php | idiomas_verificar | --app=<Aplicación>
+Idiomas | Compilar Idiomas… | poedit.ico | php idiomas.php | idiomas_compilar | --app=<Aplicación>
+Idiomas | Duplicar Idiomas… (Win) | poedit.ico | php idiomas.php | idiomas_duplicar | --app=<Aplicación>
+Idiomas | Agregar Idioma… | mas.ico | php idiomas.php | idioma_agregar | --app=<Aplicación> --idioma=<Nuevo_idioma>
+Idiomas |||||
+Idiomas | Comprobar Herramientas | tools.ico | php idiomas.php | herramientas | 
+
+Basedatos | Respaldar BD… | bd-tools.ico | php basedatos.php | respaldar_bd | --bd=<Base_de_datos>
+Basedatos | Restaurar BD… | bd-tools.ico | php basedatos.php | restaurar_bd | --bd=<Base_de_datos>
+Basedatos | Analizar BD… | bd-check.ico | php basedatos.php | analizar_bd | --bd=<Base_de_datos>
+Basedatos | Optimizar BD… | bd-check.ico | php basedatos.php | optimizar_bd | --bd=<Base_de_datos>
+Basedatos | Eliminar BD… | cruz.ico | php basedatos.php | eliminar_bd | --bd=<Base_de_datos>
+Basedatos |||||
+Basedatos | Ejecutar SQL… | sql.ico | php basedatos.php | ejecutar_sql | --ar_sql=<Archivo_SQL> --bd=<Base_de_datos>
+Basedatos |||||
+Basedatos | Crear BD… | mas.ico | php basedatos.php | crear_bd | --bd=<Base_de_datos>
+Basedatos | Crear Usuario… | mas.ico | php basedatos.php | crear_usuario | --usuario=<Usuario> --pass=<Contraseña> --bd=<Base_de_datos>
+Basedatos |||||
+Basedatos | Listar Bases de datos | lista.ico | php basedatos.php | basedatos_listar | 
+Basedatos | Listar Usuarios | lista.ico | php basedatos.php | usuarios_listar | 
+Basedatos | Listar Tablas de BD… | lista.ico | php basedatos.php | tablas_listar | --bd=<Base_de_datos>
+Basedatos |||||
+Basedatos | Comprobar Herramientas | tools.ico | php basedatos.php | herramientas | 
+
+Migración | Exportar MySQL a SQLite… | sqlite.ico | php migracion.php | mysql_a_sqlite | --bd=<Base_de_datos>
+Migración | Importar SQLite a MySQL… | mysql.ico | php migracion.php | sqlite_a_mysql | --bd=<Base_de_datos>
+Migración |||||
+Migración | Verificar CSV con Tabla… | check.ico | php migracion.php | verificar_csv | --bd=<Base_de_datos> --tabla=<Tabla_de_BD> --ar_csv=<Archivo_CSV>
+Migración | Importar Tabla desde CSV… | bajar.ico | php migracion.php | importar_csv | --bd=<Base_de_datos> --tabla=<Tabla_de_BD> --ar_csv=<Archivo_CSV>
+Migración | Exportar Tabla a CSV… | subir.ico | php migracion.php | exportar_csv | --bd=<Base_de_datos> --tabla=<Tabla_de_BD>
+Migración |||||
+Migración | Auditar Codificación BD… | buscar1.ico | php migracion.php | auditar_codificacion | --bd=<Base_de_datos>
+Migración | Re-codificar CSV… | csv.ico | php migracion.php | convertir_csv | --ar_csv=<Archivo_CSV> --codificacion=<Codificación>
+Migración |||||
+Migración | Comprobar Herramientas | tools.ico | php migracion.php | herramientas | 
+
+Localhost | Iniciar Apache | apache.ico | php xampp.php | apache_iniciar | 
+Localhost | Detener Apache | apache.ico | php xampp.php | apache_detener | 
+Localhost | Reiniciar Apache | apache.ico | php xampp.php | apache_reiniciar | 
+Localhost |||||
+Localhost | Iniciar MySQL | mysql.ico | php xampp.php | mysql_iniciar | 
+Localhost | Detener MySQL | mysql.ico | php xampp.php | mysql_detener | 
+Localhost | Reiniciar MySQL | mysql.ico | php xampp.php | mysql_reiniciar | 
+Localhost |||||
+Localhost | Reiniciar Todos | actualizar.ico | php xampp.php | reiniciar_todos | 
+
+Xampp | Limpiar archivos XAMPP | limpiar.ico | php xampp.php | limpiar_xampp | 
+Xampp | Respaldar DATA MySQL | carpeta.ico | php xampp.php | respaldar_data | 
+Xampp | Restaurar DATA MySQL… | carpeta.ico | php xampp.php | restaurar_data | --ar_data=<Respaldo_DATA>
+Xampp |||||
+Xampp | Verificar MY.INI | check.ico | php xampp.php | verificar_myini | 
+Xampp | Verificar PHP.INI | check.ico | php xampp.php | verificar_phpini | 
+Xampp | Habilitar Extensión PHP… | php.ico | php xampp.php | habilitar_ext | --ext_php=<Extensión_PHP>
+Xampp |||||
+Xampp | Instalar CAROOT | cert.ico | php xampp.php | instalar_caroot | 
+Xampp | Generar Certificado SSL… | candado.ico | php xampp.php | generar_certificado | --dominios=<Dominios_locales>
+Xampp | Configurar SSL | apache.ico | php xampp.php | configurar_ssl | 
+Xampp | Crear Virtual Host… | apache.ico | php xampp.php | crear_vhost | --dominio=<Dominio_local> --publico=<Dir._público>
+Xampp |||||
+Xampp | Comprobar Herramientas | tools.ico | php xampp.php | herramientas | 

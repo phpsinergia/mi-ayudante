@@ -1,0 +1,8 @@
+Ayuda | Acerca de... | estrella.ico | funcion | MostrarAcercaDe
+> | Configuración | config.ico | editar | [AppDir]\ini\psico.ini
+> ||||
+> | Menús | bloc.ico | editar | [AppDir]\cfg\psico-menus.txt
+> | Botones | bloc.ico | editar | [AppDir]\cfg\psico-botones.txt
+> | Favoritos | bloc.ico | editar | [AppDir]\cfg\psico-favoritos.txt
+> | Proyectos | bloc.ico | editar | [AppDir]\cfg\psico-proyectos.txt
+;> | Comandos | bloc.ico | editar | [AppDir]\cfg\psico-comandos.txt

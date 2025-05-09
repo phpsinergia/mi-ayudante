@@ -1,0 +1,5 @@
+/.idea/
+/app/doc/
+/app/log/
+/app/ini/*_*.ini
+/app/mi-ayudante.exe

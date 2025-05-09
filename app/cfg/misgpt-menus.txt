@@ -1,0 +1,8 @@
+Ayuda | Acerca de... | estrella.ico | funcion | MostrarAcercaDe
+> | Configuración | config.ico | editar | [AppDir]\ini\misgpt.ini
+> ||||
+> | Menús | bloc.ico | editar | [AppDir]\cfg\misgpt-menus.txt
+> | Botones | bloc.ico | editar | [AppDir]\cfg\misgpt-botones.txt
+> | Favoritos | bloc.ico | editar | [AppDir]\cfg\misgpt-favoritos.txt
+> | Proyectos | bloc.ico | editar | [AppDir]\cfg\misgpt-proyectos.txt
+;> | Comandos | bloc.ico | editar | [AppDir]\cfg\misgpt-comandos.txt
