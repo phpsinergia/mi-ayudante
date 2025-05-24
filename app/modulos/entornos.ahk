@@ -82,7 +82,7 @@ CrearEntornoConfirmar:
         return
     }
     FileCreateDir, %destino%
-    origen := A_ScriptDir . "\base"
+    origen := A_ScriptDir . "\base\entorno"
     Loop, Files, %origen%\*, F
     {
         FileCopy, %A_LoopFileFullPath%, %destino%\%A_LoopFileName%, 1
@@ -101,7 +101,7 @@ EntornoImportarZip:
     SplitPath, rutaZip, zipFileName
     id := StrReplace(zipFileName, "entorno_", "")
     id := StrReplace(id, ".zip", "")
-    rutaTemp := A_Temp . "\entorno_import_tmp"
+    rutaTemp := A_Temp . "\mi_ayudante"
     FileRemoveDir, %rutaTemp%, 1
     FileCreateDir, %rutaTemp%
     ruta7z := A_ScriptDir . "\bin\7za.exe"

@@ -110,16 +110,16 @@ CambiarEntornoYReiniciar() {
 	WinGetPos, x, y, , , %appNombre%
 	_DicEntornos := {}
 	; Leer entorno actual
-	IniRead, actual, config.ini, Base, Entorno, web
+	IniRead, actual, config.ini, Base, Entorno
 	IniRead, entornos, config.ini, Entornos
 	; Si solo hay uno o está vacío, reiniciar directamente
-	if (entornos = "" || !InStr(entornos, "=")) {
-		titulo := Config.Comandos.ConsolaTitulo
-		if WinExist(titulo)
-			WinClose, %titulo%
-		Reload
-		return
-	}
+	;if (entornos = "" || !InStr(entornos, "=")) {
+	;	titulo := Config.Comandos.ConsolaTitulo
+	;	if WinExist(titulo)
+	;		WinClose, %titulo%
+	;	Reload
+	;	return
+	;}
 	; Construir diccionario clave => descripción y lista visible
 	local lista := ""
 	Loop, Parse, entornos, `n, `r

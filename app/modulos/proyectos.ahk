@@ -48,7 +48,7 @@ CrearProyectoConfirmar:
         }
     }
     ; Copiar carpetas plantilla
-	origen := Config.Base.AppDir . "\php"
+	origen := Config.Base.AppDir . "\base\cli"
 	destino := rutaProyecto . "\phpsinergia"
 	CopiarCarpeta(origen, destino)
 	
