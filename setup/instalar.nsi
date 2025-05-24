@@ -14,7 +14,7 @@
 !define SLUG "${NAME} v${VERSION}"
 !define APPFILE "mi-ayudante.exe"
 
-!define MUI_ICON "app\${ICON}"
+!define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "${SLUG}"
@@ -33,7 +33,7 @@
 
 Unicode true
 Name "${NAME}"
-OutFile "dist\Instalar_${NAME}_${VERSION}.exe"
+OutFile "..\dist\Instalar_${NAME}_${VERSION}.exe"
 InstallDir ${TARGET}
 InstallDirRegKey HKCU "Software\${NAME}" ${TARGET}
 RequestExecutionLevel user
@@ -44,7 +44,7 @@ Var STARTMENU_FOLDER
 ; PAGINAS
   
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "LICENSE"
+!insertmacro MUI_PAGE_LICENSE "..\LICENSE"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
 !insertmacro MUI_PAGE_INSTFILES
@@ -80,22 +80,22 @@ FunctionEnd
 
 Section "-hidden app"
 	SetOutPath "$INSTDIR"
-	File "app\${APPFILE}"
+	File "..\app\${APPFILE}"
 	File "config.ini"
 	SetOutPath "$INSTDIR\base"
-	File /r "app\base\*.*"
+	File /r "..\app\base\*.*"
 	SetOutPath "$INSTDIR\img"
-	File "app\img\*.*"
+	File "..\app\img\*.*"
 	SetOutPath "$INSTDIR\bin"
-	File "app\bin\*.*"
+	File "..\app\bin\*.*"
 	CreateDirectory "$INSTDIR\compartidos"
 	CreateDirectory "$INSTDIR\logs"
 	CreateDirectory "$INSTDIR\datos"
 	SetOutPath "$INSTDIR\datos"
-	File /oname=base_proyectos.txt app\base\proyectos.txt
+	File /oname=base_proyectos.txt ..\app\base\proyectos.txt
 	CreateDirectory "$INSTDIR\entornos\base"
 	SetOutPath "$INSTDIR\entornos\base"
-	File /r "app\base\entorno\*.*"
+	File /r "..\app\base\entorno\*.*"
 	SetOutPath "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "" $INSTDIR
 	WriteUninstaller "$INSTDIR\desinstalar.exe"
