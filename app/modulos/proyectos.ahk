@@ -51,7 +51,6 @@ CrearProyectoConfirmar:
 	origen := Config.Base.AppDir . "\base\cli"
 	destino := rutaProyecto . "\phpsinergia"
 	CopiarCarpeta(origen, destino)
-	
     ; Agregar al archivo cfg de proyectos
     archivoProy := Config.Rutas.DefProyectos
     lineaNueva := nombre . " | " . carpeta

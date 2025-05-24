@@ -1,8 +1,8 @@
 /dist/
-/app/bin/
 /app/datos/
 /app/doc/
 /app/entornos/
 /app/logs/
+/app/respaldos/
 /app/config.ini
 /app/mi-ayudante.exe

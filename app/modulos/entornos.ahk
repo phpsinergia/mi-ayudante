@@ -104,9 +104,9 @@ EntornoImportarZip:
     rutaTemp := A_Temp . "\mi_ayudante"
     FileRemoveDir, %rutaTemp%, 1
     FileCreateDir, %rutaTemp%
-    ruta7z := A_ScriptDir . "\bin\7za.exe"
+    ruta7z := Config.Base.RutaHerramientas . "\7za.exe"
     if !FileExist(ruta7z) {
-        MsgBox, 16, Error, No se encontró 7z.exe en:`n%ruta7z%
+        MsgBox, 16, Error, No se encontró 7za.exe en:`n%ruta7z%
         return
     }
     rutaImport := rutaTemp . "\" . id
@@ -143,9 +143,9 @@ EntornoExportarZip:
     id := ObtenerIdEntorno(entorno)
     rutaOrigen := A_ScriptDir . "\entornos\" . id
     rutaZip := A_ScriptDir . "\compartidos\entorno_" . id . ".zip"
-    ruta7z := A_ScriptDir . "\bin\7za.exe"
+    ruta7z := Config.Base.RutaHerramientas . "\7za.exe"
     if !FileExist(ruta7z) {
-        MsgBox, 16, Error, No se encontró 7z.exe en:`n%ruta7z%
+        MsgBox, 16, Error, No se encontró 7za.exe en:`n%ruta7z%
         return
     }
     if FileExist(rutaZip)
