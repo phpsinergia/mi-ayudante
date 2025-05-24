@@ -16,6 +16,8 @@
 
 !define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
+!define MUI_WELCOMEFINISHPAGE_BITMAP "welcome.bmp"
+!define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "${SLUG}"
 !define MUI_LICENSEPAGE_CHECKBOX
@@ -27,6 +29,8 @@
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
 !define MUI_FINISHPAGE_RUN_TEXT "Ejecutar ${NAME} ahora"
+!define MUI_FINISHPAGE_LINK "Revisar notas en LEEME.txt"
+!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\LEEME.txt"
 
 ;--------------------------------
 ; GENERAL
@@ -81,6 +85,7 @@ FunctionEnd
 Section "-hidden app"
 	SetOutPath "$INSTDIR"
 	File "..\app\${APPFILE}"
+	File "..\app\LEEME.txt"
 	File "config.ini"
 	SetOutPath "$INSTDIR\base"
 	File /r "..\app\base\*.*"
@@ -116,6 +121,7 @@ Section "Uninstall"
 	Delete "$INSTDIR\LICENSE"
 	Delete "$INSTDIR\${APPFILE}"
 	Delete "$INSTDIR\config.ini"
+	Delete "$INSTDIR\LEEME.txt"
 	Delete "$INSTDIR\desinstalar.exe"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"

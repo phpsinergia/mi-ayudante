@@ -1,0 +1,6 @@
+MI-AYUDANTE
+
+Interfaz de Escritorio para organizar, integrar y automatizar Entornos de Desarrollo y Proyectos de Trabajo
+
+Copyright (c) 2025 Rubén Araya Tagle
+
