@@ -8,49 +8,50 @@
 ; DEFINICIONES
 
 !define VERSION "1.0.0"
-!define NAME "Mi-Ayudante"
+!define NAME "Mi Ayudante"
 !define TARGET "C:\home\mi-ayudante"
+!define VENDOR "C:\home\vendor"
 !define ICON "img\favicon.ico"
 !define SLUG "${NAME} v${VERSION}"
 !define APPFILE "mi-ayudante.exe"
+!define APPDIR "..\app"
+!define LICENSE "LICENSE"
+!define README "LEEME.txt"
+!define UNINSTALL "desinstalar.exe"
 
-!define MUI_ICON "..\app\${ICON}"
+!define MUI_ICON "${APPDIR}\${ICON}"
 !define MUI_HEADERIMAGE
-!define MUI_WELCOMEFINISHPAGE_BITMAP "welcome.bmp"
-!define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "${SLUG}"
 !define MUI_LICENSEPAGE_CHECKBOX
 !define MUI_LICENSEPAGE_CHECKBOX_TEXT "Acepto la licencia"
-!define MUI_STARTMENUPAGE
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
 !define MUI_FINISHPAGE_RUN_TEXT "Ejecutar ${NAME} ahora"
-!define MUI_FINISHPAGE_LINK "Revisar notas en LEEME.txt"
-!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\LEEME.txt"
+!define MUI_FINISHPAGE_LINK "Revisar notas en ${README}"
+!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
+;!define MUI_WELCOMEFINISHPAGE_BITMAP "welcome.bmp"
+;!define MUI_HEADERIMAGE_BITMAP "head.bmp"
 
 ;--------------------------------
 ; GENERAL
 
 Unicode true
 Name "${NAME}"
-OutFile "..\dist\Instalar_${NAME}_${VERSION}.exe"
+OutFile "..\dist\Setup_${NAME}_${VERSION}.exe"
 InstallDir ${TARGET}
 InstallDirRegKey HKCU "Software\${NAME}" ${TARGET}
 RequestExecutionLevel user
 SetCompressor lzma
-Var STARTMENU_FOLDER
 
 ;--------------------------------
 ; PAGINAS
   
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\LICENSE"
-!insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
+!insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -84,47 +85,43 @@ FunctionEnd
 
 Section "-hidden app"
 	SetOutPath "$INSTDIR"
-	File "..\app\${APPFILE}"
-	File "..\app\LEEME.txt"
 	File "config.ini"
+	File "${APPDIR}\${APPFILE}"
+	File "${APPDIR}\${README}"
 	SetOutPath "$INSTDIR\base"
-	File /r "..\app\base\*.*"
+	File /r "${APPDIR}\base\*.*"
 	SetOutPath "$INSTDIR\img"
-	File "..\app\img\*.*"
+	File "${APPDIR}\img\*.*"
 	SetOutPath "$INSTDIR\bin"
-	File "..\app\bin\*.*"
+	File "${APPDIR}\bin\*.*"
 	CreateDirectory "$INSTDIR\compartidos"
 	CreateDirectory "$INSTDIR\logs"
 	CreateDirectory "$INSTDIR\datos"
 	SetOutPath "$INSTDIR\datos"
-	File /oname=base_proyectos.txt ..\app\base\proyectos.txt
+	File /oname=base_proyectos.txt ${APPDIR}\base\proyectos.txt
 	CreateDirectory "$INSTDIR\entornos\base"
 	SetOutPath "$INSTDIR\entornos\base"
-	File /r "..\app\base\entorno\*.*"
+	File /r "${APPDIR}\base\entorno\*.*"
 	SetOutPath "$INSTDIR"
+	CreateDirectory "${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "" $INSTDIR
-	WriteUninstaller "$INSTDIR\desinstalar.exe"
+	WriteUninstaller "$INSTDIR\${UNINSTALL}"
 SectionEnd
 
 Section "Access Direct"
-	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
-		CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-		CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
-	!insertmacro MUI_STARTMENU_WRITE_END
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 SectionEnd
 
 Section "Uninstall"
-	Delete "$DESKTOP\${NAME}.lnk"
-	Delete "$SMPROGRAMS\$STARTMENU_FOLDER\${NAME}.lnk"
-	RMDir /r "$SMPROGRAMS\$STARTMENU_FOLDER"
-	Delete "$INSTDIR\LICENSE"
-	Delete "$INSTDIR\${APPFILE}"
 	Delete "$INSTDIR\config.ini"
-	Delete "$INSTDIR\LEEME.txt"
-	Delete "$INSTDIR\desinstalar.exe"
+	Delete "$INSTDIR\${LICENSE}"
+	Delete "$INSTDIR\${APPFILE}"
+	Delete "$INSTDIR\${README}"
+	Delete "$INSTDIR\${UNINSTALL}"
+	Delete "$DESKTOP\${NAME}.lnk"
+	Delete "$SMPROGRAMS\${NAME}.lnk"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"
 	DeleteRegKey /ifempty HKCU "Software\${NAME}"
 SectionEnd
-
