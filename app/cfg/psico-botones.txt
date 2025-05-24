@@ -1,2 +1,0 @@
-[Proyecto] | carpeta.ico | sistema | [MisProyectos]/[Proyecto]
-;Notepad++ | notepad.ico | sistema | [ProgramFiles]\Notepad++\notepad++.exe

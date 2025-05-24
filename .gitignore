@@ -1,5 +1,10 @@
-/.idea/
+/dist/
+/app/bin/
+/app/datos/
 /app/doc/
-/app/log/
-/app/ini/*_*.ini
+/app/entornos/
+/app/logs/
+/app/config.ini
 /app/mi-ayudante.exe
+/instalador.nsi
+/config.ini

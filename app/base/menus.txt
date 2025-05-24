@@ -1,0 +1,12 @@
+;Configuración Menús
+> | Gestionar Entornos... | pc.ico | funcion | MostrarGestionEntornos
+> | Nuevo Proyecto... | agregar.ico | funcion | CrearNuevoProyecto
+> ||||
+> | Proyectos | lista.ico | editar | [AppDir]\datos\[Entorno]_proyectos.txt
+> ||||
+> | Configuración | config.ico | editar | [AppDir]\entornos\[Entorno]\config.ini
+> | Menús | bloc.ico | editar | [AppDir]\entornos\[Entorno]\menus.txt
+> | Botones | bloc.ico | editar | [AppDir]\entornos\[Entorno]\botones.txt
+> | Favoritos | bloc.ico | editar | [AppDir]\entornos\[Entorno]\favoritos.txt
+> ||||
+> | Acerca de... | estrella.ico | funcion | MostrarAcercaDe

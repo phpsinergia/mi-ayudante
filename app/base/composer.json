@@ -1,0 +1,30 @@
+{
+    "name": "Nombre-Proyecto",
+	"description": "Descripcion-Proyecto",
+    "type": "project",
+    "license": "MIT",
+	"config": {
+        "optimize-autoloader": true,
+		"vendor-dir": "../vendor"
+	},
+    "authors": [
+        {
+            "name": "Rubén Araya Tagle",
+            "email": "rubenarayatagle@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2|^8.3",
+		"ext-mbstring": "*",
+		"ext-zip": "*",
+		"ext-gd": "*",
+        "ext-intl": "*",
+        "ext-gettext": "*",
+        "ext-mysqli": "*",
+        "ext-ftp": "*",
+		"phpsinergia/gestor-cli": "^1.0"
+    },
+	"bin": ["phpsinergia/cli.php"]
+}

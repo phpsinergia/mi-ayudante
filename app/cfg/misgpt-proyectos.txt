@@ -1,7 +1,0 @@
-AudioTrans | AudioTrans
-ConoceDoc | ConoceDoc
-Creagrama | Creagrama
-InvestigaDoc | InvestigaDoc
-PromptExperto | PromptExperto
-PsicoAnalizaDoc | PsicoAnalizaDoc
-PsicoEducArte | PsicoEducArte

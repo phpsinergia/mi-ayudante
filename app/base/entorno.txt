@@ -1,0 +1,21 @@
+;Configuración Editor de Entorno
+--Nombre|App=Nombre del entorno
+--Descripcion|App=Descripción
+--Autor|App=Autor
+--Version|App=Versión
+--ColorFondo|Gui=Color de fondo
+--ColorTexto|Gui=Color del texto
+--FuenteNombre|Gui=Fuente del texto
+--FuenteTamano|Gui=Tamaño fuente
+--Transparencia|Gui=Nivel transparencia
+--AnchoVentana|Gui=Ancho de ventana
+--AnchoListaProy|Gui=Ancho lista proyectos
+--MostrarFavoritos|Usuario=Mostrar favoritos
+--MisProyectos|Rutas=Ruta Mis-proyectos
+
+[OpcionesCampos]
+ColorFondo=White|Black|Gray|98fb98|b0e0e6|ffffbf
+ColorTexto=Black|White|Blue|Red|Gray
+FuenteNombre=Arial|Segoe UI|Verdana
+Transparencia=255|200|150
+MostrarFavoritos=0|1

@@ -1,1 +1,0 @@
-[Proyecto] | carpeta.ico | sistema | [MisProyectos]/[Proyecto]
