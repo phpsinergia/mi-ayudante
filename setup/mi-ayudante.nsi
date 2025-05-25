@@ -24,8 +24,8 @@
 !define APPDIR "..\app"
 !define LICENSE "LICENSE"
 !define README "LEEME.txt"
-!define UNINSTALL "Uninstall.exe"
-!define INSTALL "setup_miayudante_${LANZAMIENTO}.exe"
+!define UNINSTALL "Uninst.exe"
+!define INSTALL "setup_mi-ayudante_${LANZAMIENTO}.exe"
 
 !define MUI_ICON "${APPDIR}\${ICON}"
 !define MUI_HEADERIMAGE
@@ -60,6 +60,7 @@ SetCompressor lzma
   
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
+!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -114,7 +115,7 @@ Section "-hidden app"
 	CreateDirectory "${TOOLS}"
 	SetOutPath "${TOOLS}"
 	File "${TOOLS}\7za.exe"
-	File "${TOOLS}\ftp.exe"
+	;File "${TOOLS}\ftp.exe"
 
 	SetOutPath "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "" $INSTDIR
