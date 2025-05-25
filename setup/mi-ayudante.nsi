@@ -1,4 +1,8 @@
 ;--------------------------------
+; INSTALADOR DE MI-AYUDANTE
+;--------------------------------
+
+;--------------------------------
 ; INCLUDES
 
 !include "MUI2.nsh"
@@ -20,7 +24,7 @@
 !define APPDIR "..\app"
 !define LICENSE "LICENSE"
 !define README "LEEME.txt"
-!define UNINSTALL "desinstalar.exe"
+!define UNINSTALL "Uninstall.exe"
 !define INSTALL "setup_miayudante_${LANZAMIENTO}.exe"
 
 !define MUI_ICON "${APPDIR}\${ICON}"
@@ -106,10 +110,12 @@ Section "-hidden app"
 	SetOutPath "$INSTDIR\entornos\base"
 	File /r "${APPDIR}\base\entorno\*.*"
 	CreateDirectory "${VENDOR}"
+
 	CreateDirectory "${TOOLS}"
 	SetOutPath "${TOOLS}"
 	File "${TOOLS}\7za.exe"
 	File "${TOOLS}\ftp.exe"
+
 	SetOutPath "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "" $INSTDIR
 	WriteUninstaller "$INSTDIR\${UNINSTALL}"
