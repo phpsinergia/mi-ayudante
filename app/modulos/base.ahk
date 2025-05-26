@@ -17,9 +17,9 @@ CargarConfigIni() {
     EnvGet, disco, HOMEDRIVE
 	CfgIni := A_ScriptDir . "\entornos\" . valor . "\config.ini"
 	Config := {}
-	Config.Base := {AppDir: A_ScriptDir, Disco: disco, App: "", RutaProyecto: "", IdProyecto: 1, CfgIni: CfgIni, Entorno: valor, Lanzamiento: lanzamiento, RutaHerramientas: herramientas}
+	Config.Base := {AppDir: A_ScriptDir, Disco: disco, App: "", RutaProyecto: "", IdProyecto: 1, CfgIni: CfgIni, Entorno: valor, Lanzamiento: lanzamiento, RutaHerramientas: herramientas, Programa: "Mi-Ayudante", Desarrollador: "Rubén Araya Tagle"}
 	; Cargar valores desde CfgIni
-    local secciones := {App: {Nombre: "Mi-Ayudante", Descripcion: "", Autor: "", Version: "0.1"}, Usuario: {ProyectoActual: "", winX: 120, winY: 120, formX: 0, formY: 0, MostrarFavoritos: 0}, Gui: {AnchoVentana: 320, ColorFondo: "White", ColorTexto: "Black", FuenteNombre: "Segoe UI", FuenteTamano: 9, Transparencia: 255, MargenSup: 10, MargenInf: 10, MargenIzq: 10, AnchoListaProy: 200, AnchoTabsFavoritos: 260, AltoFavorito: 25, AnchoBotonBarra: 24, AltoBotonBarra: 24, PosListaProy: 70, PosOpcionFavoritos: 70}, Comandos: {CamposArchivo: "", CamposGuardar: "", DirTrabajo: "", ConsolaTitulo: "Consola CLI", AnchoForm: 320, AnchoCampo: 180, AnchoEtiq: 100},  Rutas: {MisProyectos: "", EditorTxt: "notepad.exe", ArchivoLogs: "registro.log", DefComandos: "", DefMenus: "", DefProyectos: "", DefBotones: "", DefFavoritos: "", ImgDir: "", Logo: ""}}
+    local secciones := {App: {Nombre: "Ayudante", Descripcion: "", Autor: "", Version: "0.1"}, Usuario: {ProyectoActual: "", winX: 120, winY: 120, formX: 0, formY: 0, MostrarFavoritos: 0}, Gui: {AnchoVentana: 320, ColorFondo: "White", ColorTexto: "Black", FuenteNombre: "Segoe UI", FuenteTamano: 9, Transparencia: 255, MargenSup: 10, MargenInf: 10, MargenIzq: 10, AnchoListaProy: 200, AnchoTabsFavoritos: 260, AltoFavorito: 25, AnchoBotonBarra: 24, AltoBotonBarra: 24, PosListaProy: 70, PosOpcionFavoritos: 70}, Comandos: {CamposArchivo: "", CamposGuardar: "", DirTrabajo: "", ConsolaTitulo: "Consola CLI", AnchoForm: 320, AnchoCampo: 180, AnchoEtiq: 100},  Rutas: {MisProyectos: "", EditorTxt: "notepad.exe", ArchivoLogs: "registro.log", DefComandos: "", DefMenus: "", DefProyectos: "", DefBotones: "", DefFavoritos: "", ImgDir: "", Logo: ""}}
     for seccion, claves in secciones {
         Config[seccion] := {}
         for clave, valorDefault in claves {
@@ -33,8 +33,6 @@ CargarConfigIni() {
             Config[seccion][clave] := valor
         }
     }
-    if (Config.App.Autor != "")
-        Config.App.Autor := A_YYYY . " © " . Config.App.Autor
 }
 
 AplicarVariablesEnRuta(ruta) {

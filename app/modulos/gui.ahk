@@ -64,6 +64,7 @@ MostrarVentanaApp() {
 	local appNombre := Config.App.Nombre
 	local winX := Config.Usuario.winX
 	local winY := Config.Usuario.winY
+	local appPrograma := Config.Base.Programa
 
 	; Configurar la Ventana
 	Gui, +AlwaysOnTop
@@ -90,7 +91,7 @@ MostrarVentanaApp() {
 
 	; Agregar Barra de Estado
 	Gui, Font, Normal
-	Gui, Add, StatusBar,, Mi Ayudante: %appNombre%
+	Gui, Add, StatusBar,, %appPrograma%: %appNombre%
 
 	; Desplegar la GUI
 	SysGet, screenW, 78
@@ -148,6 +149,8 @@ MostrarAcercaDe() {
 	local appDescripcion := Config.App.Descripcion
 	local appAutor := Config.App.Autor
 	local appLanzamiento := Config.Base.Lanzamiento
+	local appPrograma := Config.Base.Programa
+	local appDesarrollador := "2024-" . A_YYYY . " © " . Config.Base.Desarrollador
 	local fuenteTamano := Config.Gui.FuenteTamano
 	local fuenteNombre := Config.Gui.FuenteNombre
 	Gui, Acerca:New
@@ -157,17 +160,19 @@ MostrarAcercaDe() {
 	if FileExist(rutaLogo)
 		Gui, Acerca:Add, Picture, x110 y%y% w72 h72, %rutaLogo%
 	y += 80
-	Gui, Acerca:Add, Text, x20 y%y% w260 Center, Mi Ayudante - %appLanzamiento%
+	Gui, Acerca:Add, Text, x20 y%y% w260 Center, %appPrograma% - %appLanzamiento%
 	y += 22
+	Gui, Acerca:Add, Text, x20 y%y% w260 Center, %appDesarrollador%
+	y += 30
 	Gui, Acerca:Font, Bold
-	Gui, Acerca:Add, Text, x20 y%y% w260 Center, Entorno: %appNombre%
+	Gui, Acerca:Add, Text, x20 y%y% w260 Center, %appNombre%
 	Gui, Acerca:Font, Normal
 	y += 18
 	Gui, Acerca:Add, Text, x20 y%y% w260 Center, Versión: %appVersion%
 	y += 22
 	Gui, Acerca:Add, Text, x20 y%y% w260 Center, %appDescripcion%
 	y += 60
-	Gui, Acerca:Add, Text, x20 y%y% w260 Center, %appAutor%
+	Gui, Acerca:Add, Text, x20 y%y% w260 Center, Autor: %appAutor%
 	y += 25
 	Gui, Acerca:Add, Button, x110 y%y% w80 gCerrarAcercaDe, Cerrar
 	y += 40
