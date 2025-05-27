@@ -1,8 +1,0 @@
-ffmpeg|FFmpeg|https://masexperto.cl/paquetes/ffmpeg.zip
-gettext|Gettext|https://masexperto.cl/paquetes/gettext.zip
-mkcert|Mkcert|https://masexperto.cl/paquetes/mkcert.zip
-pandoc|Pandoc|https://masexperto.cl/paquetes/pandoc.zip
-pdftk|Pdftk|https://masexperto.cl/paquetes/pdftk.zip
-scss|Scss|https://masexperto.cl/paquetes/scss.zip
-sqlite|Sqlite|https://masexperto.cl/paquetes/sqlite.zip
-wkhtmltopdf|Wkhtmltopdf|https://masexperto.cl/paquetes/wkhtmltopdf.zip

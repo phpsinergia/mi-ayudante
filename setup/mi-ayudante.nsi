@@ -9,23 +9,21 @@
 !include "FileFunc.nsh"
 !include "nsDialogs.nsh"
 !include "logiclib.nsh"
-!include "WinMessages.nsh"
 !include "Sections.nsh"
-!include "StrFunc.nsh"
 
 ;--------------------------------
 ; DEFINICIONES
 
 !define LANZAMIENTO "1.0.0"
 
-!define NAME "Mi-Ayudante"
+!define NAME "Mi Ayudante"
 !define SLUG "${NAME} ${LANZAMIENTO}"
-!define APPFILE "mi-ayudante.exe"
+!define APPFILE "ayudante.exe"
 !define APPDIR "..\app"
 !define LICENSE "LICENSE"
 !define README "LEEME.txt"
-!define UNINSTALL "Uninstall.exe"
-!define INSTALL "setup_mi-ayudante_${LANZAMIENTO}.exe"
+!define UNINSTALL "Desinstalar.exe"
+!define INSTALL "setup_miayudante_${LANZAMIENTO}.exe"
 !define ICON "img\favicon.ico"
 !define TARGET "home\mi-ayudante"
 !define VENDOR "home\vendor"
@@ -49,15 +47,13 @@
 !define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
+!define MUI_COMPONENTSPAGE_NODESC
 
 ;--------------------------------
 ; DECLARACIONES
 
 Var INSTDRIVE
 Var DriveCombo
-
-!insertmacro DriveSpace
-!insertmacro GetSize
 
 Unicode true
 Name "${NAME}"
@@ -72,7 +68,10 @@ SetCompressor lzma
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
+
+!insertmacro MUI_PAGE_COMPONENTS
 Page custom SelectDrive SetInstallPath
+
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -102,6 +101,7 @@ Function un.RMDirUP
 FunctionEnd
 
 Function SelectDrive
+	!insertmacro DriveSpace
     nsDialogs::Create 1018
     Pop $0
     ${If} $0 == error
@@ -142,7 +142,8 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-Section "Install"
+Section "Programa: Mi Ayudante"
+	;Debería ser obligarorio
 	SetOutPath "$INSTDIR"
 	File "config.ini"
 	File "${APPDIR}\${APPFILE}"
@@ -150,7 +151,7 @@ Section "Install"
 	SetOutPath "$INSTDIR\base"
 	File /r "${APPDIR}\base\*.*"
 	SetOutPath "$INSTDIR\img"
-	File "${APPDIR}\img\*.*"
+	File /r "${APPDIR}\img\*.*"
 	CreateDirectory "$INSTDIR\compartidos"
 	CreateDirectory "$INSTDIR\logs"
 	CreateDirectory "$INSTDIR\respaldos"
@@ -165,21 +166,63 @@ Section "Install"
 	SetOutPath "$INSTDRIVE\${TOOLS}"
 	File "C:\${TOOLS}\7za.exe"
 	SetOutPath "$INSTDIR"
-	${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
-	IntFmt $0 "0x%08X" $0
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayIcon" "$INSTDIR\${ICON}"
 	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayVersion" "${LANZAMIENTO}"
 	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "UninstallString" "$INSTDIR\${UNINSTALL}"
-	WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "EstimatedSize" "$0"
 	WriteUninstaller "$INSTDIR\${UNINSTALL}"
-SectionEnd
-
-Section "Access Direct"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
+SectionEnd
+
+Section "Herramienta: CLI Gettext"
+	;gettext|Gettext|6225912|https://masexperto.cl/phpsinergia/herramientas/gettext.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\gettext"
+	File /r "C:\${TOOLS}\gettext\*.*"
+SectionEnd
+
+Section "Herramienta: CLI Mkcert"
+	;mkcert|Mkcert|5259498|https://masexperto.cl/phpsinergia/herramientas/mkcert.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\mkcert"
+	File /r "C:\${TOOLS}\mkcert\*.*"
+SectionEnd
+
+Section "Herramienta: CLI Pandoc"
+	;pandoc|Pandoc|221922935|https://masexperto.cl/phpsinergia/herramientas/pandoc.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\pandoc"
+	File /r "C:\${TOOLS}\pandoc\*.*"
+SectionEnd
+
+Section "Herramienta: CLI PDFtk"
+	;pdftk|PDFtk|9868825|https://masexperto.cl/phpsinergia/herramientas/pdftk.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\pdftk"
+	File /r "C:\${TOOLS}\pdftk\*.*"
+SectionEnd
+
+Section "Herramienta: CLI SQLite"
+	;sqlite|SQLite|14599168|https://masexperto.cl/phpsinergia/herramientas/sqlite.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\sqlite"
+	File /r "C:\${TOOLS}\sqlite\*.*"
+SectionEnd
+
+Section "Herramienta: CLI Wkhtmltopdf"
+	;wkhtmltopdf|Wkhtmltopdf|90657705|https://masexperto.cl/phpsinergia/herramientas/wkhtmltopdf.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
+	File /r "C:\${TOOLS}\wkhtmltopdf\*.*"
+SectionEnd
+
+Section "Herramienta: CLI FFmpeg"
+	;ffmpeg|FFmpeg|38011904|https://masexperto.cl/phpsinergia/herramientas/ffmpeg.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\ffmpeg"
+	File /r "C:\${TOOLS}\ffmpeg\*.*"
+SectionEnd
+
+Section "Herramienta: SCSS Bootstrap"
+	;scss|SCSS|11857488|https://masexperto.cl/phpsinergia/herramientas/scss.zip
+	SetOutPath "$INSTDRIVE\${TOOLS}\scss"
+	File /r "C:\${TOOLS}\scss\*.*"
 SectionEnd
 
 Section "Uninstall"
