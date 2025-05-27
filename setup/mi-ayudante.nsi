@@ -6,30 +6,31 @@
 ; INCLUDES
 
 !include "MUI2.nsh"
+!include "LogicLib.nsh"
 !include "FileFunc.nsh"
 !include "nsDialogs.nsh"
-!include "logiclib.nsh"
 !include "Sections.nsh"
 
 ;--------------------------------
 ; DEFINICIONES
 
 !define LANZAMIENTO "1.0.0"
-
 !define NAME "Mi Ayudante"
+!define PUBLISHER "Ruben Araya Tagle"
+!define SERVER "https://masexperto.cl/phpsinergia/herramientas"
+!define SRCDRIVE "C:"
+!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define SLUG "${NAME} ${LANZAMIENTO}"
-!define APPFILE "ayudante.exe"
-!define APPDIR "..\app"
-!define LICENSE "LICENSE"
-!define README "LEEME.txt"
-!define UNINSTALL "Desinstalar.exe"
 !define INSTALL "setup_miayudante_${LANZAMIENTO}.exe"
-!define ICON "img\favicon.ico"
+!define UNINSTALL "Desinstalar.exe"
+!define APPFILE "ayudante.exe"
 !define TARGET "home\mi-ayudante"
 !define VENDOR "home\vendor"
 !define TOOLS "home\herramientas"
-!define SERVER "masexperto.cl"
-!define PUBLISHER "Ruben Araya Tagle"
+!define APPDIR "..\app"
+!define LICENSE "LICENSE"
+!define README "LEEME.txt"
+!define ICON "img\favicon.ico"
 
 !define MUI_ICON "${APPDIR}\${ICON}"
 !define MUI_HEADERIMAGE
@@ -68,10 +69,8 @@ SetCompressor lzma
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
-
 !insertmacro MUI_PAGE_COMPONENTS
 Page custom SelectDrive SetInstallPath
-
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -140,10 +139,27 @@ Function SetInstallPath
 FunctionEnd
 
 ;--------------------------------
+; MACRO DESCARGA Y DESCOMPRESIÓN
+
+!macro DownloadAndExtract TOOL_ID TOOL_NAME
+Section "${TOOL_NAME}" SEC_${TOOL_ID}
+    SetOutPath "$TEMP"
+    inetc::get /TIMEOUT=30000 /RESUME "" "${SERVER}/${TOOL_ID}.zip" "$TEMP\${TOOL_ID}.zip" /END
+    Pop $0
+    StrCmp $0 "OK" +3
+        MessageBox MB_ICONSTOP "Error al descargar ${TOOL_NAME}: $0"
+        Abort
+    CreateDirectory "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+    nsExec::Exec '"$INSTDRIVE\${TOOLS}\7za.exe" x "$TEMP\${TOOL_ID}.zip" -o"$INSTDRIVE\${TOOLS}\${TOOL_ID}" -y'
+    Delete "$TEMP\${TOOL_ID}.zip"
+SectionEnd
+!macroend
+
+;--------------------------------
 ; SECCIONES
 
 Section "Programa: Mi Ayudante"
-	;Debería ser obligarorio
+	SectionIn RO
 	SetOutPath "$INSTDIR"
 	File "config.ini"
 	File "${APPDIR}\${APPFILE}"
@@ -164,66 +180,28 @@ Section "Programa: Mi Ayudante"
 	CreateDirectory "$INSTDRIVE\${VENDOR}"
 	CreateDirectory "$INSTDRIVE\${TOOLS}"
 	SetOutPath "$INSTDRIVE\${TOOLS}"
-	File "C:\${TOOLS}\7za.exe"
-	SetOutPath "$INSTDIR"
+	File "${SRCDRIVE}\${TOOLS}\7za.exe"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
-	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayName" "${NAME}"
-	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayIcon" "$INSTDIR\${ICON}"
-	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "DisplayVersion" "${LANZAMIENTO}"
-	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}" "UninstallString" "$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${LANZAMIENTO}"
+	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDIR\${UNINSTALL}"
 	WriteUninstaller "$INSTDIR\${UNINSTALL}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 SectionEnd
 
-Section "Herramienta: CLI Gettext"
-	;gettext|Gettext|6225912|https://masexperto.cl/phpsinergia/herramientas/gettext.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\gettext"
-	File /r "C:\${TOOLS}\gettext\*.*"
-SectionEnd
-
-Section "Herramienta: CLI Mkcert"
-	;mkcert|Mkcert|5259498|https://masexperto.cl/phpsinergia/herramientas/mkcert.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\mkcert"
-	File /r "C:\${TOOLS}\mkcert\*.*"
-SectionEnd
-
-Section "Herramienta: CLI Pandoc"
-	;pandoc|Pandoc|221922935|https://masexperto.cl/phpsinergia/herramientas/pandoc.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\pandoc"
-	File /r "C:\${TOOLS}\pandoc\*.*"
-SectionEnd
-
-Section "Herramienta: CLI PDFtk"
-	;pdftk|PDFtk|9868825|https://masexperto.cl/phpsinergia/herramientas/pdftk.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\pdftk"
-	File /r "C:\${TOOLS}\pdftk\*.*"
-SectionEnd
-
-Section "Herramienta: CLI SQLite"
-	;sqlite|SQLite|14599168|https://masexperto.cl/phpsinergia/herramientas/sqlite.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\sqlite"
-	File /r "C:\${TOOLS}\sqlite\*.*"
-SectionEnd
-
-Section "Herramienta: CLI Wkhtmltopdf"
-	;wkhtmltopdf|Wkhtmltopdf|90657705|https://masexperto.cl/phpsinergia/herramientas/wkhtmltopdf.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
-	File /r "C:\${TOOLS}\wkhtmltopdf\*.*"
-SectionEnd
-
-Section "Herramienta: CLI FFmpeg"
-	;ffmpeg|FFmpeg|38011904|https://masexperto.cl/phpsinergia/herramientas/ffmpeg.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\ffmpeg"
-	File /r "C:\${TOOLS}\ffmpeg\*.*"
-SectionEnd
-
-Section "Herramienta: SCSS Bootstrap"
-	;scss|SCSS|11857488|https://masexperto.cl/phpsinergia/herramientas/scss.zip
-	SetOutPath "$INSTDRIVE\${TOOLS}\scss"
-	File /r "C:\${TOOLS}\scss\*.*"
-SectionEnd
+SectionGroup "Herramientas"
+	!insertmacro DownloadAndExtract gettext "CLI: Gettext"
+	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert"
+	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc"
+	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk"
+	!insertmacro DownloadAndExtract sqlite "CLI: SQLite"
+	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf"
+	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg"
+	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap"
+SectionGroupEnd
 
 Section "Uninstall"
 	Delete "$INSTDIR\config.ini"
@@ -236,5 +214,5 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"
 	DeleteRegKey /ifempty HKCU "Software\${NAME}"
-	DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+	DeleteRegKey HKCU "${HKCUNI}"
 SectionEnd
