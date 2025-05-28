@@ -138,11 +138,26 @@ Function SetInstallPath
     StrCpy $INSTDIR "$INSTDRIVE\${TARGET}"
 FunctionEnd
 
+Function AddToUserPath
+    Exch $0
+    Push $1
+    ReadRegStr $1 HKCU "Environment" "Path"
+    ${If} $1 != ""
+        StrCpy $1 "$1;$0"
+    ${Else}
+        StrCpy $1 "$0"
+    ${EndIf}
+    WriteRegExpandStr HKCU "Environment" "Path" $1
+    System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
+    Pop $1
+FunctionEnd
+
 ;--------------------------------
 ; MACRO DESCARGA Y DESCOMPRESIÓN
 
-!macro DownloadAndExtract TOOL_ID TOOL_NAME
+!macro DownloadAndExtract TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 Section "${TOOL_NAME}" SEC_${TOOL_ID}
+    AddSize ${TOOL_SIZE_KB}
     SetOutPath "$TEMP"
     inetc::get /TIMEOUT=30000 /RESUME "" "${SERVER}/${TOOL_ID}.zip" "$TEMP\${TOOL_ID}.zip" /END
     Pop $0
@@ -152,6 +167,10 @@ Section "${TOOL_NAME}" SEC_${TOOL_ID}
     CreateDirectory "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
     nsExec::Exec '"$INSTDRIVE\${TOOLS}\7za.exe" x "$TEMP\${TOOL_ID}.zip" -o"$INSTDRIVE\${TOOLS}\${TOOL_ID}" -y'
     Delete "$TEMP\${TOOL_ID}.zip"
+    ${If} ${ADD_TO_PATH} = 1
+        Push "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+        Call AddToUserPath
+    ${EndIf}
 SectionEnd
 !macroend
 
@@ -193,14 +212,14 @@ Section "Programa: Mi Ayudante"
 SectionEnd
 
 SectionGroup "Herramientas"
-	!insertmacro DownloadAndExtract gettext "CLI: Gettext"
-	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert"
-	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc"
-	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk"
-	!insertmacro DownloadAndExtract sqlite "CLI: SQLite"
-	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf"
-	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg"
-	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap"
+	!insertmacro DownloadAndExtract gettext "CLI: Gettext" 6080 1
+	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert" 5136 0
+	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc" 216722 1
+	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk" 9638 1
+	!insertmacro DownloadAndExtract sqlite "CLI: SQLite" 14257 1
+	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf" 88533 1
+	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg" 37121 1
+	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap" 11560 0
 SectionGroupEnd
 
 Section "Uninstall"
