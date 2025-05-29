@@ -10,32 +10,35 @@
 !include "FileFunc.nsh"
 !include "nsDialogs.nsh"
 !include "Sections.nsh"
+!include "WinMessages.nsh"
+!include "StrFunc.nsh"
 
 ;--------------------------------
-; DEFINICIONES
+; DEFINICIONES BÁSICAS
 
-!define LANZAMIENTO "1.0.0"
+!define VERSION "1.0.0"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Ruben Araya Tagle"
-!define SERVER "https://masexperto.cl/phpsinergia/herramientas"
 !define SRCDRIVE "C:"
-!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define SLUG "${NAME} ${LANZAMIENTO}"
-!define INSTALL "setup_miayudante_${LANZAMIENTO}.exe"
-!define UNINSTALL "Desinstalar.exe"
 !define APPFILE "ayudante.exe"
 !define TARGET "home\mi-ayudante"
 !define VENDOR "home\vendor"
 !define TOOLS "home\herramientas"
-!define APPDIR "..\app"
 !define LICENSE "LICENSE"
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
+!define APPDIR "..\app"
+!define UNINSTALL "Desinstalar.exe"
+!define INSTALL "..\dist\setup_miayudante_${VERSION}.exe"
+!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+
+;--------------------------------
+; DEFINICIONES INTERFAZ
 
 !define MUI_ICON "${APPDIR}\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "${SLUG}"
+!define MUI_WELCOMEPAGE_TITLE "${NAME} ${VERSION}"
 !define MUI_LICENSEPAGE_CHECKBOX
 !define MUI_LICENSEPAGE_CHECKBOX_TEXT "Acepto la licencia"
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
@@ -51,14 +54,22 @@
 !define MUI_COMPONENTSPAGE_NODESC
 
 ;--------------------------------
-; DECLARACIONES
+; VARIABLES
 
 Var INSTDRIVE
+Var SERVER
+Var ServerInput
 Var DriveCombo
+Var GetInstalledSize.total
+Var un_ToolsCheckboxState
+Var un_ToolsCheckbox
+
+;--------------------------------
+; CONFIGURACION GENERAL
 
 Unicode true
 Name "${NAME}"
-OutFile "..\dist\${INSTALL}"
+OutFile "${INSTALL}"
 InstallDir "$INSTDRIVE\${TARGET}"
 InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
 RequestExecutionLevel user
@@ -71,33 +82,17 @@ SetCompressor lzma
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
 !insertmacro MUI_PAGE_COMPONENTS
 Page custom SelectDrive SetInstallPath
+Page custom EnterDomain SetEnterDomain
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
+
 !insertmacro MUI_UNPAGE_CONFIRM
+UninstPage custom un.ConfirmTools un.ReadToolsChoice
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Spanish"
 
 ;--------------------------------
-; FUNCIONES
-
-Function LaunchApp
-	ExecShell "" "$INSTDIR\${APPFILE}"
-FunctionEnd
-
-Function un.RMDirUP
-	!define RMDirUP '!insertmacro RMDirUPCall'
-	!macro RMDirUPCall _PATH
-		push '${_PATH}'
-		Call un.RMDirUP
-	!macroend
-	ClearErrors
-	Exch $0
-	RMDir "$0\.."
-	IfErrors Skip
-		${RMDirUP} "$0\.."
-	Skip:
-	Pop $0
-FunctionEnd
+; FUNCIONES INSTALACIÓN
 
 Function SelectDrive
 	!insertmacro DriveSpace
@@ -106,7 +101,7 @@ Function SelectDrive
     ${If} $0 == error
         Abort
     ${EndIf}
-    ${NSD_CreateLabel} 0 0 100% 12u "Selecciona la unidad donde instalar:"
+    ${NSD_CreateLabel} 0 0 100% 12u "Seleccione la Unidad donde instalar:"
     Pop $1
     ${NSD_CreateComboBox} 0 16u 100% 12u ""
     Pop $DriveCombo
@@ -143,12 +138,110 @@ Function AddToUserPath
     Push $1
     ReadRegStr $1 HKCU "Environment" "Path"
     ${If} $1 != ""
-        StrCpy $1 "$1;$0"
+        ${If} $1 != "" 
+		${AndIf} $1 != $0 
+		${AndIf} $1 != "$0;" 
+		${AndIf} $1 != ";$0" 
+		${AndIf} $1 != ";$0;" 
+		${AndIf} $1 != "$0"
+            StrCpy $1 "$1;$0"
+        ${Else}
+            Pop $1
+            Return
+        ${EndIf}
     ${Else}
         StrCpy $1 "$0"
     ${EndIf}
     WriteRegExpandStr HKCU "Environment" "Path" $1
     System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
+    Pop $1
+FunctionEnd
+
+Function GetInstalledSize
+	Push $0
+	Push $1
+	StrCpy $GetInstalledSize.total 0
+	${ForEach} $1 0 256 + 1
+		${if} ${SectionIsSelected} $1
+			SectionGetSize $1 $0
+			IntOp $GetInstalledSize.total $GetInstalledSize.total + $0
+		${Endif}
+		${if} ${errors}
+			${break}
+		${Endif}
+	${Next}
+	ClearErrors
+	Pop $1
+	Pop $0
+	IntFmt $GetInstalledSize.total "0x%08X" $GetInstalledSize.total
+	Push $GetInstalledSize.total
+FunctionEnd
+
+Function EnterDomain
+	StrCpy $SERVER "masexperto.cl"
+    nsDialogs::Create 1018
+    Pop $0
+    ${NSD_CreateLabel} 0 0 100% 12u "Dominio del Servidor de Herramientas:"
+    Pop $1
+    ${NSD_CreateText} 0 14u 100% 12u "$SERVER"
+    Pop $ServerInput
+    nsDialogs::Show
+FunctionEnd
+
+Function SetEnterDomain
+    ${NSD_GetText} $ServerInput $SERVER
+FunctionEnd
+
+Function LaunchApp
+	ExecShell "" "$INSTDIR\${APPFILE}"
+FunctionEnd
+
+;--------------------------------
+; FUNCIONES DESINSTALACIÓN
+
+${unStrRep}
+
+Function un.ConfirmTools
+    nsDialogs::Create 1018
+    Pop $0
+    ${NSD_CreateLabel} 0 0 100% 12u "Desinstalar las Herramientas externas"
+    Pop $1
+    ${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todo"
+    Pop $un_ToolsCheckbox
+    nsDialogs::Show
+FunctionEnd
+
+Function un.ReadToolsChoice
+	${NSD_GetState} $un_ToolsCheckbox $un_ToolsCheckboxState
+FunctionEnd
+
+Function un.RMDirUP
+	!define RMDirUP '!insertmacro RMDirUPCall'
+	!macro RMDirUPCall _PATH
+		push '${_PATH}'
+		Call un.RMDirUP
+	!macroend
+	ClearErrors
+	Exch $0
+	RMDir "$0\.."
+	IfErrors Skip
+		${RMDirUP} "$0\.."
+	Skip:
+	Pop $0
+FunctionEnd
+
+Function un.RemoveFromUserPath
+    Exch $0
+    Push $1
+    Push $2
+    ReadRegStr $1 HKCU "Environment" "Path"
+    StrCpy $2 "$1"
+    Push "$2"
+    Push "$0;"
+	${unStrRep} $1 "$2" "$0" ""
+    WriteRegExpandStr HKCU "Environment" "Path" "$1"
+    System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
+    Pop $2
     Pop $1
 FunctionEnd
 
@@ -159,13 +252,17 @@ FunctionEnd
 Section "${TOOL_NAME}" SEC_${TOOL_ID}
     AddSize ${TOOL_SIZE_KB}
     SetOutPath "$TEMP"
-    inetc::get /TIMEOUT=30000 /RESUME "" "${SERVER}/${TOOL_ID}.zip" "$TEMP\${TOOL_ID}.zip" /END
+    inetc::get /TIMEOUT=30000 /RESUME "" "https://$SERVER/phpsinergia/herramientas/${TOOL_ID}.zip" "$TEMP\${TOOL_ID}.zip" /END
     Pop $0
     StrCmp $0 "OK" +3
         MessageBox MB_ICONSTOP "Error al descargar ${TOOL_NAME}: $0"
         Abort
     CreateDirectory "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    nsExec::Exec '"$INSTDRIVE\${TOOLS}\7za.exe" x "$TEMP\${TOOL_ID}.zip" -o"$INSTDRIVE\${TOOLS}\${TOOL_ID}" -y'
+    SetOutPath "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+    Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+    Pop $0
+    StrCmp $0 "success" +2
+        MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $0"
     Delete "$TEMP\${TOOL_ID}.zip"
     ${If} ${ADD_TO_PATH} = 1
         Push "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
@@ -177,10 +274,13 @@ SectionEnd
 ;--------------------------------
 ; SECCIONES
 
-Section "Programa: Mi Ayudante"
+Section "Mi Ayudante"
 	SectionIn RO
 	SetOutPath "$INSTDIR"
+
+	;TODO: En config.ini [Base], establecer RutaHerramientas = $INSTDRIVE\${TOOLS}
 	File "config.ini"
+
 	File "${APPDIR}\${APPFILE}"
 	File "${APPDIR}\${README}"
 	SetOutPath "$INSTDIR\base"
@@ -199,30 +299,34 @@ Section "Programa: Mi Ayudante"
 	CreateDirectory "$INSTDRIVE\${VENDOR}"
 	CreateDirectory "$INSTDRIVE\${TOOLS}"
 	SetOutPath "$INSTDRIVE\${TOOLS}"
-	File "${SRCDRIVE}\${TOOLS}\7za.exe"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDIR\${ICON}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${LANZAMIENTO}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDIR\${UNINSTALL}"
+	Call GetInstalledSize
+	Pop $0
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$0"
 	WriteUninstaller "$INSTDIR\${UNINSTALL}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
 SectionEnd
 
-SectionGroup "Herramientas"
-	!insertmacro DownloadAndExtract gettext "CLI: Gettext" 6080 1
-	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert" 5136 0
-	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc" 216722 1
-	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk" 9638 1
-	!insertmacro DownloadAndExtract sqlite "CLI: SQLite" 14257 1
-	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf" 88533 1
-	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg" 37121 1
-	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap" 11560 0
+SectionGroup "Herramientas externas"
+	!insertmacro DownloadAndExtract 7za "CLI: 7za v4.42" 466 1
+	!insertmacro DownloadAndExtract gettext "CLI: Gettext v0.19.8" 6080 1
+	!insertmacro DownloadAndExtract sqlite "CLI: SQLite v3.49.1" 14257 1
+	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert v1.4.1" 5136 0
+	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk v2.02" 9638 1
+	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc v3.6.4" 216722 1
+	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf v0.12.6" 88533 1
+	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg v7.1.1" 37121 1
+	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap v5.3.1" 11560 0
 SectionGroupEnd
 
 Section "Uninstall"
+	StrCpy $INSTDRIVE $INSTDIR 2
 	Delete "$INSTDIR\config.ini"
 	Delete "$INSTDIR\${LICENSE}"
 	Delete "$INSTDIR\${APPFILE}"
@@ -232,6 +336,40 @@ Section "Uninstall"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"
-	DeleteRegKey /ifempty HKCU "Software\${NAME}"
+	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
+	StrCmp $un_ToolsCheckboxState "1" 0 Done
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\mkcert"
+	RMDir /r "$INSTDRIVE\${TOOLS}\scss"
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\7za"
+	Push "$INSTDRIVE\${TOOLS}\7za"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\gettext"
+	Push "$INSTDRIVE\${TOOLS}\gettext"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\pandoc"
+	Push "$INSTDRIVE\${TOOLS}\pandoc"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\pdftk"
+	Push "$INSTDRIVE\${TOOLS}\pdftk"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\sqlite"
+	Push "$INSTDRIVE\${TOOLS}\sqlite"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
+	Push "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\ffmpeg"
+	Push "$INSTDRIVE\${TOOLS}\ffmpeg"
+	Call un.RemoveFromUserPath
+
+Done:
 SectionEnd
