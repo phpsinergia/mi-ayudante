@@ -12,6 +12,7 @@
 !include "Sections.nsh"
 !include "WinMessages.nsh"
 !include "StrFunc.nsh"
+!include "tools.nsh"
 
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
@@ -80,12 +81,8 @@ SetCompressor lzma
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
+Page custom ConfigPage SaveConfigPage
 !insertmacro MUI_PAGE_COMPONENTS
-
-;TODO: Consolidar en una sola pagina
-Page custom SelectDrive SetInstallPath
-Page custom EnterDomain SetEnterDomain
-
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -96,16 +93,16 @@ UninstPage custom un.ConfirmTools un.ReadToolsChoice
 ;--------------------------------
 ; FUNCIONES INSTALACIÓN
 
-Function SelectDrive
-	!insertmacro DriveSpace
+Function ConfigPage
     nsDialogs::Create 1018
     Pop $0
     ${If} $0 == error
         Abort
     ${EndIf}
-    ${NSD_CreateLabel} 0 0 100% 12u "Seleccione la Unidad donde instalar:"
+    ; --- Label + Combo de unidades ---
+    ${NSD_CreateLabel} 0 0 100% 12u "Unidad donde instalar:"
     Pop $1
-    ${NSD_CreateComboBox} 0 16u 100% 12u ""
+    ${NSD_CreateComboBox} 0 14u 100% 12u ""
     Pop $DriveCombo
     StrCpy $R0 "A"
     StrCpy $R9 ""
@@ -126,13 +123,19 @@ NextDrive:
     IntOp $9 $9 + 1
     ${IfThen} $9 < 26 ${|} Goto DriveLoop ${|}
     ${NSD_CB_SelectString} $DriveCombo "C:\"
+    ; --- Label + Input para dominio ---
+    ${NSD_CreateLabel} 0 36u 100% 12u "Dominio del Servidor de Herramientas:"
+    Pop $2
+    ${NSD_CreateText} 0 50u 100% 12u "$SERVER"
+    Pop $ServerInput
     nsDialogs::Show
 FunctionEnd
 
-Function SetInstallPath
+Function SaveConfigPage
     ${NSD_GetText} $DriveCombo $0
     StrCpy $INSTDRIVE $0 2
     StrCpy $INSTDIR "$INSTDRIVE\${TARGET}"
+    ${NSD_GetText} $ServerInput $SERVER
 FunctionEnd
 
 Function AddToUserPath
@@ -177,21 +180,6 @@ Function GetInstalledSize
 	Pop $0
 	IntFmt $GetInstalledSize.total "0x%08X" $GetInstalledSize.total
 	Push $GetInstalledSize.total
-FunctionEnd
-
-Function EnterDomain
-	;StrCpy $SERVER "masexperto.cl"
-    nsDialogs::Create 1018
-    Pop $0
-    ${NSD_CreateLabel} 0 0 100% 12u "Dominio del Servidor de Herramientas:"
-    Pop $1
-    ${NSD_CreateText} 0 14u 100% 12u "$SERVER"
-    Pop $ServerInput
-    nsDialogs::Show
-FunctionEnd
-
-Function SetEnterDomain
-    ${NSD_GetText} $ServerInput $SERVER
 FunctionEnd
 
 Function LaunchApp
@@ -248,7 +236,7 @@ Function un.RemoveFromUserPath
 FunctionEnd
 
 ;--------------------------------
-; MACRO DESCARGA Y DESCOMPRESIÓN
+; MACROS
 
 !macro DownloadAndExtract TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 Section "${TOOL_NAME}" SEC_${TOOL_ID}
@@ -273,16 +261,22 @@ Section "${TOOL_NAME}" SEC_${TOOL_ID}
 SectionEnd
 !macroend
 
+!macro UninstallTool TOOL_ID
+    RMDir /r "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+    Push "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
+    Call un.RemoveFromUserPath
+!macroend
+
 ;--------------------------------
 ; SECCIONES
 
 Section "Mi Ayudante"
 	SectionIn RO
 	SetOutPath "$INSTDIR"
-
-	;TODO: En config.ini [Base], establecer RutaHerramientas = $INSTDRIVE\${TOOLS}
-	File "config.ini"
-
+	IfFileExists $INSTDIR\config.ini +2 0
+		File "config.ini"
+	WriteINIStr $INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE\${TOOLS}
+	WriteINIStr $INSTDIR\config.ini Base Lanzamiento ${VERSION}
 	File "${APPDIR}\${APPFILE}"
 	File "${APPDIR}\${README}"
 	SetOutPath "$INSTDIR\base"
@@ -294,21 +288,25 @@ Section "Mi Ayudante"
 	CreateDirectory "$INSTDIR\respaldos"
 	CreateDirectory "$INSTDIR\datos"
 	SetOutPath "$INSTDIR\datos"
-	File /oname=base_proyectos.txt ${APPDIR}\base\proyectos.txt
+	IfFileExists $INSTDIR\datos\basico_proyectos.txt +2 0
+		File /oname=basico_proyectos.txt ${APPDIR}\base\proyectos.txt
 	CreateDirectory "$INSTDIR\entornos\basico"
 	SetOutPath "$INSTDIR\entornos\basico"
 	File /r "${APPDIR}\base\entorno\*.*"
 	CreateDirectory "$INSTDRIVE\${VENDOR}"
 	CreateDirectory "$INSTDRIVE\${TOOLS}"
 	SetOutPath "$INSTDRIVE\${TOOLS}"
+	SetOutPath "$INSTDIR"
+	Call GetInstalledSize
+	Pop $0
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
+	WriteRegStr HKCU "Software\${NAME}" "Tools_Dir" "$INSTDRIVE\${TOOLS}"
+	WriteRegStr HKCU "Software\${NAME}" "Vendor_Dir" "$INSTDRIVE\${VENDOR}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDIR\${UNINSTALL}"
-	Call GetInstalledSize
-	Pop $0
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$0"
 	WriteUninstaller "$INSTDIR\${UNINSTALL}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
@@ -316,18 +314,7 @@ Section "Mi Ayudante"
 SectionEnd
 
 SectionGroup "Herramientas externas"
-
-	;TODO: ¿Externalizar la lista de herramientas a un archivo de texto? ¿Usar en Uninstall?
-
-	!insertmacro DownloadAndExtract 7za "CLI: 7za v4.42" 466 1
-	!insertmacro DownloadAndExtract gettext "CLI: Gettext v0.19.8" 6080 1
-	!insertmacro DownloadAndExtract sqlite "CLI: SQLite v3.49.1" 14257 1
-	!insertmacro DownloadAndExtract mkcert "CLI: Mkcert v1.4.1" 5136 0
-	!insertmacro DownloadAndExtract pdftk "CLI: PDFtk v2.02" 9638 1
-	!insertmacro DownloadAndExtract pandoc "CLI: Pandoc v3.6.4" 216722 1
-	!insertmacro DownloadAndExtract wkhtmltopdf "CLI: Wkhtmltopdf v0.12.6" 88533 1
-	!insertmacro DownloadAndExtract ffmpeg "CLI: FFmpeg v7.1.1" 37121 1
-	!insertmacro DownloadAndExtract scss "SCSS: Bootstrap v5.3.1" 11560 0
+	!insertmacro GenerateToolSections
 SectionGroupEnd
 
 Section "Uninstall"
@@ -344,42 +331,6 @@ Section "Uninstall"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\7za"
-	Push "$INSTDRIVE\${TOOLS}\7za"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\gettext"
-	Push "$INSTDRIVE\${TOOLS}\gettext"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\sqlite"
-	Push "$INSTDRIVE\${TOOLS}\sqlite"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\mkcert"
-	Push "$INSTDRIVE\${TOOLS}\mkcert"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\pdftk"
-	Push "$INSTDRIVE\${TOOLS}\pdftk"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\pandoc"
-	Push "$INSTDRIVE\${TOOLS}\pandoc"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
-	Push "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\ffmpeg"
-	Push "$INSTDRIVE\${TOOLS}\ffmpeg"
-	Call un.RemoveFromUserPath
-
-	RMDir /r "$INSTDRIVE\${TOOLS}\scss"
-	Push "$INSTDRIVE\${TOOLS}\scss"
-	Call un.RemoveFromUserPath
-
+	!insertmacro UninstallAllTools
 Done:
 SectionEnd
