@@ -81,11 +81,13 @@ SetCompressor lzma
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
 !insertmacro MUI_PAGE_COMPONENTS
+
+;TODO: Consolidar en una sola pagina
 Page custom SelectDrive SetInstallPath
 Page custom EnterDomain SetEnterDomain
+
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
-
 !insertmacro MUI_UNPAGE_CONFIRM
 UninstPage custom un.ConfirmTools un.ReadToolsChoice
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -178,7 +180,7 @@ Function GetInstalledSize
 FunctionEnd
 
 Function EnterDomain
-	StrCpy $SERVER "masexperto.cl"
+	;StrCpy $SERVER "masexperto.cl"
     nsDialogs::Create 1018
     Pop $0
     ${NSD_CreateLabel} 0 0 100% 12u "Dominio del Servidor de Herramientas:"
@@ -206,7 +208,7 @@ Function un.ConfirmTools
     Pop $0
     ${NSD_CreateLabel} 0 0 100% 12u "Desinstalar las Herramientas externas"
     Pop $1
-    ${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todo"
+    ${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
     Pop $un_ToolsCheckbox
     nsDialogs::Show
 FunctionEnd
@@ -314,6 +316,9 @@ Section "Mi Ayudante"
 SectionEnd
 
 SectionGroup "Herramientas externas"
+
+	;TODO: ¿Externalizar la lista de herramientas a un archivo de texto? ¿Usar en Uninstall?
+
 	!insertmacro DownloadAndExtract 7za "CLI: 7za v4.42" 466 1
 	!insertmacro DownloadAndExtract gettext "CLI: Gettext v0.19.8" 6080 1
 	!insertmacro DownloadAndExtract sqlite "CLI: SQLite v3.49.1" 14257 1
@@ -340,9 +345,6 @@ Section "Uninstall"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
 
-	RMDir /r "$INSTDRIVE\${TOOLS}\mkcert"
-	RMDir /r "$INSTDRIVE\${TOOLS}\scss"
-
 	RMDir /r "$INSTDRIVE\${TOOLS}\7za"
 	Push "$INSTDRIVE\${TOOLS}\7za"
 	Call un.RemoveFromUserPath
@@ -351,16 +353,20 @@ Section "Uninstall"
 	Push "$INSTDRIVE\${TOOLS}\gettext"
 	Call un.RemoveFromUserPath
 
-	RMDir /r "$INSTDRIVE\${TOOLS}\pandoc"
-	Push "$INSTDRIVE\${TOOLS}\pandoc"
+	RMDir /r "$INSTDRIVE\${TOOLS}\sqlite"
+	Push "$INSTDRIVE\${TOOLS}\sqlite"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\mkcert"
+	Push "$INSTDRIVE\${TOOLS}\mkcert"
 	Call un.RemoveFromUserPath
 
 	RMDir /r "$INSTDRIVE\${TOOLS}\pdftk"
 	Push "$INSTDRIVE\${TOOLS}\pdftk"
 	Call un.RemoveFromUserPath
 
-	RMDir /r "$INSTDRIVE\${TOOLS}\sqlite"
-	Push "$INSTDRIVE\${TOOLS}\sqlite"
+	RMDir /r "$INSTDRIVE\${TOOLS}\pandoc"
+	Push "$INSTDRIVE\${TOOLS}\pandoc"
 	Call un.RemoveFromUserPath
 
 	RMDir /r "$INSTDRIVE\${TOOLS}\wkhtmltopdf"
@@ -369,6 +375,10 @@ Section "Uninstall"
 
 	RMDir /r "$INSTDRIVE\${TOOLS}\ffmpeg"
 	Push "$INSTDRIVE\${TOOLS}\ffmpeg"
+	Call un.RemoveFromUserPath
+
+	RMDir /r "$INSTDRIVE\${TOOLS}\scss"
+	Push "$INSTDRIVE\${TOOLS}\scss"
 	Call un.RemoveFromUserPath
 
 Done:
