@@ -8,7 +8,7 @@
 !define SEC_ffmpeg 9
 
 !macro GenerateAllSectionTools
-    !insertmacro GenerateSectionTool 7za "CLI 7za" 466 1
+    !insertmacro GenerateSectionTool 7za "CLI 7za" 466 0
     !insertmacro GenerateSectionTool gettext "CLI Gettext" 6080 1
     !insertmacro GenerateSectionTool sqlite "CLI SQLite" 14257 1
     !insertmacro GenerateSectionTool mkcert "CLI Mkcert" 5136 0
@@ -29,16 +29,13 @@
     !insertmacro UninstallTool ffmpeg
 !macroend
 
-Function CheckSelectAllTools
-	${If} $IsUpdateInstall == "1"
-		SectionSetFlags 0 ${SF_SELECTED}
-	${EndIf}
-    !insertmacro AutoSelectTool "7za" ${SEC_7za} 2
-    !insertmacro AutoSelectTool "gettext" ${SEC_gettext} 2
-    !insertmacro AutoSelectTool "sqlite" ${SEC_sqlite} 2
-    !insertmacro AutoSelectTool "mkcert" ${SEC_mkcert} 2
-    !insertmacro AutoSelectTool "pdftk" ${SEC_pdftk} 2
-    !insertmacro AutoSelectTool "pandoc" ${SEC_pandoc} 2
-    !insertmacro AutoSelectTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 2
-    !insertmacro AutoSelectTool "ffmpeg" ${SEC_ffmpeg} 2
+Function CheckIfInstalledAllTools
+    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 2
+    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 2
+    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 2
+    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 2
+    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 2
+    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 2
+    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 2
+    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 2
 FunctionEnd

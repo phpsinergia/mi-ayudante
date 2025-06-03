@@ -21,7 +21,7 @@ Var SERVER
 Var FTP_USER
 Var FTP_PASS
 Var PROTOCOL
-Var GetInstalledSize.total
+Var TotalInstalledSize
 Var IsUpdateInstall
 Var ServerInput
 Var DriveCombo
@@ -97,28 +97,30 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 	Call un.RemoveFromEnvUserPath
 !macroend
 
-!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE TOOL_ADD_PATH
+!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
-	!insertmacro HandleDownloadAndExtractTool ${TOOL_ID} "${TOOL_NAME}" ${TOOL_SIZE} ${TOOL_ADD_PATH}
-SectionEnd
-!macroend
-
-!macro HandleDownloadAndExtractTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 	AddSize ${TOOL_SIZE_KB}
 	SetOutPath "$TEMP"
 	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +2
 		Goto SkipTool_${TOOL_ID}
-	StrCmp $PROTOCOL "FTP" 0 +4
+	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
 		nsExec::ExecToStack '"$INSTDRIVE${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip"'
-		Goto +3
+		Pop $0 ; código de salida de curl
+		Pop $1 ; mensaje de salida de curl
+		${If} $0 != "0"
+			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} por FTP desde:$\n$R0$\n$\nDetalles: $1"
+			Goto SkipTool_${TOOL_ID}
+		${EndIf}
+	${Else}
 		StrCpy $R0 "https://$SERVER/herramientas/${TOOL_ID}.zip"
 		inetc::get /TIMEOUT=30000 /RESUME "" "$R0" "$TEMP\${TOOL_ID}.zip" /END
-	Pop $0
-	StrCmp $0 "OK" +2
-	MessageBox MB_OK "$0"
-	;	MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} desde $R0. Puede instalarlo después."
-	;	Abort
+		Pop $0
+		${If} $0 != "OK"
+			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} por HTTPS desde:$\n$R0$\n$\nDetalles: $0"
+			Goto SkipTool_${TOOL_ID}
+		${EndIf}
+	${EndIf}
 	CreateDirectory "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	SetOutPath "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$INSTDRIVE${TOOLS}\${TOOL_ID}"
@@ -126,23 +128,24 @@ SectionEnd
 	StrCmp $0 "success" +2
 		MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $0"
 	Delete "$TEMP\${TOOL_ID}.zip"
-	${If} ${ADD_TO_PATH} = 1
+	${If} ${ADD_TO_PATH} == 1
 		Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 		Call AddToEnvUserPath
 	${EndIf}
 SkipTool_${TOOL_ID}:
+SectionEnd
 !macroend
 
-!macro AutoSelectTool TOOL_ID SEC_ID READONLY
-    IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +9
-        SectionSetFlags ${SEC_ID} ${SF_SELECTED}
-        ${If} "${READONLY}" == "1"
-            IntOp $0 ${SF_SELECTED} | ${SF_RO}
-            SectionSetFlags ${SEC_ID} $0
-        ${ElseIf} "${READONLY}" == "2"
-            IntOp $0 0 | ${SF_RO}
-            SectionSetFlags ${SEC_ID} $0
-        ${EndIf}
+!macro CheckIfInstalledTool TOOL_ID SEC_ID OPT_CHECK
+	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +9
+		SectionSetFlags ${SEC_ID} ${SF_SELECTED}
+		${If} "${OPT_CHECK}" == "1"
+			IntOp $0 ${SF_SELECTED} | ${SF_RO}
+			SectionSetFlags ${SEC_ID} $0
+		${ElseIf} "${OPT_CHECK}" == "2"
+			IntOp $0 0 | ${SF_RO}
+			SectionSetFlags ${SEC_ID} $0
+		${EndIf}
 !macroend
 
 !include "tools.nsh"
@@ -164,6 +167,10 @@ PageEx custom
 PageExEnd
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
+PageEx custom
+	PageCallbacks CheckPreRequisites ""
+	Caption " "
+PageExEnd
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
@@ -189,7 +196,8 @@ Function .onInit
 			StrCpy $INSTDRIVE $1
 		${EndIf}
 		MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
-		Call CheckSelectAllTools
+		SectionSetFlags 0 ${SF_SELECTED}
+		Call CheckIfInstalledAllTools
 	${EndIf}
 FunctionEnd
 
@@ -199,6 +207,21 @@ Function SkipLicenseIfUpdate
 	${Else}
 		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software"
 	${EndIf}
+FunctionEnd
+
+Function CheckPreRequisites
+	${If} $IsUpdateInstall == "1"
+		Abort
+	${Else}
+		!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" ""
+	${EndIf}
+	nsDialogs::Create 1018
+	Pop $0
+	${If} $0 == error
+		Abort
+	${EndIf}
+	;TODO: Falta construir esta página
+	nsDialogs::Show
 FunctionEnd
 
 Function ConfigForm
@@ -308,11 +331,11 @@ FunctionEnd
 Function GetInstalledSize
 	Push $0
 	Push $1
-	StrCpy $GetInstalledSize.total 0
+	StrCpy $TotalInstalledSize 0
 	${ForEach} $1 0 256 + 1
 		${if} ${SectionIsSelected} $1
 			SectionGetSize $1 $0
-			IntOp $GetInstalledSize.total $GetInstalledSize.total + $0
+			IntOp $TotalInstalledSize $TotalInstalledSize + $0
 		${Endif}
 		${if} ${errors}
 			${break}
@@ -321,8 +344,8 @@ Function GetInstalledSize
 	ClearErrors
 	Pop $1
 	Pop $0
-	IntFmt $GetInstalledSize.total "0x%08X" $GetInstalledSize.total
-	Push $GetInstalledSize.total
+	IntFmt $TotalInstalledSize "0x%08X" $TotalInstalledSize
+	Push $TotalInstalledSize
 FunctionEnd
 
 Function LaunchApp
@@ -386,7 +409,7 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-Section "!Mi Ayudante (requerido)"
+Section "!Mi Ayudante (*)"
 	SectionIn RO
 ;Creación de directorios
 	CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
@@ -432,9 +455,13 @@ SectionGroup "Herramientas externas"
 SectionGroupEnd
 
 Section "-Registro"
-	Call GetInstalledSize
-	Pop $1
-;Actualización de Registro
+	${If} $IsUpdateInstall == "0"
+		Call GetInstalledSize
+		Pop $1
+		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+	${Else}
+		;TODO: Calcular tamaño total de la carpeta "$INSTDRIVE\home" y asignar valor a "EstimatedSize"
+	${EndIf}
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Server" "$SERVER"
@@ -447,8 +474,6 @@ Section "-Registro"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
-	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
-;Creación de Desinstalador
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
@@ -467,5 +492,6 @@ Section "Uninstall"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
 	!insertmacro UninstallAllTools
+	;TODO: Eliminar carpeta "$INSTDRIVE${TOOLS}" si está vacía
 Done:
 SectionEnd
