@@ -64,6 +64,7 @@ Var un_ToolsCheckbox
 !define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
+!define MUI_COMPONENTSPAGE_NODESC
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
@@ -90,6 +91,60 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 ;--------------------------------
 ; MACROS
 
+!macro UninstallTool TOOL_ID
+	RMDir /r "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	Call un.RemoveFromEnvUserPath
+!macroend
+
+!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE TOOL_ADD_PATH
+Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
+	!insertmacro HandleDownloadAndExtractTool ${TOOL_ID} "${TOOL_NAME}" ${TOOL_SIZE} ${TOOL_ADD_PATH}
+SectionEnd
+!macroend
+
+!macro HandleDownloadAndExtractTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
+	AddSize ${TOOL_SIZE_KB}
+	SetOutPath "$TEMP"
+	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +2
+		Goto SkipTool_${TOOL_ID}
+	StrCmp $PROTOCOL "FTP" 0 +4
+		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
+		nsExec::ExecToStack '"$INSTDRIVE${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip"'
+		Goto +3
+		StrCpy $R0 "https://$SERVER/herramientas/${TOOL_ID}.zip"
+		inetc::get /TIMEOUT=30000 /RESUME "" "$R0" "$TEMP\${TOOL_ID}.zip" /END
+	Pop $0
+	StrCmp $0 "OK" +2
+	MessageBox MB_OK "$0"
+	;	MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} desde $R0. Puede instalarlo después."
+	;	Abort
+	CreateDirectory "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	SetOutPath "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	Pop $0
+	StrCmp $0 "success" +2
+		MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $0"
+	Delete "$TEMP\${TOOL_ID}.zip"
+	${If} ${ADD_TO_PATH} = 1
+		Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+		Call AddToEnvUserPath
+	${EndIf}
+SkipTool_${TOOL_ID}:
+!macroend
+
+!macro AutoSelectTool TOOL_ID SEC_ID READONLY
+    IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +9
+        SectionSetFlags ${SEC_ID} ${SF_SELECTED}
+        ${If} "${READONLY}" == "1"
+            IntOp $0 ${SF_SELECTED} | ${SF_RO}
+            SectionSetFlags ${SEC_ID} $0
+        ${ElseIf} "${READONLY}" == "2"
+            IntOp $0 0 | ${SF_RO}
+            SectionSetFlags ${SEC_ID} $0
+        ${EndIf}
+!macroend
+
 !include "tools.nsh"
 
 ;--------------------------------
@@ -98,8 +153,8 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 !insertmacro MUI_PAGE_WELCOME
 LicenseBkColor /windows
 PageEx license
-    PageCallbacks SkipLicenseIfUpdate ""
-    LicenseData "..\${LICENSEFILE}"
+	PageCallbacks SkipLicenseIfUpdate ""
+	LicenseData "..\${LICENSEFILE}"
 	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para instalar ${NAME}." "ACEPTO"
 	Caption " "
 PageExEnd
@@ -107,10 +162,7 @@ PageEx custom
 	PageCallbacks ConfigForm SaveConfigForm
 	Caption " "
 PageExEnd
-PageEx components
-	PageCallbacks ShowComponents ""
-	Caption " "
-PageExEnd
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -123,104 +175,105 @@ UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
 
 Function .onInit
 	StrCpy $INSTDRIVE $EXEPATH 2
-    ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
-    ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
+	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
+	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-    StrCpy $IsUpdateInstall "0"
-    ${If} $0 != ""
-        StrCpy $IsUpdateInstall "1"
+	StrCpy $IsUpdateInstall "0"
+	${If} $0 != ""
+		StrCpy $IsUpdateInstall "1"
 		StrCpy $INSTDIR $0
 		${If} $1 != ""
 			StrCpy $INSTDRIVE $1
 		${EndIf}
-        MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
-    ${EndIf}
+		MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
+		Call CheckSelectAllTools
+	${EndIf}
 FunctionEnd
 
 Function SkipLicenseIfUpdate
-    ${If} $IsUpdateInstall == "1"
-        Abort
+	${If} $IsUpdateInstall == "1"
+		Abort
 	${Else}
 		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software"
-    ${EndIf}
+	${EndIf}
 FunctionEnd
 
 Function ConfigForm
-    ${If} $IsUpdateInstall == "1"
-        Abort
+	${If} $IsUpdateInstall == "1"
+		Abort
 	${Else}
 		!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos"
-    ${EndIf}
+	${EndIf}
 	${If} $PROTOCOL == ""
 		StrCpy $PROTOCOL "HTTP"
-    ${EndIf}
-    nsDialogs::Create 1018
-    Pop $0
-    ${If} $0 == error
-        Abort
-    ${EndIf}
-    ;=== Grupo: Configuración de descarga
-    ${NSD_CreateGroupBox} 5u 5u 290u 90u "Configuración de descargas"
-    Pop $1
-    ${NSD_CreateLabel} 15u 23u 100u 10u "Protocolo:"
-    Pop $1
-    ${NSD_CreateComboBox} 120u 21u 100u 12u ""
-    Pop $ProtocolCombo
-    ${NSD_CB_AddString} $ProtocolCombo "HTTP"
-    ${NSD_CB_AddString} $ProtocolCombo "FTP"
-    ${NSD_CB_SelectString} $ProtocolCombo "$PROTOCOL"
-    ${NSD_CreateLabel} 15u 41u 100u 10u "Dominio del servidor:"
-    Pop $1
-    ${NSD_CreateText} 120u 39u 100u 12u "$SERVER"
-    Pop $ServerInput
-    ${NSD_CreateLabel} 15u 59u 100u 10u "Usuario FTP:"
-    Pop $1
-    ${NSD_CreateText} 120u 57u 100u 12u "$FTP_USER"
-    Pop $FtpUserInput
-    ${NSD_CreateLabel} 15u 77u 100u 10u "Contraseña FTP:"
-    Pop $1
-    ${NSD_CreatePassword} 120u 75u 100u 12u "$FTP_PASS"
-    Pop $FtpPassInput
-    ;=== Grupo: Unidad de instalación
-    ${NSD_CreateGroupBox} 5u 100u 290u 38u "Ruta de instalación"
-    Pop $1
-    ${NSD_CreateLabel} 15u 118u 100u 10u "Unidad de destino:"
-    Pop $1
-    ${NSD_CreateComboBox} 120u 116u 100u 14u ""
-    Pop $DriveCombo
-    ; Enumerar unidades
-    !insertmacro DriveSpace
-    StrCpy $R0 "A"
-    StrCpy $R9 ""
-    StrCpy $9 0
+	${EndIf}
+	nsDialogs::Create 1018
+	Pop $0
+	${If} $0 == error
+		Abort
+	${EndIf}
+	;=== Grupo: Configuración de descarga
+	${NSD_CreateGroupBox} 5u 5u 290u 90u "Configuración de descargas"
+	Pop $1
+	${NSD_CreateLabel} 15u 23u 100u 10u "Protocolo:"
+	Pop $1
+	${NSD_CreateComboBox} 120u 21u 100u 12u ""
+	Pop $ProtocolCombo
+	${NSD_CB_AddString} $ProtocolCombo "HTTP"
+	${NSD_CB_AddString} $ProtocolCombo "FTP"
+	${NSD_CB_SelectString} $ProtocolCombo "$PROTOCOL"
+	${NSD_CreateLabel} 15u 41u 100u 10u "Dominio del servidor:"
+	Pop $1
+	${NSD_CreateText} 120u 39u 100u 12u "$SERVER"
+	Pop $ServerInput
+	${NSD_CreateLabel} 15u 59u 100u 10u "Usuario FTP:"
+	Pop $1
+	${NSD_CreateText} 120u 57u 100u 12u "$FTP_USER"
+	Pop $FtpUserInput
+	${NSD_CreateLabel} 15u 77u 100u 10u "Contraseña FTP:"
+	Pop $1
+	${NSD_CreatePassword} 120u 75u 100u 12u "$FTP_PASS"
+	Pop $FtpPassInput
+	;=== Grupo: Unidad de instalación
+	${NSD_CreateGroupBox} 5u 100u 290u 38u "Ruta de instalación"
+	Pop $1
+	${NSD_CreateLabel} 15u 118u 100u 10u "Unidad de destino:"
+	Pop $1
+	${NSD_CreateComboBox} 120u 116u 100u 14u ""
+	Pop $DriveCombo
+	; Enumerar unidades
+	!insertmacro DriveSpace
+	StrCpy $R0 "A"
+	StrCpy $R9 ""
+	StrCpy $9 0
 DriveLoop:
-    IntOp $R1 $9 + 65
-    IntFmt $R0 "%c" $R1
-    StrCpy $R2 "$R0:\"
-    IfFileExists "$R2*" 0 NextDrive
-    ${DriveSpace} "$R2" "/D=F" $R3
-    System::Int64Op $R3 / 1048576
-    Pop $R4
-    ${If} $R4 != ""
-        StrCpy $R5 "$R0:\ ($R4 MB libres)"
-        ${NSD_CB_AddString} $DriveCombo $R5
-    ${EndIf}
+	IntOp $R1 $9 + 65
+	IntFmt $R0 "%c" $R1
+	StrCpy $R2 "$R0:\"
+	IfFileExists "$R2*" 0 NextDrive
+	${DriveSpace} "$R2" "/D=F" $R3
+	System::Int64Op $R3 / 1048576
+	Pop $R4
+	${If} $R4 != ""
+		StrCpy $R5 "$R0:\ ($R4 MB libres)"
+		${NSD_CB_AddString} $DriveCombo $R5
+	${EndIf}
 NextDrive:
-    IntOp $9 $9 + 1
-    ${IfThen} $9 < 26 ${|} Goto DriveLoop ${|}
-    ${NSD_CB_SelectString} $DriveCombo "$INSTDRIVE\"
-    nsDialogs::Show
+	IntOp $9 $9 + 1
+	${IfThen} $9 < 26 ${|} Goto DriveLoop ${|}
+	${NSD_CB_SelectString} $DriveCombo "$INSTDRIVE\"
+	nsDialogs::Show
 FunctionEnd
 
 Function SaveConfigForm
-    ${NSD_GetText} $DriveCombo $0
-    StrCpy $INSTDRIVE $0 2
-    ${NSD_GetText} $ServerInput $SERVER
-    ${NSD_GetText} $FtpUserInput $FTP_USER
-    ${NSD_GetText} $FtpPassInput $FTP_PASS
+	${NSD_GetText} $DriveCombo $0
+	StrCpy $INSTDRIVE $0 2
+	${NSD_GetText} $ServerInput $SERVER
+	${NSD_GetText} $FtpUserInput $FTP_USER
+	${NSD_GetText} $FtpPassInput $FTP_PASS
 	${NSD_GetText} $ProtocolCombo $PROTOCOL
 	${If} $SERVER == ""
 		MessageBox MB_ICONEXCLAMATION "Debe indicar el Dominio del Servidor"
@@ -228,33 +281,28 @@ Function SaveConfigForm
 	${Endif}
 FunctionEnd
 
-Function ShowComponents
-	!insertmacro MUI_HEADER_TEXT "Selección de Componentes" "Seleccione cuáles características de ${NAME} desea instalar"
-	Call CheckSelectAllTools
-FunctionEnd
-
 Function AddToEnvUserPath
-    Exch $0
-    Push $1
-    ReadRegStr $1 HKCU "Environment" "Path"
-    ${If} $1 != ""
-        ${If} $1 != "" 
+	Exch $0
+	Push $1
+	ReadRegStr $1 HKCU "Environment" "Path"
+	${If} $1 != ""
+		${If} $1 != "" 
 		${AndIf} $1 != $0 
 		${AndIf} $1 != "$0;" 
 		${AndIf} $1 != ";$0" 
 		${AndIf} $1 != ";$0;" 
 		${AndIf} $1 != "$0"
-            StrCpy $1 "$1;$0"
-        ${Else}
-            Pop $1
-            Return
-        ${EndIf}
-    ${Else}
-        StrCpy $1 "$0"
-    ${EndIf}
-    WriteRegExpandStr HKCU "Environment" "Path" $1
-    System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
-    Pop $1
+			StrCpy $1 "$1;$0"
+		${Else}
+			Pop $1
+			Return
+		${EndIf}
+	${Else}
+		StrCpy $1 "$0"
+	${EndIf}
+	WriteRegExpandStr HKCU "Environment" "Path" $1
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
+	Pop $1
 FunctionEnd
 
 Function GetInstalledSize
@@ -287,18 +335,18 @@ FunctionEnd
 ${unStrRep}
 
 Function un.onInit
-    ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
+	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $INSTDRIVE $0
 FunctionEnd
 
 Function un.ConfirmUnTools
-    nsDialogs::Create 1018
-    Pop $0
-    ${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar las Herramientas externas?"
-    Pop $1
-    ${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
-    Pop $un_ToolsCheckbox
-    nsDialogs::Show
+	nsDialogs::Create 1018
+	Pop $0
+	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar las Herramientas externas?"
+	Pop $1
+	${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
+	Pop $un_ToolsCheckbox
+	nsDialogs::Show
 FunctionEnd
 
 Function un.ReadUnToolsChoice
@@ -306,18 +354,18 @@ Function un.ReadUnToolsChoice
 FunctionEnd
 
 Function un.RemoveFromEnvUserPath
-    Exch $0
-    Push $1
-    Push $2
-    ReadRegStr $1 HKCU "Environment" "Path"
-    StrCpy $2 "$1"
-    Push "$2"
-    Push "$0;"
+	Exch $0
+	Push $1
+	Push $2
+	ReadRegStr $1 HKCU "Environment" "Path"
+	StrCpy $2 "$1"
+	Push "$2"
+	Push "$0;"
 	${unStrRep} $1 "$2" "$0" ""
-    WriteRegExpandStr HKCU "Environment" "Path" "$1"
-    System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
-    Pop $2
-    Pop $1
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
+	Pop $2
+	Pop $1
 FunctionEnd
 
 Function un.RMDirUP
@@ -379,6 +427,10 @@ Section "!Mi Ayudante (requerido)"
 	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 SectionEnd
 
+SectionGroup "Herramientas externas"
+	!insertmacro GenerateAllSectionTools
+SectionGroupEnd
+
 Section "-Registro"
 	Call GetInstalledSize
 	Pop $1
@@ -399,10 +451,6 @@ Section "-Registro"
 ;Creación de Desinstalador
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
-
-SectionGroup "Herramientas externas"
-	!insertmacro GenerateAllSectionTools
-SectionGroupEnd
 
 Section "Uninstall"
 	Delete "$INSTDIR\config.ini"
