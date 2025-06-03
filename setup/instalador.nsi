@@ -14,33 +14,46 @@
 !include "StrFunc.nsh"
 
 ;--------------------------------
+; VARIABLES
+
+Var INSTDRIVE
+Var SERVER
+Var FTP_USER
+Var FTP_PASS
+Var PROTOCOL
+Var GetInstalledSize.total
+Var IsUpdateInstall
+Var ServerInput
+Var DriveCombo
+Var FtpUserInput
+Var FtpPassInput
+Var ProtocolCombo
+Var un_ToolsCheckboxState
+Var un_ToolsCheckbox
+
+;--------------------------------
 ; DEFINICIONES BÁSICAS
 
 !define VERSION "1.0.0"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
-!define SRCDRIVE "C:"
 !define APPFILE "ayudante.exe"
-!define TARGET "home\mi-ayudante"
-!define VENDOR "home\vendor"
-!define TOOLS "home\herramientas"
-!define LICENSE "LICENSE"
+!define TARGET "\home\mi-ayudante"
+!define TOOLS "\home\herramientas"
+!define LICENSEFILE "LICENSE"
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
-!define APPDIR "..\app"
 !define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\setup_miayudante_${VERSION}.exe"
+!define INSTALL "..\dist\mi-ayudante_${VERSION}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 
 ;--------------------------------
 ; DEFINICIONES INTERFAZ
 
-!define MUI_ICON "${APPDIR}\${ICON}"
+!define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "${NAME} v${VERSION}"
-!define MUI_LICENSEPAGE_CHECKBOX
-!define MUI_LICENSEPAGE_CHECKBOX_TEXT "Acepto la licencia"
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
@@ -51,25 +64,6 @@
 !define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
-!define MUI_COMPONENTSPAGE_NODESC
-
-;--------------------------------
-; VARIABLES
-
-Var INSTDRIVE
-Var SERVER
-Var ServerInput
-Var DriveCombo
-Var GetInstalledSize.total
-Var un_ToolsCheckboxState
-Var un_ToolsCheckbox
-Var FTP_USER
-Var FTP_PASS
-Var FtpUserInput
-Var FtpPassInput
-Var ProtocolCombo
-Var PROTOCOL
-Var IsUpdateInstall
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
@@ -77,23 +71,50 @@ Var IsUpdateInstall
 Unicode true
 Name "${NAME}"
 OutFile "${INSTALL}"
-InstallDir "$INSTDRIVE\${TARGET}"
+InstallDir "${TARGET}"
 InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
+BrandingText " "
 RequestExecutionLevel user
+ShowInstDetails show
+ShowUninstDetails show
+AllowSkipFiles on
 SetCompressor lzma
+
+VIProductVersion ${VERSION}.0
+VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
+VIAddVersionKey /LANG=0 "ProductVersion" "${VERSION}"
+VIAddVersionKey /LANG=0 "FileVersion" ${VERSION}
+VIAddVersionKey /LANG=0 "FileDescription" "Instalador de ${NAME} para Windows"
+VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
+
+;--------------------------------
+; MACROS
+
+!include "tools.nsh"
 
 ;--------------------------------
 ; PAGINAS
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\${LICENSE}"
-Page custom ConfigPage SaveConfigPage
-!insertmacro MUI_PAGE_COMPONENTS
+LicenseBkColor /windows
+PageEx license
+    PageCallbacks SkipLicenseIfUpdate ""
+    LicenseData "..\${LICENSEFILE}"
+	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para instalar ${NAME}." "ACEPTO"
+	Caption " "
+PageExEnd
+PageEx custom
+	PageCallbacks ConfigForm SaveConfigForm
+	Caption " "
+PageExEnd
+PageEx components
+	PageCallbacks ShowComponents ""
+	Caption " "
+PageExEnd
 !insertmacro MUI_PAGE_INSTFILES
-;TODO: Falta Agregar una Page custom para info sobre Pre-requisitos
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
-UninstPage custom un.ConfirmTools un.ReadToolsChoice
+UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Spanish"
 
@@ -101,27 +122,40 @@ UninstPage custom un.ConfirmTools un.ReadToolsChoice
 ; FUNCIONES: INSTALACIÓN
 
 Function .onInit
-    StrCpy $IsUpdateInstall "0"
+	StrCpy $INSTDRIVE $EXEPATH 2
     ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
     ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
+    StrCpy $IsUpdateInstall "0"
     ${If} $0 != ""
-        StrCpy $INSTDIR $0
-        StrCpy $INSTDRIVE $1
         StrCpy $IsUpdateInstall "1"
-        MessageBox MB_ICONINFORMATION "Ya existe una instalación en: $0. Sólo se actualizarán los archivos faltantes."
+		StrCpy $INSTDIR $0
+		${If} $1 != ""
+			StrCpy $INSTDRIVE $1
+		${EndIf}
+        MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
     ${EndIf}
 FunctionEnd
 
-Function ConfigPage
-	${If} $PROTOCOL == ""
-		StrCpy $PROTOCOL "HTTPS"
+Function SkipLicenseIfUpdate
+    ${If} $IsUpdateInstall == "1"
+        Abort
+	${Else}
+		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software"
     ${EndIf}
-	${If} $INSTDRIVE == ""
-		StrCpy $INSTDRIVE "C:"
+FunctionEnd
+
+Function ConfigForm
+    ${If} $IsUpdateInstall == "1"
+        Abort
+	${Else}
+		!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos"
+    ${EndIf}
+	${If} $PROTOCOL == ""
+		StrCpy $PROTOCOL "HTTP"
     ${EndIf}
     nsDialogs::Create 1018
     Pop $0
@@ -135,7 +169,7 @@ Function ConfigPage
     Pop $1
     ${NSD_CreateComboBox} 120u 21u 100u 12u ""
     Pop $ProtocolCombo
-    ${NSD_CB_AddString} $ProtocolCombo "HTTPS"
+    ${NSD_CB_AddString} $ProtocolCombo "HTTP"
     ${NSD_CB_AddString} $ProtocolCombo "FTP"
     ${NSD_CB_SelectString} $ProtocolCombo "$PROTOCOL"
     ${NSD_CreateLabel} 15u 41u 100u 10u "Dominio del servidor:"
@@ -178,21 +212,28 @@ NextDrive:
     IntOp $9 $9 + 1
     ${IfThen} $9 < 26 ${|} Goto DriveLoop ${|}
     ${NSD_CB_SelectString} $DriveCombo "$INSTDRIVE\"
-	Call PreSelectTools
     nsDialogs::Show
 FunctionEnd
 
-Function SaveConfigPage
+Function SaveConfigForm
     ${NSD_GetText} $DriveCombo $0
     StrCpy $INSTDRIVE $0 2
-    StrCpy $INSTDIR "$INSTDRIVE\${TARGET}"
     ${NSD_GetText} $ServerInput $SERVER
     ${NSD_GetText} $FtpUserInput $FTP_USER
     ${NSD_GetText} $FtpPassInput $FTP_PASS
 	${NSD_GetText} $ProtocolCombo $PROTOCOL
+	${If} $SERVER == ""
+		MessageBox MB_ICONEXCLAMATION "Debe indicar el Dominio del Servidor"
+		Abort
+	${Endif}
 FunctionEnd
 
-Function AddToUserPath
+Function ShowComponents
+	!insertmacro MUI_HEADER_TEXT "Selección de Componentes" "Seleccione cuáles características de ${NAME} desea instalar"
+	Call CheckSelectAllTools
+FunctionEnd
+
+Function AddToEnvUserPath
     Exch $0
     Push $1
     ReadRegStr $1 HKCU "Environment" "Path"
@@ -237,7 +278,7 @@ Function GetInstalledSize
 FunctionEnd
 
 Function LaunchApp
-	ExecShell "" "$INSTDIR\${APPFILE}"
+	ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
 FunctionEnd
 
 ;--------------------------------
@@ -245,7 +286,12 @@ FunctionEnd
 
 ${unStrRep}
 
-Function un.ConfirmTools
+Function un.onInit
+    ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
+	StrCpy $INSTDRIVE $0
+FunctionEnd
+
+Function un.ConfirmUnTools
     nsDialogs::Create 1018
     Pop $0
     ${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar las Herramientas externas?"
@@ -255,11 +301,11 @@ Function un.ConfirmTools
     nsDialogs::Show
 FunctionEnd
 
-Function un.ReadToolsChoice
+Function un.ReadUnToolsChoice
 	${NSD_GetState} $un_ToolsCheckbox $un_ToolsCheckboxState
 FunctionEnd
 
-Function un.RemoveFromUserPath
+Function un.RemoveFromEnvUserPath
     Exch $0
     Push $1
     Push $2
@@ -290,154 +336,88 @@ Function un.RMDirUP
 FunctionEnd
 
 ;--------------------------------
-; MACROS
-
-!macro DownloadAndExtract TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
-Section /o "${TOOL_NAME}" SEC_${TOOL_ID}
-    AddSize ${TOOL_SIZE_KB}
-    SetOutPath "$TEMP"
-	IfFileExists "$INSTDRIVE\${TOOLS}\${TOOL_ID}\*.*" 0 +2
-		Goto SkipTool_${TOOL_ID}
-	${If} $PROTOCOL == "FTP"
-		;TODO: Corregir
-		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
-		nsExec::ExecToStack '"$INSTDRIVE\${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip"'
-	${Else}
-		StrCpy $R0 "https://$SERVER/herramientas/${TOOL_ID}.zip"
-		;MessageBox MB_OK "$R0"
-		inetc::get /TIMEOUT=30000 /RESUME "" "$R0" "$TEMP\${TOOL_ID}.zip" /END
-	${EndIf}
-	Pop $0
-    StrCmp $0 "OK" +3
-		MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} desde $R0. Puede instalarlo después."
-		Return
-    CreateDirectory "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    SetOutPath "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    Pop $0
-    StrCmp $0 "success" +2
-        MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $0"
-    Delete "$TEMP\${TOOL_ID}.zip"
-    ${If} ${ADD_TO_PATH} = 1
-        Push "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-        Call AddToUserPath
-    ${EndIf}
-SkipTool_${TOOL_ID}:
-SectionEnd
-!macroend
-
-!macro InstallTool TOOL_ID TOOL_NAME TOOL_SIZE TOOL_ADD_PATH
-	!insertmacro DownloadAndExtract ${TOOL_ID} "${TOOL_NAME}" ${TOOL_SIZE} ${TOOL_ADD_PATH}
-!macroend
-
-!macro UninstallTool TOOL_ID
-    RMDir /r "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    Push "$INSTDRIVE\${TOOLS}\${TOOL_ID}"
-    Call un.RemoveFromUserPath
-!macroend
-
-!macro AutoSelectTool TOOL_ID
-	StrCpy $R0 "SEC_${TOOL_ID}"
-    IfFileExists "$INSTDRIVE\${TOOLS}\${TOOL_ID}\*" 0 +3
-		MessageBox MB_ICONINFORMATION "$R0"
-		SectionSetFlags $R0 ${SF_SELECTED}
-!macroend
-
-!include "herramientas.nsh"
-
-;--------------------------------
 ; SECCIONES
 
-Section "!Mi Ayudante"
+Section "!Mi Ayudante (requerido)"
 	SectionIn RO
 ;Creación de directorios
-	CreateDirectory "$INSTDIR\compartidos"
-	CreateDirectory "$INSTDIR\datos"
-	CreateDirectory "$INSTDIR\entornos\basico"
-	CreateDirectory "$INSTDIR\logs"
-	CreateDirectory "$INSTDIR\respaldos"
-	CreateDirectory "$INSTDRIVE\${VENDOR}"
-	CreateDirectory "$INSTDRIVE\${TOOLS}"
+	CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
+	CreateDirectory "$INSTDRIVE$INSTDIR\datos"
+	CreateDirectory "$INSTDRIVE$INSTDIR\entornos\basico"
+	CreateDirectory "$INSTDRIVE$INSTDIR\logs"
+	CreateDirectory "$INSTDRIVE$INSTDIR\respaldos"
+	CreateDirectory "$INSTDRIVE${TOOLS}"
 ;Copia selectiva de archivos
-	SetOutPath "$INSTDIR\base"
-	File /r "${APPDIR}\base\*.*"
-	SetOutPath "$INSTDIR\img"
-	File /r "${APPDIR}\img\*.*"
-	SetOutPath "$INSTDIR"
-	IfFileExists "$INSTDIR\${APPFILE}" +2 0
-		File "${APPDIR}\${APPFILE}"
-	IfFileExists "$INSTDIR\${README}" +2 0
-		File "${APPDIR}\${README}"
-	SetOutPath "$INSTDIR\datos"
-	IfFileExists "$INSTDIR\datos\basico_proyectos.txt" +2 0
-		File /oname=basico_proyectos.txt ${APPDIR}\base\proyectos.txt
-	SetOutPath "$INSTDRIVE\${TOOLS}"
-	IfFileExists "$INSTDRIVE\${TOOLS}\curl.exe" +2 0
-		File "${SRCDRIVE}\${TOOLS}\curl.exe"
-	SetOutPath "$INSTDIR\entornos\basico"
-	IfFileExists "$INSTDIR\entornos\basico\config.ini" +2 0
-		File /r "${APPDIR}\base\entorno\*.*"
+	SetOutPath "$INSTDRIVE$INSTDIR\base"
+	File /r "..\app\base\*.*"
+	SetOutPath "$INSTDRIVE$INSTDIR\img"
+	File /r "..\app\img\*.*"
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" +2 0
+		File "..\app\${APPFILE}"
+	IfFileExists "$INSTDRIVE$INSTDIR\${README}" +2 0
+		File "..\app\${README}"
+	IfFileExists "$INSTDRIVE$INSTDIR\${LICENSEFILE}" +2 0
+		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	SetOutPath "$INSTDRIVE$INSTDIR\datos"
+	IfFileExists "$INSTDRIVE$INSTDIR\datos\basico_proyectos.txt" +2 0
+		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+	SetOutPath "$INSTDRIVE$INSTDIR\entornos\basico"
+	IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
+		File /r "..\app\base\entorno\*.*"
+	SetOutPath "$INSTDRIVE${TOOLS}"
+	IfFileExists "$INSTDRIVE${TOOLS}\curl.exe" +2 0
+		File "..\bin\curl.exe"
 ;Actualización de config.ini
-	SetOutPath "$INSTDIR"
-	IfFileExists "$INSTDIR\config.ini" +2 0
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
 		File "config.ini"
-	WriteINIStr $INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE\${TOOLS}
-	WriteINIStr $INSTDIR\config.ini Base Lanzamiento ${VERSION}
-;Creación de Desinstalador
-	IfFileExists "$INSTDIR\${UNINSTALL}" +2 0
-		WriteUninstaller "$INSTDIR\${UNINSTALL}"
+	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
+	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
 ;Creación de accesos directos
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${APPFILE}" "" "$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 SectionEnd
 
 Section "-Registro"
 	Call GetInstalledSize
 	Pop $1
+;Actualización de Registro
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
-	WriteRegStr HKCU "Software\${NAME}" "Tools_Dir" "$INSTDRIVE\${TOOLS}"
-	WriteRegStr HKCU "Software\${NAME}" "Vendor_Dir" "$INSTDRIVE\${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Server" "$SERVER"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Pass" "$FTP_PASS"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+;Creación de Desinstalador
+	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
 SectionGroup "Herramientas externas"
-	!insertmacro GenerateToolSections
-SectionGroupEnd
-
-SectionGroup "-Actualizaciones"
-SectionGroupEnd
-
-SectionGroup "-Extensiones"
-SectionGroupEnd
-
-SectionGroup "-Recursos"
+	!insertmacro GenerateAllSectionTools
 SectionGroupEnd
 
 Section "Uninstall"
-	StrCpy $INSTDRIVE $INSTDIR 2
 	Delete "$INSTDIR\config.ini"
-	Delete "$INSTDIR\${LICENSE}"
+	Delete "$INSTDIR\${LICENSEFILE}.txt"
 	Delete "$INSTDIR\${APPFILE}"
 	Delete "$INSTDIR\${README}"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
+	Delete "$INSTDRIVE${TOOLS}\curl.exe"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
-	Delete "$INSTDRIVE\${TOOLS}\curl.exe"
 	!insertmacro UninstallAllTools
 Done:
 SectionEnd
