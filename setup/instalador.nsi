@@ -110,7 +110,7 @@ Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 	SetOutPath "$TEMP"
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
-		nsExec::ExecToStack '"$INSTDRIVE${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip" --silent --show-error --fail'
+		nsExec::ExecToStack '"$TEMP\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
@@ -157,7 +157,7 @@ Tag_OK_${TOOL_ID}:
 		Rename "$R7" "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	${Else}
 		CreateDirectory "$INSTDRIVE${TOOLS}\${TOOL_ID}"
-		CopyFiles /SILENT /FILESONLY "$R7\*.*" "$INSTDRIVE${TOOLS}\${TOOL_ID}\"
+		CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE${TOOLS}\${TOOL_ID}\"
 		RMDir /r "$R7"
 	${EndIf}
 	Delete "$TEMP\${TOOL_ID}.zip"
@@ -182,6 +182,14 @@ SectionEnd
 !macroend
 
 !include "tools.nsh"
+
+${StrTrimNewLines}
+${StrRep}
+${StrStr}
+${StrCase}
+${unStrTrimNewLines}
+${unStrRep}
+${unStrStr}
 
 ;--------------------------------
 ; PAGINAS
@@ -242,6 +250,8 @@ Function .onInit
 	${If} $RememberCreds == ""
 		StrCpy $RememberCreds 0
 	${EndIf}
+	SetOutPath "$TEMP"
+	File "..\bin\curl.exe"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -256,7 +266,7 @@ Function CheckPreRequisites
 	${If} $SkipPre == "1"
 		Abort
 	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su sistema"
+	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su sistema, junto con MySQL y un Editor de texto"
 	nsDialogs::Create 1018
 	Pop $0
 
@@ -331,7 +341,6 @@ FormCreate:
 	Pop $1
 	${NSD_CreateComboBox} 120u 116u 100u 14u ""
 	Pop $DriveCombo
-	; Enumerar unidades
 	!insertmacro DriveSpace
 	StrCpy $R0 "A"
 	StrCpy $R9 ""
@@ -387,7 +396,7 @@ Function TestFtpConnection
 		MessageBox MB_OK "La prueba de conexión sólo aplica para FTP"
 		Return
 	${EndIf}
-	nsExec::ExecToStack '"..\bin\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
+	nsExec::ExecToStack '"$TEMP\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
@@ -395,30 +404,6 @@ Function TestFtpConnection
 	${Else}
 		MessageBox MB_ICONSTOP "No se pudo conectar al servidor FTP $SERVER:$\n$R1"
 	${EndIf}
-FunctionEnd
-
-Function AddToEnvUserPath
-	Exch $0
-	Push $1
-	ReadRegStr $1 HKCU "Environment" "Path"
-	${If} $1 != ""
-		${If} $1 != "" 
-		${AndIf} $1 != $0 
-		${AndIf} $1 != "$0;" 
-		${AndIf} $1 != ";$0" 
-		${AndIf} $1 != ";$0;" 
-		${AndIf} $1 != "$0"
-			StrCpy $1 "$1;$0"
-		${Else}
-			Pop $1
-			Return
-		${EndIf}
-	${Else}
-		StrCpy $1 "$0"
-	${EndIf}
-	WriteRegExpandStr HKCU "Environment" "Path" $1
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
-	Pop $1
 FunctionEnd
 
 Function GetInstalledSize
@@ -442,13 +427,66 @@ Function GetInstalledSize
 FunctionEnd
 
 Function LaunchApp
-	ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
+	Delete "$TEMP\curl.exe"
+	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
+		ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
+		Return
+	MessageBox MB_ICONSTOP "No se encontró el ejecutable ${APPFILE}.$\nEjecute nuevamente el instalador."
+FunctionEnd
+
+Function AddToEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	${StrTrimNewLines} $0 $0
+	${StrRep} $0 $0 '"' ''
+	${If} $0 == ""
+		Goto EndAdd
+	${EndIf}
+	ReadRegStr $1 HKCU "Environment" "Path"
+	StrCpy $2 ";$1;"
+	StrCpy $3 ";$0;"
+	${StrCase} $2 $2 U
+	${StrCase} $3 $3 U
+	${StrStr} $2 $2 $3
+	${If} $2 != ""
+		Goto CleanAndSave
+	${EndIf}
+	StrLen $2 $1
+	${If} $2 > 0
+		IntOp $2 $2 - 1
+		StrCpy $3 $1 1 $2
+	${Else}
+		StrCpy $3 ""
+	${EndIf}
+	${If} $3 == ";"
+		StrCpy $1 "$1$0"
+	${ElseIf} $1 == ""
+		StrCpy $1 "$0"
+	${Else}
+		StrCpy $1 "$1;$0"
+	${EndIf}
+CleanAndSave:
+LoopClean:
+	${StrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto WriteAndBroadcast
+	${EndIf}
+	${StrRep} $1 $1 ";;" ";"
+	Goto LoopClean
+WriteAndBroadcast:
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndAdd:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
-
-${unStrRep}
 
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
@@ -467,21 +505,6 @@ FunctionEnd
 
 Function un.ReadUnToolsChoice
 	${NSD_GetState} $un_ToolsCheckbox $un_ToolsCheckboxState
-FunctionEnd
-
-Function un.RemoveFromEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	ReadRegStr $1 HKCU "Environment" "Path"
-	StrCpy $2 "$1"
-	Push "$2"
-	Push "$0;"
-	${unStrRep} $1 "$2" "$0" ""
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 1000, *i .r0)'
-	Pop $2
-	Pop $1
 FunctionEnd
 
 Function un.RMDirUP
@@ -504,6 +527,51 @@ Function un.RemoveIfEmpty
 	IfFileExists "$0\*\*.*" 0 +2
 		Return
 	RMDir "$0"
+FunctionEnd
+
+Function un.RemoveFromEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	${unStrTrimNewLines} $0 $0
+	${unStrRep} $0 $0 '"' ''
+	ReadRegStr $1 HKCU "Environment" "Path"
+	${If} $1 == ""
+		Goto EndRm
+	${EndIf}
+	${unStrRep} $1 "$1" ";$0;" ";"
+	${unStrRep} $1 "$1" "$0;" ""
+	${unStrRep} $1 "$1" ";$0" ""
+LoopCleanRm:
+	${unStrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto TrimEnds
+	${EndIf}
+	${unStrRep} $1 $1 ";;" ";"
+	Goto LoopCleanRm
+TrimEnds:
+	${If} $1 != ""
+		StrCpy $2 $1 1
+		${If} $2 == ";"
+			StrCpy $1 $1 "" 1
+		${EndIf}
+		StrLen $2 $1
+		${If} $2 > 0
+			IntOp $2 $2 - 1
+			StrCpy $3 $1 1 $2
+			${If} $3 == ";"
+				StrCpy $1 $1 $2
+			${EndIf}
+		${EndIf}
+	${EndIf}
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndRm:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 ;--------------------------------
@@ -537,8 +605,6 @@ Section "!Mi Ayudante (*)"
 	IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
 		File /r "..\app\base\entorno\*.*"
 	SetOutPath "$INSTDRIVE${TOOLS}"
-	IfFileExists "$INSTDRIVE${TOOLS}\curl.exe" +2 0
-		File "..\bin\curl.exe"
 ;Actualización de config.ini
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
@@ -602,7 +668,6 @@ Section "Uninstall"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
 	!insertmacro UninstallAllTools
-	Delete "$INSTDRIVE${TOOLS}\curl.exe"
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveIfEmpty
 Done:
