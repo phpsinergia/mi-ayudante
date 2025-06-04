@@ -21,6 +21,7 @@ Var SERVER
 Var FTP_USER
 Var FTP_PASS
 Var PROTOCOL
+Var FULL_PATH
 Var TotalInstalledSize
 Var IsUpdateInstall
 Var ServerInput
@@ -28,6 +29,10 @@ Var DriveCombo
 Var FtpUserInput
 Var FtpPassInput
 Var ProtocolCombo
+Var SkipPre
+Var RememberCredsCheckbox
+Var RememberCreds
+Var SkipPreCheckbox
 Var un_ToolsCheckboxState
 Var un_ToolsCheckbox
 
@@ -100,33 +105,61 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 !macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 	AddSize ${TOOL_SIZE_KB}
-	SetOutPath "$TEMP"
 	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +2
 		Goto SkipTool_${TOOL_ID}
+	SetOutPath "$TEMP"
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
-		nsExec::ExecToStack '"$INSTDRIVE${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip"'
-		Pop $0 ; código de salida de curl
-		Pop $1 ; mensaje de salida de curl
-		${If} $0 != "0"
-			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} por FTP desde:$\n$R0$\n$\nDetalles: $1"
+		nsExec::ExecToStack '"$INSTDRIVE${TOOLS}\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip" --silent --show-error --fail'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} (FTP):$\n$R2"
 			Goto SkipTool_${TOOL_ID}
 		${EndIf}
 	${Else}
 		StrCpy $R0 "https://$SERVER/herramientas/${TOOL_ID}.zip"
 		inetc::get /TIMEOUT=30000 /RESUME "" "$R0" "$TEMP\${TOOL_ID}.zip" /END
-		Pop $0
-		${If} $0 != "OK"
-			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} por HTTPS desde:$\n$R0$\n$\nDetalles: $0"
+		Pop $R1
+		${If} $R1 != "OK"
+			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} (HTTP):$\n$R1"
 			Goto SkipTool_${TOOL_ID}
 		${EndIf}
 	${EndIf}
-	CreateDirectory "$INSTDRIVE${TOOLS}\${TOOL_ID}"
-	SetOutPath "$INSTDRIVE${TOOLS}\${TOOL_ID}"
-	Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$INSTDRIVE${TOOLS}\${TOOL_ID}"
-	Pop $0
-	StrCmp $0 "success" +2
-		MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $0"
+	StrCpy $R7 "$TEMP\${TOOL_ID}_tmp"
+	RMDir /r "$R7"
+	CreateDirectory "$R7"
+	SetOutPath "$R7"
+	Nsisunz::UnzipToLog "$TEMP\${TOOL_ID}.zip" "$R7"
+	Pop $R1
+	${If} $R1 != "success"
+		MessageBox MB_ICONSTOP "Error al descomprimir ${TOOL_NAME}: $R1"
+		RMDir /r "$R7"
+		Delete "$TEMP\${TOOL_ID}.zip"
+		Goto SkipTool_${TOOL_ID}
+	${EndIf}
+	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - ${TOOL_SIZE_KB}
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 Tag_Mismatch_${TOOL_ID}
+	Goto Tag_OK_${TOOL_ID}
+Tag_Mismatch_${TOOL_ID}:
+	MessageBox MB_ICONEXCLAMATION \
+		"Tamaño incorrecto ($R4 KB ≠ ${TOOL_SIZE_KB} KB) en ${TOOL_NAME}"
+	RMDir /r "$R7"
+	Delete "$TEMP\\${TOOL_ID}.zip"
+	Goto SkipTool_${TOOL_ID}
+Tag_OK_${TOOL_ID}:
+	StrCpy $R8 $R7 2
+	StrCpy $R9 $INSTDRIVE 2
+	RMDir /r "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	${If} "$R8" == "$R9"
+		Rename "$R7" "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+	${Else}
+		CreateDirectory "$INSTDRIVE${TOOLS}\${TOOL_ID}"
+		CopyFiles /SILENT /FILESONLY "$R7\*.*" "$INSTDRIVE${TOOLS}\${TOOL_ID}\"
+		RMDir /r "$R7"
+	${EndIf}
 	Delete "$TEMP\${TOOL_ID}.zip"
 	${If} ${ADD_TO_PATH} == 1
 		Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
@@ -166,11 +199,11 @@ PageEx custom
 	Caption " "
 PageExEnd
 !insertmacro MUI_PAGE_COMPONENTS
-!insertmacro MUI_PAGE_INSTFILES
 PageEx custom
-	PageCallbacks CheckPreRequisites ""
+	PageCallbacks CheckPreRequisites LeavePreRequisites
 	Caption " "
 PageExEnd
+!insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
@@ -181,13 +214,19 @@ UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
 ; FUNCIONES: INSTALACIÓN
 
 Function .onInit
-	StrCpy $INSTDRIVE $EXEPATH 2
+	GetFullPathName $FULL_PATH $EXEPATH
+	StrCpy $INSTDRIVE $FULL_PATH 2
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
+	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPre"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
+	StrCpy $SkipPre "0"
+	${If} $2 != ""
+		StrCpy $SkipPre $2
+	${EndIf}
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
@@ -198,6 +237,10 @@ Function .onInit
 		MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
 		SectionSetFlags 0 ${SF_SELECTED}
 		Call CheckIfInstalledAllTools
+	${EndIf}
+	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
+	${If} $RememberCreds == ""
+		StrCpy $RememberCreds 0
 	${EndIf}
 FunctionEnd
 
@@ -210,56 +253,77 @@ Function SkipLicenseIfUpdate
 FunctionEnd
 
 Function CheckPreRequisites
-	${If} $IsUpdateInstall == "1"
+	${If} $SkipPre == "1"
 		Abort
-	${Else}
-		!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" ""
 	${EndIf}
+	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su sistema"
 	nsDialogs::Create 1018
 	Pop $0
-	${If} $0 == error
-		Abort
+
+	;TODO: Aquí falta añadir el diagnóstico real
+
+	${NSD_CreateCheckbox} 15u 40u 250u 10u "No volver a mostrar esta página"
+	Pop $SkipPreCheckbox
+	${If} $SkipPre == "1"
+		${NSD_Check} $SkipPreCheckbox
 	${EndIf}
-	;TODO: Falta construir esta página
 	nsDialogs::Show
 FunctionEnd
 
+Function LeavePreRequisites
+	${NSD_GetState} $SkipPreCheckbox $SkipPre
+FunctionEnd
+
 Function ConfigForm
-	${If} $IsUpdateInstall == "1"
-		Abort
-	${Else}
-		!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos"
-	${EndIf}
 	${If} $PROTOCOL == ""
 		StrCpy $PROTOCOL "HTTP"
 	${EndIf}
+	${If} $IsUpdateInstall == "1"
+		${If} $PROTOCOL == "FTP"
+		${AndIf} $FTP_USER == ""
+		${AndIf} $FTP_PASS == ""
+			Goto FormCreate
+		${Else}
+			Abort
+		${EndIf}
+	${EndIf}
+FormCreate:
+	!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos"
 	nsDialogs::Create 1018
 	Pop $0
 	${If} $0 == error
 		Abort
 	${EndIf}
 	;=== Grupo: Configuración de descarga
-	${NSD_CreateGroupBox} 5u 5u 290u 90u "Configuración de descargas"
+	${NSD_CreateGroupBox} 5u 2u 290u 95u "Configuración de descargas"
 	Pop $1
-	${NSD_CreateLabel} 15u 23u 100u 10u "Protocolo:"
+	${NSD_CreateLabel} 15u 17u 100u 10u "Protocolo:"
 	Pop $1
-	${NSD_CreateComboBox} 120u 21u 100u 12u ""
+	${NSD_CreateComboBox} 120u 15u 100u 12u ""
 	Pop $ProtocolCombo
 	${NSD_CB_AddString} $ProtocolCombo "HTTP"
 	${NSD_CB_AddString} $ProtocolCombo "FTP"
 	${NSD_CB_SelectString} $ProtocolCombo "$PROTOCOL"
-	${NSD_CreateLabel} 15u 41u 100u 10u "Dominio del servidor:"
+	${NSD_CreateLabel} 15u 33u 100u 10u "Dominio del servidor:"
 	Pop $1
-	${NSD_CreateText} 120u 39u 100u 12u "$SERVER"
+	${NSD_CreateText} 120u 31u 100u 12u "$SERVER"
 	Pop $ServerInput
-	${NSD_CreateLabel} 15u 59u 100u 10u "Usuario FTP:"
+	${NSD_CreateLabel} 15u 49u 100u 10u "Usuario FTP:"
 	Pop $1
-	${NSD_CreateText} 120u 57u 100u 12u "$FTP_USER"
+	${NSD_CreateText} 120u 47u 100u 12u "$FTP_USER"
 	Pop $FtpUserInput
-	${NSD_CreateLabel} 15u 77u 100u 10u "Contraseña FTP:"
+	${NSD_CreateLabel} 15u 66u 100u 10u "Contraseña FTP:"
 	Pop $1
-	${NSD_CreatePassword} 120u 75u 100u 12u "$FTP_PASS"
+	${NSD_CreatePassword} 120u 63u 100u 12u "$FTP_PASS"
 	Pop $FtpPassInput
+	${NSD_CreateCheckbox} 120u 80u 100u 10u "Recordar credenciales"
+	Pop $RememberCredsCheckbox
+	${If} $RememberCreds == 1
+		${NSD_Check} $RememberCredsCheckbox
+	${EndIf}
+	${NSD_CreateButton} 230u 76u 50u 14u "Probar"
+	Pop $0
+	${NSD_OnClick} $0 TestFtpConnection
 	;=== Grupo: Unidad de instalación
 	${NSD_CreateGroupBox} 5u 100u 290u 38u "Ruta de instalación"
 	Pop $1
@@ -278,10 +342,10 @@ DriveLoop:
 	StrCpy $R2 "$R0:\"
 	IfFileExists "$R2*" 0 NextDrive
 	${DriveSpace} "$R2" "/D=F" $R3
-	System::Int64Op $R3 / 1048576
+	System::Int64Op $R3 / 1073741824
 	Pop $R4
 	${If} $R4 != ""
-		StrCpy $R5 "$R0:\ ($R4 MB libres)"
+		StrCpy $R5 "$R0:\ ($R4 GB libres)"
 		${NSD_CB_AddString} $DriveCombo $R5
 	${EndIf}
 NextDrive:
@@ -302,6 +366,35 @@ Function SaveConfigForm
 		MessageBox MB_ICONEXCLAMATION "Debe indicar el Dominio del Servidor"
 		Abort
 	${Endif}
+	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
+	${If} $PROTOCOL == "FTP"
+		${If} $FTP_USER == ""
+		${OrIf} $FTP_PASS == ""
+			MessageBox MB_ICONEXCLAMATION "Debe indicar Usuario y Contraseña FTP"
+			Abort
+		${EndIf}
+	${EndIf}
+FunctionEnd
+
+Function TestFtpConnection
+	${NSD_GetText} $DriveCombo $0
+	StrCpy $INSTDRIVE $0 2
+	${NSD_GetText} $ServerInput $SERVER
+	${NSD_GetText} $FtpUserInput $FTP_USER
+	${NSD_GetText} $FtpPassInput $FTP_PASS
+	${NSD_GetText} $ProtocolCombo $PROTOCOL
+	${If} $PROTOCOL != "FTP"
+		MessageBox MB_OK "La prueba de conexión sólo aplica para FTP"
+		Return
+	${EndIf}
+	nsExec::ExecToStack '"..\bin\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
+	Pop $R0
+	Pop $R1
+	${If} $R0 == 0
+		MessageBox MB_ICONINFORMATION "Conexión Exitosa!!!"
+	${Else}
+		MessageBox MB_ICONSTOP "No se pudo conectar al servidor FTP $SERVER:$\n$R1"
+	${EndIf}
 FunctionEnd
 
 Function AddToEnvUserPath
@@ -406,6 +499,13 @@ Function un.RMDirUP
 	Pop $0
 FunctionEnd
 
+Function un.RemoveIfEmpty
+	Exch $0
+	IfFileExists "$0\*\*.*" 0 +2
+		Return
+	RMDir "$0"
+FunctionEnd
+
 ;--------------------------------
 ; SECCIONES
 
@@ -460,20 +560,31 @@ Section "-Registro"
 		Pop $1
 		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	${Else}
-		;TODO: Calcular tamaño total de la carpeta "$INSTDRIVE\home" y asignar valor a "EstimatedSize"
+		${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
+		IntFmt $1 "0x%08X" $1
+		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	${EndIf}
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Server" "$SERVER"
-	WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
-	WriteRegStr HKCU "Software\${NAME}" "FTP_Pass" "$FTP_PASS"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
+	WriteRegStr HKCU "Software\${NAME}" "SkipPre" "$SkipPre"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
+	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
+	${If} $RememberCreds == 1
+		WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
+		WriteRegStr HKCU "Software\${NAME}" "FTP_Pass" "$FTP_PASS"
+	${Else}
+		DeleteRegValue HKCU "Software\${NAME}" "FTP_User"
+		DeleteRegValue HKCU "Software\${NAME}" "FTP_Pass"
+	${EndIf}
+	StrCpy $FTP_USER ""
+	StrCpy $FTP_PASS ""
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
@@ -485,13 +596,14 @@ Section "Uninstall"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
-	Delete "$INSTDRIVE${TOOLS}\curl.exe"
 	RMDir /r "$INSTDIR"
 	${RMDirUP} "$INSTDIR"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
 	!insertmacro UninstallAllTools
-	;TODO: Eliminar carpeta "$INSTDRIVE${TOOLS}" si está vacía
+	Delete "$INSTDRIVE${TOOLS}\curl.exe"
+	Push "$INSTDRIVE${TOOLS}"
+	Call un.RemoveIfEmpty
 Done:
 SectionEnd
