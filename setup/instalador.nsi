@@ -14,7 +14,23 @@
 !include "StrFunc.nsh"
 
 ;--------------------------------
-; VARIABLES
+; DEFINICIONES BÁSICAS
+
+!define VERSION "1.0.0"
+!define NAME "Mi Ayudante"
+!define PUBLISHER "Rubén Araya Tagle"
+!define APPFILE "ayudante.exe"
+!define TARGET "\home\mi-ayudante"
+!define TOOLS "\home\herramientas"
+!define LICENSEFILE "LICENSE"
+!define README "LEEME.txt"
+!define ICON "img\favicon.ico"
+!define UNINSTALL "Desinstalar.exe"
+!define INSTALL "..\dist\mi-ayudante_${VERSION}.exe"
+!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+
+;--------------------------------
+; VARIABLES GLOBALES
 
 Var INSTDRIVE
 Var SERVER
@@ -37,23 +53,7 @@ Var un_ToolsCheckboxState
 Var un_ToolsCheckbox
 
 ;--------------------------------
-; DEFINICIONES BÁSICAS
-
-!define VERSION "1.0.0"
-!define NAME "Mi Ayudante"
-!define PUBLISHER "Rubén Araya Tagle"
-!define APPFILE "ayudante.exe"
-!define TARGET "\home\mi-ayudante"
-!define TOOLS "\home\herramientas"
-!define LICENSEFILE "LICENSE"
-!define README "LEEME.txt"
-!define ICON "img\favicon.ico"
-!define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\mi-ayudante_${VERSION}.exe"
-!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-
-;--------------------------------
-; DEFINICIONES INTERFAZ
+; DEFINICIONES MUI
 
 !define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
@@ -96,6 +96,14 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 ;--------------------------------
 ; MACROS
 
+${StrTrimNewLines}
+${StrRep}
+${StrStr}
+${StrCase}
+${unStrTrimNewLines}
+${unStrRep}
+${unStrStr}
+
 !macro UninstallTool TOOL_ID
 	RMDir /r "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
@@ -105,8 +113,11 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 !macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
 Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 	AddSize ${TOOL_SIZE_KB}
-	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +2
+	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
 		Goto SkipTool_${TOOL_ID}
+	${EndIf}
 	SetOutPath "$TEMP"
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
@@ -170,7 +181,9 @@ SectionEnd
 !macroend
 
 !macro CheckIfInstalledTool TOOL_ID SEC_ID OPT_CHECK
-	IfFileExists "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.*" 0 +9
+	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
 		SectionSetFlags ${SEC_ID} ${SF_SELECTED}
 		${If} "${OPT_CHECK}" == "1"
 			IntOp $0 ${SF_SELECTED} | ${SF_RO}
@@ -179,17 +192,10 @@ SectionEnd
 			IntOp $0 0 | ${SF_RO}
 			SectionSetFlags ${SEC_ID} $0
 		${EndIf}
+	${EndIf}
 !macroend
 
 !include "tools.nsh"
-
-${StrTrimNewLines}
-${StrRep}
-${StrStr}
-${StrCase}
-${unStrTrimNewLines}
-${unStrRep}
-${unStrStr}
 
 ;--------------------------------
 ; PAGINAS
@@ -252,6 +258,10 @@ Function .onInit
 	${EndIf}
 	SetOutPath "$TEMP"
 	File "..\bin\curl.exe"
+FunctionEnd
+
+Function .onInstFailed
+	Delete "$TEMP\curl.exe"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
