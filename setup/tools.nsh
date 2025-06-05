@@ -30,12 +30,12 @@
 !macroend
 
 Function CheckIfInstalledAllTools
-    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 2
-    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 2
-    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 2
-    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 2
-    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 2
-    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 2
-    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 2
-    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 2
+    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 3
+    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 3
+    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 3
+    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 3
+    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 3
+    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 3
+    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 3
+    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 3
 FunctionEnd

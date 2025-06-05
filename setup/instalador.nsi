@@ -49,6 +49,8 @@ Var SkipPre
 Var RememberCredsCheckbox
 Var RememberCreds
 Var SkipPreCheckbox
+Var TextWelcome
+Var TextCaption
 Var un_ToolsCheckboxState
 Var un_ToolsCheckbox
 
@@ -59,6 +61,7 @@ Var un_ToolsCheckbox
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "${NAME} v${VERSION}"
+!define MUI_WELCOMEPAGE_TEXT $TextWelcome
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
@@ -85,6 +88,8 @@ ShowInstDetails show
 ShowUninstDetails show
 AllowSkipFiles on
 SetCompressor lzma
+Caption $TextCaption
+LicenseBkColor /windows
 
 VIProductVersion ${VERSION}.0
 VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
@@ -110,7 +115,7 @@ ${unStrStr}
 	Call un.RemoveFromEnvUserPath
 !macroend
 
-!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_TO_PATH
+!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_PATH
 Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 	AddSize ${TOOL_SIZE_KB}
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
@@ -158,7 +163,7 @@ Tag_Mismatch_${TOOL_ID}:
 	MessageBox MB_ICONEXCLAMATION \
 		"Tamaño incorrecto ($R4 KB ≠ ${TOOL_SIZE_KB} KB) en ${TOOL_NAME}"
 	RMDir /r "$R7"
-	Delete "$TEMP\\${TOOL_ID}.zip"
+	Delete "$TEMP\${TOOL_ID}.zip"
 	Goto SkipTool_${TOOL_ID}
 Tag_OK_${TOOL_ID}:
 	StrCpy $R8 $R7 2
@@ -172,7 +177,7 @@ Tag_OK_${TOOL_ID}:
 		RMDir /r "$R7"
 	${EndIf}
 	Delete "$TEMP\${TOOL_ID}.zip"
-	${If} ${ADD_TO_PATH} == 1
+	${If} ${ADD_PATH} == 1
 		Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 		Call AddToEnvUserPath
 	${EndIf}
@@ -180,15 +185,18 @@ SkipTool_${TOOL_ID}:
 SectionEnd
 !macroend
 
-!macro CheckIfInstalledTool TOOL_ID SEC_ID OPT_CHECK
+!macro CheckIfInstalledTool TOOL_ID SEC_ID OP_SEL
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
-		SectionSetFlags ${SEC_ID} ${SF_SELECTED}
-		${If} "${OPT_CHECK}" == "1"
+		${If} "${OP_SEL}" == "0"
+			SectionSetFlags ${SEC_ID} 0
+		${ElseIf} "${OP_SEL}" == "1"
+			SectionSetFlags ${SEC_ID} ${SF_SELECTED}
+		${ElseIf} "${OP_SEL}" == "2"
 			IntOp $0 ${SF_SELECTED} | ${SF_RO}
 			SectionSetFlags ${SEC_ID} $0
-		${ElseIf} "${OPT_CHECK}" == "2"
+		${ElseIf} "${OP_SEL}" == "3"
 			IntOp $0 0 | ${SF_RO}
 			SectionSetFlags ${SEC_ID} $0
 		${EndIf}
@@ -201,26 +209,25 @@ SectionEnd
 ; PAGINAS
 
 !insertmacro MUI_PAGE_WELCOME
-LicenseBkColor /windows
 PageEx license
 	PageCallbacks SkipLicenseIfUpdate ""
 	LicenseData "..\${LICENSEFILE}"
-	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para instalar ${NAME}." "ACEPTO"
+	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para poder instalar ${NAME}." "ACEPTO"
 	Caption " "
 PageExEnd
 PageEx custom
-	PageCallbacks ConfigForm SaveConfigForm
+	PageCallbacks ShowConfigForm SaveConfigForm
 	Caption " "
 PageExEnd
-!insertmacro MUI_PAGE_COMPONENTS
 PageEx custom
 	PageCallbacks CheckPreRequisites LeavePreRequisites
 	Caption " "
 PageExEnd
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
-UninstPage custom un.ConfirmUnTools un.ReadUnToolsChoice
+UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Spanish"
 
@@ -248,10 +255,16 @@ Function .onInit
 		${If} $1 != ""
 			StrCpy $INSTDRIVE $1
 		${EndIf}
-		MessageBox MB_ICONINFORMATION "Ya existe una instalación en:$\n$INSTDRIVE$0$\n$\nSe actualizarán los componentes que seleccione."
+		StrCpy $TextCaption "Actualización de ${NAME}"
+		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
 		SectionSetFlags 0 ${SF_SELECTED}
-		Call CheckIfInstalledAllTools
+	${Else}
+		StrCpy $TextCaption "Instalación de ${NAME}"
+		StrCpy $TextWelcome "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
+		IntOp $3 ${SF_SELECTED} | ${SF_RO}
+		SectionSetFlags 0 $3
 	${EndIf}
+	Call CheckIfInstalledAllTools
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds == ""
 		StrCpy $RememberCreds 0
@@ -268,7 +281,7 @@ Function SkipLicenseIfUpdate
 	${If} $IsUpdateInstall == "1"
 		Abort
 	${Else}
-		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software"
+		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software."
 	${EndIf}
 FunctionEnd
 
@@ -276,7 +289,7 @@ Function CheckPreRequisites
 	${If} $SkipPre == "1"
 		Abort
 	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su sistema, junto con MySQL y un Editor de texto"
+	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su computadora local."
 	nsDialogs::Create 1018
 	Pop $0
 
@@ -294,7 +307,7 @@ Function LeavePreRequisites
 	${NSD_GetState} $SkipPreCheckbox $SkipPre
 FunctionEnd
 
-Function ConfigForm
+Function ShowConfigForm
 	${If} $PROTOCOL == ""
 		StrCpy $PROTOCOL "HTTP"
 	${EndIf}
@@ -308,7 +321,7 @@ Function ConfigForm
 		${EndIf}
 	${EndIf}
 FormCreate:
-	!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos"
+	!insertmacro MUI_HEADER_TEXT "Opciones de instalación" "Indique los datos necesarios para descargar y copiar los archivos."
 	nsDialogs::Create 1018
 	Pop $0
 	${If} $0 == error
@@ -441,7 +454,7 @@ Function LaunchApp
 	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
 		ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
 		Return
-	MessageBox MB_ICONSTOP "No se encontró el ejecutable ${APPFILE}.$\nEjecute nuevamente el instalador."
+	MessageBox MB_ICONSTOP "No se encontró el programa ${APPFILE}.$\nEjecute nuevamente el instalador."
 FunctionEnd
 
 Function AddToEnvUserPath
@@ -503,7 +516,7 @@ Function un.onInit
 	StrCpy $INSTDRIVE $0
 FunctionEnd
 
-Function un.ConfirmUnTools
+Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
 	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar las Herramientas externas?"
@@ -513,7 +526,7 @@ Function un.ConfirmUnTools
 	nsDialogs::Show
 FunctionEnd
 
-Function un.ReadUnToolsChoice
+Function un.ReadChoiceUninstall
 	${NSD_GetState} $un_ToolsCheckbox $un_ToolsCheckboxState
 FunctionEnd
 
@@ -532,7 +545,7 @@ Function un.RMDirUP
 	Pop $0
 FunctionEnd
 
-Function un.RemoveIfEmpty
+Function un.RemoveDirIfEmpty
 	Exch $0
 	IfFileExists "$0\*\*.*" 0 +2
 		Return
@@ -679,6 +692,6 @@ Section "Uninstall"
 	StrCmp $un_ToolsCheckboxState "1" 0 Done
 	!insertmacro UninstallAllTools
 	Push "$INSTDRIVE${TOOLS}"
-	Call un.RemoveIfEmpty
+	Call un.RemoveDirIfEmpty
 Done:
 SectionEnd
