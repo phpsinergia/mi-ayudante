@@ -45,10 +45,8 @@ Var DriveDropList
 Var FtpUserInput
 Var FtpPassInput
 Var ProtocolDropList
-Var SkipPre
 Var RememberCredsCheckbox
 Var RememberCreds
-Var SkipPreCheckbox
 Var TextWelcome
 Var TitleWelcome
 Var TextCaption
@@ -57,8 +55,6 @@ Var un_ToolsCheckbox
 Var hDriveDropList
 Var tmpGB
 Var btnTest
-Var Exit
-Var Out
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -131,10 +127,6 @@ PageEx custom
 	PageCallbacks ShowConfigForm SaveConfigForm
 	Caption " "
 PageExEnd
-PageEx custom
-	PageCallbacks CheckPreRequisites LeavePreRequisites
-	Caption " "
-PageExEnd
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -151,15 +143,10 @@ Function .onInit
 	StrCpy $INSTDRIVE $FULL_PATH 2
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
-	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPre"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-	StrCpy $SkipPre "0"
-	${If} $2 != ""
-		StrCpy $SkipPre $2
-	${EndIf}
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
@@ -170,7 +157,8 @@ Function .onInit
 		StrCpy $TextCaption "Actualización de ${NAME}"
 		StrCpy $TitleWelcome "Actualizar ${NAME} v${VERSION}"
 		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
-		SectionSetFlags 0 ${SF_SELECTED}
+		SectionSetFlags 0 0
+		Call CheckIfInstalledAllTools
 	${Else}
 		StrCpy $TextCaption "Instalación de ${NAME}"
 		StrCpy $TitleWelcome "Instalar ${NAME} v${VERSION}"
@@ -182,15 +170,6 @@ Function .onInit
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
 	${EndIf}
-	SetOutPath "$TEMP"
-	File "..\bin\curl.exe"
-
-	Call CheckIfInstalledAllTools
-
-FunctionEnd
-
-Function .onInstFailed
-	Delete "$TEMP\curl.exe"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -201,37 +180,9 @@ Function SkipLicenseIfUpdate
 	${EndIf}
 FunctionEnd
 
-Function CheckPreRequisites
-	nsDialogs::Create 1018
-	Pop $0
-	${If} $0 == error
-		Abort
-	${EndIf}
-	${If} $SkipPre == "1"
-		Abort
-	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su computadora local."
-
-	;TODO: Aquí falta añadir el diagnóstico real
-
-	${NSD_CreateCheckbox} 15u 40u 250u 10u "No volver a mostrar esta página"
-	Pop $SkipPreCheckbox
-	${If} $SkipPre == "1"
-		${NSD_Check} $SkipPreCheckbox
-	${EndIf}
-	nsDialogs::Show
-FunctionEnd
-
-Function LeavePreRequisites
-	${NSD_GetState} $SkipPreCheckbox $SkipPre
-FunctionEnd
-
 Function ShowConfigForm
 	nsDialogs::Create 1018
 	Pop $0
-	${If} $0 == error
-		Abort
-	${EndIf}
 	${If} $PROTOCOL == ""
 		StrCpy $PROTOCOL "---"
 	${EndIf}
@@ -247,10 +198,8 @@ Function ShowConfigForm
 		${NSD_CreateDropList} 120u 16u 100u 14u ""
 		Pop $DriveDropList
 		StrCpy $hDriveDropList $DriveDropList
-		!insertmacro DriveSpace
 		Call FillDriveList
 		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
-		${NSD_OnChange} $DriveDropList DriveChanged
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
 		${EndIf}
@@ -280,9 +229,9 @@ Function ShowConfigForm
 		Pop $FtpPassInput
 		${NSD_CreateCheckbox} 120u 124u 100u 10u "Recordar credenciales"
 		Pop $RememberCredsCheckbox
-			${If} $RememberCreds == "1"
-				${NSD_Check} $RememberCredsCheckbox
-			${EndIf}
+		${If} $RememberCreds == "1"
+			${NSD_Check} $RememberCredsCheckbox
+		${EndIf}
 		${NSD_CreateButton} 230u 120u 50u 14u "Probar"
 		Pop $btnTest
 		${NSD_OnClick} $btnTest TestConnection
@@ -324,7 +273,7 @@ Function TestConnection
 	${ElseIf} $PROTOCOL == "HTTP"
 		Call TestHttpConnection
 	${Else}
-		MessageBox MB_OK "Seleccione HTTP o FTP para realizar la prueba."
+		MessageBox MB_ICONEXCLAMATION "Seleccione un Protocolo (HTTP o FTP) para realizar la prueba."
 	${EndIf}
 	System::Call 'user32::EnableWindow(p$btnTest,i1)'
 FunctionEnd
@@ -337,36 +286,31 @@ Function TestFtpConnection
 		MessageBox MB_ICONEXCLAMATION "Debe indicar Usuario y Contraseña FTP"
 		Return
 	${EndIf}
-	nsExec::ExecToStack '"$TEMP\curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
-	Pop $Exit
-	Pop $Out
-	${If} $Exit == 0
+	nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
+	Pop $R0
+	Pop $R1
+	${If} $R0 == 0
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "Conexión FTP exitosa."
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "Falló la conexión FTP a $SERVER:$\n$Out"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "Falló la conexión FTP a $SERVER:$\n$R1"
 	${EndIf}
 FunctionEnd
 
 Function TestHttpConnection
-	nsExec::ExecToStack '"$TEMP\curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/tools.json"'
-	Pop $Exit
-	Pop $Out
-	${If} $Out == "200"
+	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/tools.json"'
+	Pop $R1
+	Pop $R0
+	${If} $R0 == "200"
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND \
 			"Conexión HTTP exitosa."
 	${Else}
 		MessageBox MB_ICONSTOP|MB_SETFOREGROUND \
-			"Falló la conexión HTTP a $SERVER:$\nCódigo recibido: $Out"
+			"Falló la conexión HTTP a $SERVER:$\nRespuesta recibida: $R0"
 	${EndIf}
 FunctionEnd
 
 Function FillDriveList
 	${GetDrives} "ALL" AddDriveCallback
-FunctionEnd
-
-Function DriveChanged
-	${NSD_GetText} $DriveDropList $0
-	StrCpy $INSTDRIVE $0 2
 FunctionEnd
 
 Function AddDriveCallback
@@ -453,7 +397,6 @@ EndAdd:
 FunctionEnd
 
 Function LaunchApp
-	Delete "$TEMP\curl.exe"
 	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
 		ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
 		Return
@@ -471,7 +414,7 @@ FunctionEnd
 Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
-	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar las Herramientas externas?"
+	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar también las Herramientas externas?"
 	Pop $1
 	${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
 	Pop $un_ToolsCheckbox
@@ -553,7 +496,6 @@ FunctionEnd
 ; SECCIONES
 
 Section "!Mi Ayudante (*)"
-	SectionIn RO
 ;Creación de directorios
 	CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
 	CreateDirectory "$INSTDRIVE$INSTDIR\datos"
@@ -579,17 +521,24 @@ Section "!Mi Ayudante (*)"
 	SetOutPath "$INSTDRIVE$INSTDIR\entornos\basico"
 	IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
 		File /r "..\app\base\entorno\*.*"
+	SetOutPath "$INSTDRIVE${TOOLS}"
+;Actualización de config.ini
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
 		File "config.ini"
+	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
+	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
+;Creación de accesos directos
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 SectionEnd
 
-SectionGroup "Requisitos"
+SectionGroup /e "!Requisitos"
 	Section "PHP 8"
-		AddSize 99688
+		;AddSize 99688
 	SectionEnd
 	Section "PhpSinergIA"
-		AddSize 887
+		;AddSize 887
 	SectionEnd
 SectionGroupEnd
 
@@ -597,33 +546,11 @@ SectionGroup "Herramientas externas"
 	!insertmacro GenerateAllSectionTools
 SectionGroupEnd
 
-SectionGroup "Actualizaciones"
-SectionGroupEnd
-
-Section "-Configurar"
-	SectionIn RO
-;Actualización de config.ini
-	IfFileExists "$INSTDRIVE$INSTDIR\config.ini" 0 +3
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
-;Creación de accesos directos
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-;Modificación del Registro HKCU
-	${If} $IsUpdateInstall == "0"
-		Call GetInstalledSize
-		Pop $1
-		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
-	${Else}
-		${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
-		IntFmt $1 "0x%08X" $1
-		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
-	${EndIf}
+Section "-Registro"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Server" "$SERVER"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
-	WriteRegStr HKCU "Software\${NAME}" "SkipPre" "$SkipPre"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
@@ -638,9 +565,17 @@ Section "-Configurar"
 		DeleteRegValue HKCU "Software\${NAME}" "FTP_User"
 		DeleteRegValue HKCU "Software\${NAME}" "FTP_Pass"
 	${EndIf}
+	StrCpy $FTP_USER ""
+	StrCpy $FTP_PASS ""
 	${If} $IsUpdateInstall == "0"
-		WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+		Call GetInstalledSize
+		Pop $1
+	${Else}
+		${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
+		IntFmt $1 "0x%08X" $1
 	${EndIf}
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
 Section "Uninstall"

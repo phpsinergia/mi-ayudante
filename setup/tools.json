@@ -3,8 +3,6 @@
 
 {"id":"vendor", "name":"PhpSinergIA", "version":"1.0.0", "size_kb":887, "files":291, "add_path":0, "op_sel":3, "group":"Requisitos", "url":"https://masexperto.cl/herramientas/vendor.zip", "sha256":"1de9ba5ab15a2f1451c023f890a8361f66ce7275"},
 
-{"id":"curl", "name":"CLI Curl", "version":"8.4.0", "size_kb":6071, "files":1, "add_path":1, "op_sel":3, "group":"Herramientas", "url":"https://masexperto.cl/herramientas/curl.zip", "sha256":"8f08a443f6bf5d9c6fefa9d7a4963ba1b078bbc9"},
-
 {"id":"7za", "name":"CLI 7za", "version":"4.42", "size_kb":466, "files":1, "add_path":1, "op_sel":3, "group":"Herramientas", "url":"https://masexperto.cl/herramientas/7za.zip", "sha256":"c477b693b10b048a69c9566baf253736e2f23dbe"},
 
 {"id":"gettext", "name":"CLI Gettext", "version":"0.19.8", "size_kb":6080, "files":16, "add_path":1, "op_sel":3, "group":"Herramientas", "url":"https://masexperto.cl/herramientas/gettext.zip", "sha256":"2fd1b14d1b1b4ea2bc229c8fcaf283116e9d7b4a"},
