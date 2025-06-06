@@ -24,10 +24,12 @@ Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 		${EndIf}
 	${ElseIf} $PROTOCOL == "HTTP"
 		StrCpy $R0 "https://$SERVER/herramientas/${TOOL_ID}.zip"
-		inetc::get /TIMEOUT=30000 /RESUME "" "$R0" "$TEMP\${TOOL_ID}.zip" /END
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\${TOOL_ID}.zip" "$R0"'
 		Pop $R1
-		${If} $R1 != "OK"
-			MessageBox MB_ICONEXCLAMATION "No se pudo descargar ${TOOL_NAME} (HTTP):$\n$R1"
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION \
+			  "No se pudo descargar ${TOOL_NAME} (HTTP):$\nCódigo de respuesta: $R1"
 			Goto SkipTool_${TOOL_ID}
 		${EndIf}
 	${Else}

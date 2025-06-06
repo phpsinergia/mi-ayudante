@@ -45,8 +45,10 @@ Var DriveDropList
 Var FtpUserInput
 Var FtpPassInput
 Var ProtocolDropList
+Var SkipPre
 Var RememberCredsCheckbox
 Var RememberCreds
+Var SkipPreCheckbox
 Var TextWelcome
 Var TitleWelcome
 Var TextCaption
@@ -123,10 +125,8 @@ PageEx license
 	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para poder instalar ${NAME}." "ACEPTO"
 	Caption " "
 PageExEnd
-PageEx custom
-	PageCallbacks ShowConfigForm SaveConfigForm
-	Caption " "
-PageExEnd
+Page custom ShowConfigForm SaveConfigForm " "
+Page custom CheckPreRequisites LeavePreRequisites " "
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -143,10 +143,15 @@ Function .onInit
 	StrCpy $INSTDRIVE $FULL_PATH 2
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
+	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPre"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
+	StrCpy $SkipPre "0"
+	${If} $2 != ""
+		StrCpy $SkipPre $2
+	${EndIf}
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
@@ -175,9 +180,27 @@ FunctionEnd
 Function SkipLicenseIfUpdate
 	${If} $IsUpdateInstall == "1"
 		Abort
-	${Else}
-		!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software."
 	${EndIf}
+	!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software."
+FunctionEnd
+
+Function CheckPreRequisites
+	${If} $SkipPre == "1"
+		Abort
+	${EndIf}
+	nsDialogs::Create 1018
+	Pop $0
+	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su computadora local."
+
+	;TODO: Aquí falta añadir el diagnóstico real
+
+	${NSD_CreateCheckbox} 15u 40u 250u 10u "No volver a mostrar esta página"
+	Pop $SkipPreCheckbox
+	nsDialogs::Show
+FunctionEnd
+
+Function LeavePreRequisites
+	${NSD_GetState} $SkipPreCheckbox $SkipPre
 FunctionEnd
 
 Function ShowConfigForm
@@ -528,17 +551,16 @@ Section "!Mi Ayudante (*)"
 		File "config.ini"
 	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
 	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
-;Creación de accesos directos
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 SectionEnd
 
 SectionGroup /e "!Requisitos"
 	Section "PHP 8"
-		;AddSize 99688
+		AddSize 99688
 	SectionEnd
 	Section "PhpSinergIA"
-		;AddSize 887
+		AddSize 887
 	SectionEnd
 SectionGroupEnd
 
@@ -546,11 +568,12 @@ SectionGroup "Herramientas externas"
 	!insertmacro GenerateAllSectionTools
 SectionGroupEnd
 
-Section "-Registro"
+Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "FTP_Server" "$SERVER"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
+	WriteRegStr HKCU "Software\${NAME}" "SkipPre" "$SkipPre"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
