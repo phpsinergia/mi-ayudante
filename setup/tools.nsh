@@ -1,4 +1,7 @@
-﻿!macro UninstallTool TOOL_ID
+﻿;------------------------------------------------------------
+; MACROS PARA GESTIONAR HERRAMIENTAS
+
+!macro UninstallTool TOOL_ID
 	RMDir /r "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	Push "$INSTDRIVE${TOOLS}\${TOOL_ID}"
 	Call un.RemoveFromEnvUserPath
@@ -92,14 +95,28 @@ SectionEnd
 	${EndIf}
 !macroend
 
-!define SEC_7za 6
-!define SEC_gettext 7
-!define SEC_sqlite 8
-!define SEC_mkcert 9
-!define SEC_pdftk 10
-!define SEC_pandoc 11
-!define SEC_wkhtmltopdf 12
-!define SEC_ffmpeg 13
+;------------------------------------------------------------
+; CATALOGO DE HERRAMIENTAS
+
+!define SEC_7za 9
+!define SEC_gettext 10
+!define SEC_sqlite 11
+!define SEC_mkcert 12
+!define SEC_pdftk 13
+!define SEC_pandoc 14
+!define SEC_wkhtmltopdf 15
+!define SEC_ffmpeg 16
+
+Function CheckIfInstalledAllTools
+    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 3
+    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 3
+    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 3
+    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 3
+    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 3
+    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 3
+    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 3
+    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 3
+FunctionEnd
 
 !macro GenerateAllSectionTools
     !insertmacro GenerateSectionTool 7za "CLI 7za" 466 0
@@ -122,14 +139,3 @@ SectionEnd
     !insertmacro UninstallTool wkhtmltopdf
     !insertmacro UninstallTool ffmpeg
 !macroend
-
-Function CheckIfInstalledAllTools
-    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 3
-    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 3
-    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 3
-    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 3
-    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 3
-    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 3
-    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 3
-    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 3
-FunctionEnd

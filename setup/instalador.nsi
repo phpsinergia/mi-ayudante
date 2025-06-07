@@ -162,14 +162,14 @@ Function .onInit
 		StrCpy $TextCaption "Actualización de ${NAME}"
 		StrCpy $TitleWelcome "Actualizar ${NAME} v${VERSION}"
 		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
-		SectionSetFlags 0 0
+		SectionSetFlags 1 0
 		Call CheckIfInstalledAllTools
 	${Else}
 		StrCpy $TextCaption "Instalación de ${NAME}"
 		StrCpy $TitleWelcome "Instalar ${NAME} v${VERSION}"
 		StrCpy $TextWelcome "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags 0 $3
+		SectionSetFlags 1 $3
 	${EndIf}
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
@@ -211,13 +211,11 @@ Function ShowConfigForm
 	${EndIf}
 	!insertmacro MUI_HEADER_TEXT "Opciones de instalación" \
 		"Indique los datos necesarios para descargar y copiar los componentes."
-	;------------------------------------------------------------
 	; 1. Grupo: **Ruta de instalación**
 	${NSD_CreateGroupBox} 5u 2u 290u 38u "Ruta de instalación"
 	Pop $0
 		${NSD_CreateLabel}   15u 18u 100u 10u "Unidad de destino:"
 		Pop $0
-		; Drop-list NO editable
 		${NSD_CreateDropList} 120u 16u 100u 14u ""
 		Pop $DriveDropList
 		StrCpy $hDriveDropList $DriveDropList
@@ -226,7 +224,6 @@ Function ShowConfigForm
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
 		${EndIf}
-	;------------------------------------------------------------
 	; 2. Grupo: **Configuración de descargas**
 	${NSD_CreateGroupBox} 5u 46u 290u 95u "Configuración de descargas"
 	Pop $0
@@ -518,44 +515,48 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-Section "!Mi Ayudante (*)"
-;Creación de directorios
-	CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
-	CreateDirectory "$INSTDRIVE$INSTDIR\datos"
-	CreateDirectory "$INSTDRIVE$INSTDIR\entornos\basico"
-	CreateDirectory "$INSTDRIVE$INSTDIR\logs"
-	CreateDirectory "$INSTDRIVE$INSTDIR\respaldos"
-	CreateDirectory "$INSTDRIVE${TOOLS}"
-;Copia selectiva de archivos
-	SetOutPath "$INSTDRIVE$INSTDIR\base"
-	File /r "..\app\base\*.*"
-	SetOutPath "$INSTDRIVE$INSTDIR\img"
-	File /r "..\app\img\*.*"
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" +2 0
-		File "..\app\${APPFILE}"
-	IfFileExists "$INSTDRIVE$INSTDIR\${README}" +2 0
-		File "..\app\${README}"
-	IfFileExists "$INSTDRIVE$INSTDIR\${LICENSEFILE}" +2 0
-		File /oname=LICENSE.txt "..\${LICENSEFILE}"
-	SetOutPath "$INSTDRIVE$INSTDIR\datos"
-	IfFileExists "$INSTDRIVE$INSTDIR\datos\basico_proyectos.txt" +2 0
-		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
-	SetOutPath "$INSTDRIVE$INSTDIR\entornos\basico"
-	IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
-		File /r "..\app\base\entorno\*.*"
-	SetOutPath "$INSTDRIVE${TOOLS}"
-;Actualización de config.ini
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
-		File "config.ini"
-	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
-	WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-SectionEnd
+SectionGroup /e "Programa"
+	Section "!Mi Ayudante (*)"
+	;Creación de directorios
+		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
+		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
+		CreateDirectory "$INSTDRIVE$INSTDIR\entornos\basico"
+		CreateDirectory "$INSTDRIVE$INSTDIR\logs"
+		CreateDirectory "$INSTDRIVE$INSTDIR\respaldos"
+		CreateDirectory "$INSTDRIVE${TOOLS}"
+	;Copia selectiva de archivos
+		SetOutPath "$INSTDRIVE$INSTDIR\base"
+		File /r "..\app\base\*.*"
+		SetOutPath "$INSTDRIVE$INSTDIR\img"
+		File /r "..\app\img\*.*"
+		SetOutPath "$INSTDRIVE$INSTDIR"
+		IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" +2 0
+			File "..\app\${APPFILE}"
+		IfFileExists "$INSTDRIVE$INSTDIR\${README}" +2 0
+			File "..\app\${README}"
+		IfFileExists "$INSTDRIVE$INSTDIR\${LICENSEFILE}" +2 0
+			File /oname=LICENSE.txt "..\${LICENSEFILE}"
+		SetOutPath "$INSTDRIVE$INSTDIR\datos"
+		IfFileExists "$INSTDRIVE$INSTDIR\datos\basico_proyectos.txt" +2 0
+			File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+		SetOutPath "$INSTDRIVE$INSTDIR\entornos\basico"
+		IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
+			File /r "..\app\base\entorno\*.*"
+		SetOutPath "$INSTDRIVE${TOOLS}"
+	;Actualización de config.ini
+		SetOutPath "$INSTDRIVE$INSTDIR"
+		IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
+			File "config.ini"
+		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
+		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
+		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	SectionEnd
+	Section /o "Actualizaciones"
+	SectionEnd
+SectionGroupEnd
 
-SectionGroup /e "!Requisitos"
+SectionGroup "Requisitos"
 	Section "PHP 8"
 		AddSize 99688
 	SectionEnd
@@ -564,7 +565,7 @@ SectionGroup /e "!Requisitos"
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup "Herramientas externas"
+SectionGroup "Complementos"
 	!insertmacro GenerateAllSectionTools
 SectionGroupEnd
 
