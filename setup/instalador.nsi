@@ -16,7 +16,7 @@
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
 
-!define VERSION "1.0.0"
+!define LANZAMIENTO "1.0.0"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
 !define APPFILE "ayudante.exe"
@@ -26,12 +26,13 @@
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\mi-ayudante_${VERSION}.exe"
+!define INSTALL "..\dist\mi-ayudante_${LANZAMIENTO}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 
 ;--------------------------------
 ; VARIABLES GLOBALES
 
+Var VERSION
 Var INSTDRIVE
 Var SERVER
 Var FTP_USER
@@ -57,6 +58,7 @@ Var un_ToolsCheckbox
 Var hDriveDropList
 Var tmpGB
 Var btnTest
+Var btnUninstall
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -64,7 +66,7 @@ Var btnTest
 !define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "$TitleWelcome"
+!define MUI_WELCOMEPAGE_TITLE $TitleWelcome
 !define MUI_WELCOMEPAGE_TEXT $TextWelcome
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
@@ -95,10 +97,10 @@ SetCompressor lzma
 Caption $TextCaption
 LicenseBkColor /windows
 
-VIProductVersion ${VERSION}.0
+VIProductVersion ${LANZAMIENTO}.0
 VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
-VIAddVersionKey /LANG=0 "ProductVersion" "${VERSION}"
-VIAddVersionKey /LANG=0 "FileVersion" ${VERSION}
+VIAddVersionKey /LANG=0 "ProductVersion" "${LANZAMIENTO}"
+VIAddVersionKey /LANG=0 "FileVersion" ${LANZAMIENTO}
 VIAddVersionKey /LANG=0 "FileDescription" "Instalador de ${NAME} para Windows"
 VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 
@@ -126,7 +128,7 @@ PageEx license
 	Caption " "
 PageExEnd
 Page custom ShowConfigForm SaveConfigForm " "
-Page custom CheckPreRequisites LeavePreRequisites " "
+;Page custom CheckPreRequisites LeavePreRequisites " "
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -144,6 +146,7 @@ Function .onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
 	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPre"
+	ReadRegStr $VERSION HKCU "Software\${NAME}" "Version"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
@@ -151,6 +154,9 @@ Function .onInit
 	StrCpy $SkipPre "0"
 	${If} $2 != ""
 		StrCpy $SkipPre $2
+	${EndIf}
+	${If} $VERSION == ""
+		StrCpy $VERSION ${LANZAMIENTO}
 	${EndIf}
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
@@ -160,20 +166,27 @@ Function .onInit
 			StrCpy $INSTDRIVE $1
 		${EndIf}
 		StrCpy $TextCaption "Actualización de ${NAME}"
-		StrCpy $TitleWelcome "Actualizar ${NAME} v${VERSION}"
+		StrCpy $TitleWelcome "Actualizar ${NAME} v$VERSION"
 		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
 		SectionSetFlags 1 0
+		SectionSetFlags 2 ${SF_SELECTED}
 		Call CheckIfInstalledAllTools
 	${Else}
 		StrCpy $TextCaption "Instalación de ${NAME}"
-		StrCpy $TitleWelcome "Instalar ${NAME} v${VERSION}"
+		StrCpy $TitleWelcome "Instalar ${NAME} v$VERSION"
 		StrCpy $TextWelcome "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags 1 $3
+		IntOp $3 0 | ${SF_RO}
+		SectionSetFlags 2 $3
 	${EndIf}
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
+	${EndIf}
+	;TODO: Quitar
+	${If} "1" == "2"
+		Call RunUninstaller
 	${EndIf}
 FunctionEnd
 
@@ -223,6 +236,9 @@ Function ShowConfigForm
 		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
+			${NSD_CreateButton} 225u 16u 60u 16u "Desinstalar"
+			Pop $btnUninstall
+			${NSD_OnClick} $btnUninstall RunUninstaller
 		${EndIf}
 	; 2. Grupo: **Configuración de descargas**
 	${NSD_CreateGroupBox} 5u 46u 290u 95u "Configuración de descargas"
@@ -252,7 +268,7 @@ Function ShowConfigForm
 		${If} $RememberCreds == "1"
 			${NSD_Check} $RememberCredsCheckbox
 		${EndIf}
-		${NSD_CreateButton} 230u 120u 50u 14u "Probar"
+		${NSD_CreateButton} 230u 74u 50u 16u "Probar"
 		Pop $btnTest
 		${NSD_OnClick} $btnTest TestConnection
 	nsDialogs::Show
@@ -423,6 +439,15 @@ Function LaunchApp
 	MessageBox MB_ICONSTOP "No se encontró el programa ${APPFILE}.$\nEjecute nuevamente el instalador."
 FunctionEnd
 
+Function RunUninstaller
+    StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+    IfFileExists "$0" 0 NoUninst
+    Exec '"$0"'
+    Quit
+NoUninst:
+    MessageBox MB_ICONSTOP "No se encontró el desinstalador en:$\n$0"
+FunctionEnd
+
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 
@@ -548,7 +573,7 @@ SectionGroup /e "Programa"
 		IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
 			File "config.ini"
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento ${VERSION}
+		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	SectionEnd
@@ -577,7 +602,7 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "SkipPre" "$SkipPre"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "${VERSION}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"

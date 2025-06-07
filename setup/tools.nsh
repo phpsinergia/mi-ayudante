@@ -13,6 +13,7 @@ Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.php"
 		Goto SkipTool_${TOOL_ID}
 	${EndIf}
 	SetOutPath "$TEMP"
@@ -81,6 +82,7 @@ SectionEnd
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.php"
 		${If} "${OP_SEL}" == "0"
 			SectionSetFlags ${SEC_ID} 0
 		${ElseIf} "${OP_SEL}" == "1"
@@ -91,6 +93,10 @@ SectionEnd
 		${ElseIf} "${OP_SEL}" == "3"
 			IntOp $0 0 | ${SF_RO}
 			SectionSetFlags ${SEC_ID} $0
+		${ElseIf} "${OP_SEL}" == "4"
+			IntOp $0 0 | ${SF_RO}
+			SectionSetFlags ${SEC_ID} $0
+			SectionSetText  ${SEC_ID} ""
 		${EndIf}
 	${EndIf}
 !macroend
@@ -108,14 +114,14 @@ SectionEnd
 !define SEC_ffmpeg 16
 
 Function CheckIfInstalledAllTools
-    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 3
-    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 3
-    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 3
-    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 3
-    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 3
-    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 3
-    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 3
-    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 3
+    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 4
+    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 4
+    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 4
+    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 4
+    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 4
+    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 4
+    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 4
+    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 4
 FunctionEnd
 
 !macro GenerateAllSectionTools

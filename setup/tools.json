@@ -1,23 +1,23 @@
 [
-{"id":"php", "name":"PHP 8", "version":"8.2.12", "size_kb":99688, "files":1945, "add_path":1, "op_sel":3, "group":"Requisitos", "url":"https://masexperto.cl/herramientas/php.zip", "sha256":"e2b210cd7dcdd18f3ee725e64c0c1b247da07f51"},
+{"id":"php", "name":"PHP 8", "version":"8.2.12", "size_kb":99688, "files":1945, "add_path":1, "op_sel":4, "group":"Requisitos", "url":"https://masexperto.cl/herramientas/php.zip", "sha256":"e2b210cd7dcdd18f3ee725e64c0c1b247da07f51"},
 
-{"id":"vendor", "name":"PhpSinergIA", "version":"1.0.0", "size_kb":887, "files":291, "add_path":0, "op_sel":3, "group":"Requisitos", "url":"https://masexperto.cl/herramientas/vendor.zip", "sha256":"1de9ba5ab15a2f1451c023f890a8361f66ce7275"},
+{"id":"vendor", "name":"PhpSinergIA", "version":"1.0.0", "size_kb":887, "files":291, "add_path":0, "op_sel":4, "group":"Requisitos", "url":"https://masexperto.cl/herramientas/vendor.zip", "sha256":"1de9ba5ab15a2f1451c023f890a8361f66ce7275"},
 
-{"id":"7za", "name":"CLI 7za", "version":"4.42", "size_kb":466, "files":1, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/7za.zip", "sha256":"c477b693b10b048a69c9566baf253736e2f23dbe"},
+{"id":"7za", "name":"CLI 7za", "version":"4.42", "size_kb":466, "files":1, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/7za.zip", "sha256":"c477b693b10b048a69c9566baf253736e2f23dbe"},
 
-{"id":"gettext", "name":"CLI Gettext", "version":"0.19.8", "size_kb":6080, "files":16, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/gettext.zip", "sha256":"2fd1b14d1b1b4ea2bc229c8fcaf283116e9d7b4a"},
+{"id":"gettext", "name":"CLI Gettext", "version":"0.19.8", "size_kb":6080, "files":16, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/gettext.zip", "sha256":"2fd1b14d1b1b4ea2bc229c8fcaf283116e9d7b4a"},
 
-{"id":"sqlite", "name":"CLI SQLite", "version":"3.49.1", "size_kb":14257, "files":4, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/sqlite.zip", "sha256":"af02930e9ef5459ed83a5d4add9f850b104a31b4"},
+{"id":"sqlite", "name":"CLI SQLite", "version":"3.49.1", "size_kb":14257, "files":4, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/sqlite.zip", "sha256":"af02930e9ef5459ed83a5d4add9f850b104a31b4"},
 
-{"id":"mkcert", "name":"CLI Mkcert", "version":"1.4.1", "size_kb":5136, "files":2, "add_path":0, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/mkcert.zip", "sha256":"dbe72572aad3b99b1fba19d67c046e8ab8eb46ee"},
+{"id":"mkcert", "name":"CLI Mkcert", "version":"1.4.1", "size_kb":5136, "files":2, "add_path":0, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/mkcert.zip", "sha256":"dbe72572aad3b99b1fba19d67c046e8ab8eb46ee"},
 
-{"id":"pdftk", "name":"CLI PDFtk", "version":"2.02", "size_kb":9638, "files":2, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/pdftk.zip", "sha256":"1fa2c1518af7c6148cba5c555b62ca39049cddf3"},
+{"id":"pdftk", "name":"CLI PDFtk", "version":"2.02", "size_kb":9638, "files":2, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/pdftk.zip", "sha256":"1fa2c1518af7c6148cba5c555b62ca39049cddf3"},
 
-{"id":"pandoc", "name":"CLI Pandoc", "version":"3.6.4", "size_kb":216722, "files":4, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/pandoc.zip", "sha256":"92189242776487a46ddeb6d68be198692ceec2e6"},
+{"id":"pandoc", "name":"CLI Pandoc", "version":"3.6.4", "size_kb":216722, "files":4, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/pandoc.zip", "sha256":"92189242776487a46ddeb6d68be198692ceec2e6"},
 
-{"id":"wkhtmltopdf", "name":"CLI Wkhtmltopdf", "version":"0.12.6", "size_kb":88533, "files":8, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/wkhtmltopdf.zip", "sha256":"3e718fa97bbe68eebc6eff8e68c540596e024d4d"},
+{"id":"wkhtmltopdf", "name":"CLI Wkhtmltopdf", "version":"0.12.6", "size_kb":88533, "files":8, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/wkhtmltopdf.zip", "sha256":"3e718fa97bbe68eebc6eff8e68c540596e024d4d"},
 
-{"id":"ffmpeg", "name":"CLI FFmpeg", "version":"7.1.1", "size_kb":37121, "files":11, "add_path":1, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/ffmpeg.zip", "sha256":"3e718fa97bbe68eebc6eff8e68c540596e024d4d"},
+{"id":"ffmpeg", "name":"CLI FFmpeg", "version":"7.1.1", "size_kb":37121, "files":11, "add_path":1, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/ffmpeg.zip", "sha256":"3e718fa97bbe68eebc6eff8e68c540596e024d4d"},
 
-{"id":"bootstrap", "name":"SCSS Bootstrap", "version":"5.3.1", "size_kb":11580, "files":596, "add_path":0, "op_sel":3, "group":"Complementos", "url":"https://masexperto.cl/herramientas/bootstrap.zip", "sha256":"7cf611599f091bc4da0b75a4e9cbbc88ddf7dd53"}
+{"id":"bootstrap", "name":"SCSS Bootstrap", "version":"5.3.1", "size_kb":11580, "files":596, "add_path":0, "op_sel":4, "group":"Complementos", "url":"https://masexperto.cl/herramientas/bootstrap.zip", "sha256":"7cf611599f091bc4da0b75a4e9cbbc88ddf7dd53"}
 ]
