@@ -16,7 +16,7 @@
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
 
-!define LANZAMIENTO "1.0.0"
+!define RELEASE "1.0.0"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
 !define APPFILE "ayudante.exe"
@@ -26,7 +26,7 @@
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\mi-ayudante_${LANZAMIENTO}.exe"
+!define INSTALL "..\dist\mi-ayudante_${RELEASE}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 
 ;--------------------------------
@@ -50,11 +50,13 @@ Var SkipPre
 Var RememberCredsCheckbox
 Var RememberCreds
 Var SkipPreCheckbox
-Var TextWelcome
 Var TitleWelcome
+Var TextWelcome
+Var TitleFinish
+Var TextFinish
 Var TextCaption
-Var un_ToolsCheckboxState
-Var un_ToolsCheckbox
+Var unToolsCheckboxState
+Var unToolsCheckbox
 Var hDriveDropList
 Var tmpGB
 Var btnTest
@@ -76,6 +78,8 @@ Var btnUninstall
 !define MUI_FINISHPAGE_RUN_TEXT "Ejecutar ${NAME} ahora"
 !define MUI_FINISHPAGE_LINK "Revisar notas en ${README}"
 !define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
+!define MUI_FINISHPAGE_TITLE $TitleFinish
+!define MUI_FINISHPAGE_TEXT $TextFinish
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_COMPONENTSPAGE_NODESC
@@ -97,10 +101,10 @@ SetCompressor lzma
 Caption $TextCaption
 LicenseBkColor /windows
 
-VIProductVersion ${LANZAMIENTO}.0
+VIProductVersion ${RELEASE}.0
 VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
-VIAddVersionKey /LANG=0 "ProductVersion" "${LANZAMIENTO}"
-VIAddVersionKey /LANG=0 "FileVersion" ${LANZAMIENTO}
+VIAddVersionKey /LANG=0 "ProductVersion" "${RELEASE}"
+VIAddVersionKey /LANG=0 "FileVersion" ${RELEASE}
 VIAddVersionKey /LANG=0 "FileDescription" "Instalador de ${NAME} para Windows"
 VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 
@@ -128,7 +132,7 @@ PageEx license
 	Caption " "
 PageExEnd
 Page custom ShowConfigForm SaveConfigForm " "
-;Page custom CheckPreRequisites LeavePreRequisites " "
+Page custom CheckPreRequisites LeavePreRequisites " "
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -151,12 +155,13 @@ Function .onInit
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-	StrCpy $SkipPre "0"
+	;StrCpy $SkipPre "0"
+	StrCpy $SkipPre "1"
 	${If} $2 != ""
 		StrCpy $SkipPre $2
 	${EndIf}
 	${If} $VERSION == ""
-		StrCpy $VERSION ${LANZAMIENTO}
+		StrCpy $VERSION ${RELEASE}
 	${EndIf}
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
@@ -166,15 +171,19 @@ Function .onInit
 			StrCpy $INSTDRIVE $1
 		${EndIf}
 		StrCpy $TextCaption "Actualización de ${NAME}"
-		StrCpy $TitleWelcome "Actualizar ${NAME} v$VERSION"
+		StrCpy $TitleWelcome "Asistente para Actualizar$\n${NAME} v$VERSION"
 		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
+		StrCpy $TitleFinish "Finalizando el Asistente para$\nActualizar ${NAME}"
+		StrCpy $TextFinish "${NAME} ha sido actualizado en:$\n$INSTDRIVE$0$\n$\nPresione Terminar para cerrar este asistente."
 		SectionSetFlags 1 0
 		SectionSetFlags 2 ${SF_SELECTED}
 		Call CheckIfInstalledAllTools
 	${Else}
 		StrCpy $TextCaption "Instalación de ${NAME}"
-		StrCpy $TitleWelcome "Instalar ${NAME} v$VERSION"
+		StrCpy $TitleWelcome "Asistente para Instalar$\n${NAME} v$VERSION"
 		StrCpy $TextWelcome "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
+		StrCpy $TitleFinish "Finalizando el Asistente para$\nInstalar ${NAME}"
+		StrCpy $TextFinish "${NAME} ha sido instalado en su computadora.$\n$\nPresione Terminar para cerrar este asistente."
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags 1 $3
 		IntOp $3 0 | ${SF_RO}
@@ -183,10 +192,6 @@ Function .onInit
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
-	${EndIf}
-	;TODO: Quitar
-	${If} "1" == "2"
-		Call RunUninstaller
 	${EndIf}
 FunctionEnd
 
@@ -227,50 +232,50 @@ Function ShowConfigForm
 	; 1. Grupo: **Ruta de instalación**
 	${NSD_CreateGroupBox} 5u 2u 290u 38u "Ruta de instalación"
 	Pop $0
-		${NSD_CreateLabel}   15u 18u 100u 10u "Unidad de destino:"
+		${NSD_CreateLabel}   15u 18u 90u 10u "Unidad de destino:"
 		Pop $0
-		${NSD_CreateDropList} 120u 16u 100u 14u ""
+		${NSD_CreateDropList} 110u 16u 90u 14u ""
 		Pop $DriveDropList
 		StrCpy $hDriveDropList $DriveDropList
 		Call FillDriveList
 		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
-			${NSD_CreateButton} 225u 16u 60u 16u "Desinstalar"
+			${NSD_CreateButton} 215u 16u 60u 16u "Desinstalar"
 			Pop $btnUninstall
 			${NSD_OnClick} $btnUninstall RunUninstaller
 		${EndIf}
 	; 2. Grupo: **Configuración de descargas**
 	${NSD_CreateGroupBox} 5u 46u 290u 95u "Configuración de descargas"
 	Pop $0
-		${NSD_CreateLabel} 15u 61u 100u 10u "Protocolo:"
+		${NSD_CreateLabel} 15u 61u 90u 10u "Protocolo:"
 		Pop $0
-		${NSD_CreateDropList} 120u 59u 100u 12u ""
+		${NSD_CreateDropList} 110u 59u 90u 12u ""
 		Pop $ProtocolDropList
 			${NSD_CB_AddString} $ProtocolDropList "---"
 			${NSD_CB_AddString} $ProtocolDropList "HTTP"
 			${NSD_CB_AddString} $ProtocolDropList "FTP"
 			${NSD_CB_SelectString} $ProtocolDropList "$PROTOCOL"
-		${NSD_CreateLabel} 15u 77u 100u 10u "Dominio del servidor:"
+		${NSD_CreateLabel} 15u 77u 90u 10u "Dominio del servidor:"
 		Pop $0
-		${NSD_CreateText} 120u 75u 100u 12u "$SERVER"
+		${NSD_CreateText} 110u 75u 90u 12u "$SERVER"
 		Pop $ServerInput
-		${NSD_CreateLabel} 15u 93u 100u 10u "Usuario FTP:"
+		${NSD_CreateButton} 215u 59u 60u 16u "Comprobar"
+		Pop $btnTest
+		${NSD_OnClick} $btnTest TestConnection
+		${NSD_CreateLabel} 15u 93u 90u 10u "Usuario FTP:"
 		Pop $0
-		${NSD_CreateText} 120u 91u 100u 12u "$FTP_USER"
+		${NSD_CreateText} 110u 91u 90u 12u "$FTP_USER"
 		Pop $FtpUserInput
-		${NSD_CreateLabel} 15u 109u 100u 10u "Contraseña FTP:"
+		${NSD_CreateLabel} 15u 109u 90u 10u "Contraseña FTP:"
 		Pop $0
-		${NSD_CreatePassword} 120u 107u 100u 12u "$FTP_PASS"
+		${NSD_CreatePassword} 110u 107u 90u 12u "$FTP_PASS"
 		Pop $FtpPassInput
-		${NSD_CreateCheckbox} 120u 124u 100u 10u "Recordar credenciales"
+		${NSD_CreateCheckbox} 110u 124u 150u 10u "Recordar credenciales (FTP)"
 		Pop $RememberCredsCheckbox
 		${If} $RememberCreds == "1"
 			${NSD_Check} $RememberCredsCheckbox
 		${EndIf}
-		${NSD_CreateButton} 230u 74u 50u 16u "Probar"
-		Pop $btnTest
-		${NSD_OnClick} $btnTest TestConnection
 	nsDialogs::Show
 FunctionEnd
 
@@ -440,12 +445,12 @@ Function LaunchApp
 FunctionEnd
 
 Function RunUninstaller
-    StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
-    IfFileExists "$0" 0 NoUninst
-    Exec '"$0"'
-    Quit
+	StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	IfFileExists "$0" 0 NoUninst
+	Exec '"$0"'
+	Quit
 NoUninst:
-    MessageBox MB_ICONSTOP "No se encontró el desinstalador en:$\n$0"
+	MessageBox MB_ICONSTOP "No se encontró el desinstalador en:$\n$0"
 FunctionEnd
 
 ;--------------------------------
@@ -462,12 +467,12 @@ Function un.ShowOptionsUninstall
 	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar también las Herramientas externas?"
 	Pop $1
 	${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
-	Pop $un_ToolsCheckbox
+	Pop $unToolsCheckbox
 	nsDialogs::Show
 FunctionEnd
 
 Function un.ReadChoiceUninstall
-	${NSD_GetState} $un_ToolsCheckbox $un_ToolsCheckboxState
+	${NSD_GetState} $unToolsCheckbox $unToolsCheckboxState
 FunctionEnd
 
 Function un.RMDirUP
@@ -639,7 +644,7 @@ Section "Uninstall"
 	${RMDirUP} "$INSTDIR"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
-	StrCmp $un_ToolsCheckboxState "1" 0 Done
+	StrCmp $unToolsCheckboxState "1" 0 Done
 	!insertmacro UninstallAllTools
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveDirIfEmpty
