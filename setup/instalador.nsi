@@ -63,6 +63,65 @@ Var btnTest
 Var btnUninstall
 
 ;--------------------------------
+; TEXTOS DE LA INTERFAZ
+
+!define STR_DescripcionArchivo "Instalador de ${NAME} para Windows"
+!define STR_TituloLicencia "Acuerdo de Licencia"
+!define STR_SubtituloLicencia "Por favor revise los términos de la licencia antes de instalar el software."
+!define STR_InstruccionesLicencia "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para poder instalar ${NAME}."
+!define STR_InstruccionesComponentes "Marque los componentes que desee instalar y desmarque aquellos que no desee. Presione Instalar para comenzar el proceso (requiere conexión a Internet)."
+!define STR_EtiqEjecutarApp "Ejecutar ${NAME} ahora"
+!define STR_EtiqRevisarNotas "Revisar notas en ${README}"
+!define STR_BotonAcepto "ACEPTO"
+!define STR_VentanaActualizador "Actualización de ${NAME}"
+!define STR_VentanaInstalador "Instalación de ${NAME}"
+!define STR_TituloWelcomeActualizador "Asistente para Actualizar$\n${NAME} v$VERSION"
+!define STR_InstruccionesWelcomeActualizador "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
+!define STR_TituloFinishActualizador "Finalizando el Asistente para$\nActualizar ${NAME}"
+!define STR_InstruccionesFinishActualizador "${NAME} ha sido actualizado en:$\n$\n$INSTDRIVE$0$\n$\nPresione Terminar para cerrar este asistente."
+!define STR_TituloWelcomeInstalador "Asistente para Instalar$\n${NAME} v$VERSION"
+!define STR_InstruccionesWelcomeInstalador "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
+!define STR_TituloFinishInstalador "Finalizando el Asistente para$\nInstalar ${NAME}"
+!define STR_InstruccionesFinishInstalador "${NAME} ha sido instalado en su computadora.$\n$\nPresione Terminar para cerrar este asistente."
+!define STR_TituloInstFinalizada "Instalación completada"
+!define STR_SubtituloInstCompletada "Se ha completado el proceso de instalación de ${NAME}."
+!define STR_TituloInstCancelada "Instalación cancelada"
+!define STR_SubtituloInstCancelada "La instalación fue cancelada por el usuario."
+!define STR_TituloPrereq "Comprobación de Pre-requisitos"
+!define STR_SubtituloPrereq "Debe tener instalados PHP y Composer en su computadora local."
+!define STR_EtiqNomostrarDenuevo "No volver a mostrar esta página"
+!define STR_TituloComponentes "Opciones de instalación"
+!define STR_SubtituloComponentes "Indique los datos necesarios para descargar y copiar los componentes."
+!define STR_GbLibres "GB libres"
+!define STR_MsgFaltaDominio "Debe indicar el Dominio del Servidor"
+!define STR_MsgFaltanCredencialesFtp "Debe indicar Usuario y Contraseña FTP"
+!define STR_MsgFaltaProtocolo "Seleccione un Protocolo (HTTP o FTP) para realizar la prueba."
+!define STR_MsgConexionHttpExito "Conexión HTTP exitosa"
+!define STR_MsgConexionHttpError "Falló la conexión HTTP a $SERVER:"
+!define STR_MsgConexionFtpExito "Conexión FTP exitosa"
+!define STR_MsgConexionFtpError "Falló la conexión FTP a $SERVER:"
+!define STR_MsgDetallesRespuesta "Respuesta recibida:"
+!define STR_MsgExeNoEncontrado "No se encontró el programa ${APPFILE}.$\nEjecute nuevamente el instalador."
+!define STR_MsgUniNoEncontrado "No se encontró el desinstalador en:"
+!define STR_EtiqRutaInstalacion "Ruta de instalación"
+!define STR_EtiqUnidadDestino "Unidad de destino:"
+!define STR_EtiqConfigDescargas "Configuración de descargas"
+!define STR_EtiqProtocolo "Protocolo:"
+!define STR_EtiqDominioServidor "Dominio del servidor:"
+!define STR_EtiqUsuarioFtp "Usuario FTP:"
+!define STR_EtiqPassFtp "Contraseña FTP:"
+!define STR_BotonDesinstalar "Desinstalar"
+!define STR_BotonComprobar "Comprobar"
+!define STR_EtiqRecordarCreds "Recordar credenciales (FTP)"
+!define STR_EtiqDesinstalarHerramientas "¿Desea Desinstalar también las Herramientas externas?"
+!define STR_EtiqRemoverTodas "Remover todas"
+!define STR_MsgErrorDescargaFtp "No se pudo descargar por FTP"
+!define STR_MsgErrorDescargaHttp "No se pudo descargar por HTTP"
+!define STR_MsgErrorDescomprimir "Error al descomprimir"
+!define STR_CodigoRespuesta "Código de respuesta:"
+!define STR_MsgErrorTamano "Tamaño incorrecto de "
+
+;--------------------------------
 ; DEFINICIONES MUI
 
 !define MUI_ICON "..\app\${ICON}"
@@ -75,14 +134,21 @@ Var btnUninstall
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
-!define MUI_FINISHPAGE_RUN_TEXT "Ejecutar ${NAME} ahora"
-!define MUI_FINISHPAGE_LINK "Revisar notas en ${README}"
+!define MUI_FINISHPAGE_RUN_TEXT "${STR_EtiqEjecutarApp}"
+!define MUI_FINISHPAGE_LINK "${STR_EtiqRevisarNotas}"
 !define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
 !define MUI_FINISHPAGE_TITLE $TitleFinish
 !define MUI_FINISHPAGE_TEXT $TextFinish
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_COMPONENTSPAGE_NODESC
+!define MUI_COMPONENTSPAGE_TEXT_TOP "${STR_InstruccionesComponentes}"
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_FINISHPAGE_TEXT_LARGE
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "${STR_TituloInstFinalizada}"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "${STR_SubtituloInstCompletada}"
+!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "${STR_TituloInstCancelada}"
+!define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "${STR_SubtituloInstCancelada}"
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
@@ -105,7 +171,7 @@ VIProductVersion ${RELEASE}.0
 VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
 VIAddVersionKey /LANG=0 "ProductVersion" "${RELEASE}"
 VIAddVersionKey /LANG=0 "FileVersion" ${RELEASE}
-VIAddVersionKey /LANG=0 "FileDescription" "Instalador de ${NAME} para Windows"
+VIAddVersionKey /LANG=0 "FileDescription" "${STR_DescripcionArchivo}"
 VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
@@ -128,11 +194,12 @@ ${unStrStr}
 PageEx license
 	PageCallbacks SkipLicenseIfUpdate ""
 	LicenseData "..\${LICENSEFILE}"
-	LicenseText "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para poder instalar ${NAME}." "ACEPTO"
+	LicenseText "${STR_InstruccionesLicencia}" "${STR_BotonAcepto}"
 	Caption " "
 PageExEnd
 Page custom ShowConfigForm SaveConfigForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
+!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckIfInstalledAllTools
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -150,13 +217,15 @@ Function .onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
 	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPre"
-	ReadRegStr $VERSION HKCU "Software\${NAME}" "Version"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "FTP_Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-	;StrCpy $SkipPre "0"
-	StrCpy $SkipPre "1"
+
+	;TODO: Cambiar para que lea Lanzamiento en Install_Dir/config.ini [Base] (si existe) 
+	ReadRegStr $VERSION HKCU "Software\${NAME}" "Version"
+
+	StrCpy $SkipPre "0"
 	${If} $2 != ""
 		StrCpy $SkipPre $2
 	${EndIf}
@@ -170,20 +239,19 @@ Function .onInit
 		${If} $1 != ""
 			StrCpy $INSTDRIVE $1
 		${EndIf}
-		StrCpy $TextCaption "Actualización de ${NAME}"
-		StrCpy $TitleWelcome "Asistente para Actualizar$\n${NAME} v$VERSION"
-		StrCpy $TextWelcome "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
-		StrCpy $TitleFinish "Finalizando el Asistente para$\nActualizar ${NAME}"
-		StrCpy $TextFinish "${NAME} ha sido actualizado en:$\n$INSTDRIVE$0$\n$\nPresione Terminar para cerrar este asistente."
+		StrCpy $TextCaption "${STR_VentanaActualizador}"
+		StrCpy $TitleWelcome "${STR_TituloWelcomeActualizador}"
+		StrCpy $TextWelcome "${STR_InstruccionesWelcomeActualizador}"
+		StrCpy $TitleFinish "${STR_TituloFinishActualizador}"
+		StrCpy $TextFinish "${STR_InstruccionesFinishActualizador}"
 		SectionSetFlags 1 0
 		SectionSetFlags 2 ${SF_SELECTED}
-		Call CheckIfInstalledAllTools
 	${Else}
-		StrCpy $TextCaption "Instalación de ${NAME}"
-		StrCpy $TitleWelcome "Asistente para Instalar$\n${NAME} v$VERSION"
-		StrCpy $TextWelcome "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
-		StrCpy $TitleFinish "Finalizando el Asistente para$\nInstalar ${NAME}"
-		StrCpy $TextFinish "${NAME} ha sido instalado en su computadora.$\n$\nPresione Terminar para cerrar este asistente."
+		StrCpy $TextCaption "${STR_VentanaInstalador}"
+		StrCpy $TitleWelcome "${STR_TituloWelcomeInstalador}"
+		StrCpy $TextWelcome "${STR_InstruccionesWelcomeInstalador}"
+		StrCpy $TitleFinish "${STR_TituloFinishInstalador}"
+		StrCpy $TextFinish "${STR_InstruccionesFinishInstalador}"
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags 1 $3
 		IntOp $3 0 | ${SF_RO}
@@ -199,7 +267,7 @@ Function SkipLicenseIfUpdate
 	${If} $IsUpdateInstall == "1"
 		Abort
 	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "Acuerdo de Licencia" "Por favor revise los términos de la licencia antes de instalar el software."
+	!insertmacro MUI_HEADER_TEXT "${STR_TituloLicencia}" "${STR_SubtituloLicencia}"
 FunctionEnd
 
 Function CheckPreRequisites
@@ -208,11 +276,11 @@ Function CheckPreRequisites
 	${EndIf}
 	nsDialogs::Create 1018
 	Pop $0
-	!insertmacro MUI_HEADER_TEXT "Comprobación de Pre-requisitos" "Debe tener instalados PHP y Composer en su computadora local."
+	!insertmacro MUI_HEADER_TEXT "${STR_TituloPrereq}" "${STR_SubtituloPrereq}"
 
-	;TODO: Aquí falta añadir el diagnóstico real
+	;TODO: Aquí falta añadir la comprobación real (y sus resultados)
 
-	${NSD_CreateCheckbox} 15u 40u 250u 10u "No volver a mostrar esta página"
+	${NSD_CreateCheckbox} 100u 130u 150u 10u "${STR_EtiqNomostrarDenuevo}"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
 FunctionEnd
@@ -227,12 +295,11 @@ Function ShowConfigForm
 	${If} $PROTOCOL == ""
 		StrCpy $PROTOCOL "---"
 	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "Opciones de instalación" \
-		"Indique los datos necesarios para descargar y copiar los componentes."
+	!insertmacro MUI_HEADER_TEXT "${STR_TituloComponentes}" "${STR_SubtituloComponentes}"
 	; 1. Grupo: **Ruta de instalación**
-	${NSD_CreateGroupBox} 5u 2u 290u 38u "Ruta de instalación"
+	${NSD_CreateGroupBox} 5u 2u 290u 38u "${STR_EtiqRutaInstalacion}"
 	Pop $0
-		${NSD_CreateLabel}   15u 18u 90u 10u "Unidad de destino:"
+		${NSD_CreateLabel}   15u 18u 90u 10u "${STR_EtiqUnidadDestino}"
 		Pop $0
 		${NSD_CreateDropList} 110u 16u 90u 14u ""
 		Pop $DriveDropList
@@ -241,14 +308,14 @@ Function ShowConfigForm
 		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
-			${NSD_CreateButton} 215u 16u 60u 16u "Desinstalar"
+			${NSD_CreateButton} 215u 16u 60u 16u "${STR_BotonDesinstalar}"
 			Pop $btnUninstall
 			${NSD_OnClick} $btnUninstall RunUninstaller
 		${EndIf}
 	; 2. Grupo: **Configuración de descargas**
-	${NSD_CreateGroupBox} 5u 46u 290u 95u "Configuración de descargas"
+	${NSD_CreateGroupBox} 5u 46u 290u 95u "${STR_EtiqConfigDescargas}"
 	Pop $0
-		${NSD_CreateLabel} 15u 61u 90u 10u "Protocolo:"
+		${NSD_CreateLabel} 15u 61u 90u 10u "${STR_EtiqProtocolo}"
 		Pop $0
 		${NSD_CreateDropList} 110u 59u 90u 12u ""
 		Pop $ProtocolDropList
@@ -256,22 +323,22 @@ Function ShowConfigForm
 			${NSD_CB_AddString} $ProtocolDropList "HTTP"
 			${NSD_CB_AddString} $ProtocolDropList "FTP"
 			${NSD_CB_SelectString} $ProtocolDropList "$PROTOCOL"
-		${NSD_CreateLabel} 15u 77u 90u 10u "Dominio del servidor:"
+		${NSD_CreateLabel} 15u 77u 90u 10u "${STR_EtiqDominioServidor}"
 		Pop $0
 		${NSD_CreateText} 110u 75u 90u 12u "$SERVER"
 		Pop $ServerInput
-		${NSD_CreateButton} 215u 59u 60u 16u "Comprobar"
+		${NSD_CreateButton} 215u 59u 60u 16u "${STR_BotonComprobar}"
 		Pop $btnTest
 		${NSD_OnClick} $btnTest TestConnection
-		${NSD_CreateLabel} 15u 93u 90u 10u "Usuario FTP:"
+		${NSD_CreateLabel} 15u 93u 90u 10u "${STR_EtiqUsuarioFtp}"
 		Pop $0
 		${NSD_CreateText} 110u 91u 90u 12u "$FTP_USER"
 		Pop $FtpUserInput
-		${NSD_CreateLabel} 15u 109u 90u 10u "Contraseña FTP:"
+		${NSD_CreateLabel} 15u 109u 90u 10u "${STR_EtiqPassFtp}"
 		Pop $0
 		${NSD_CreatePassword} 110u 107u 90u 12u "$FTP_PASS"
 		Pop $FtpPassInput
-		${NSD_CreateCheckbox} 110u 124u 150u 10u "Recordar credenciales (FTP)"
+		${NSD_CreateCheckbox} 110u 124u 150u 10u "${STR_EtiqRecordarCreds}"
 		Pop $RememberCredsCheckbox
 		${If} $RememberCreds == "1"
 			${NSD_Check} $RememberCredsCheckbox
@@ -288,14 +355,14 @@ Function SaveConfigForm
 	${NSD_GetText} $ProtocolDropList $PROTOCOL
 	${If} $SERVER == ""
 	${AndIf} $PROTOCOL != "---"
-		MessageBox MB_ICONEXCLAMATION "Debe indicar el Dominio del Servidor"
+		MessageBox MB_ICONEXCLAMATION "${STR_MsgFaltaDominio}"
 		Abort
 	${Endif}
 	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
 	${If} $PROTOCOL == "FTP"
 		${If} $FTP_USER == ""
 		${OrIf} $FTP_PASS == ""
-			MessageBox MB_ICONEXCLAMATION "Debe indicar Usuario y Contraseña FTP"
+			MessageBox MB_ICONEXCLAMATION "${STR_MsgFaltanCredencialesFtp}"
 			Abort
 		${EndIf}
 	${EndIf}
@@ -304,7 +371,7 @@ FunctionEnd
 Function TestConnection
 	${NSD_GetText} $ServerInput $SERVER
 	${If} $SERVER == ""
-		MessageBox MB_ICONEXCLAMATION "Debe indicar el Dominio del Servidor"
+		MessageBox MB_ICONEXCLAMATION "${STR_MsgFaltaDominio}"
 		Return
 	${EndIf}
 	System::Call 'user32::EnableWindow(p$btnTest,i0)'
@@ -314,7 +381,7 @@ Function TestConnection
 	${ElseIf} $PROTOCOL == "HTTP"
 		Call TestHttpConnection
 	${Else}
-		MessageBox MB_ICONEXCLAMATION "Seleccione un Protocolo (HTTP o FTP) para realizar la prueba."
+		MessageBox MB_ICONEXCLAMATION "${STR_MsgFaltaProtocolo}"
 	${EndIf}
 	System::Call 'user32::EnableWindow(p$btnTest,i1)'
 FunctionEnd
@@ -324,16 +391,16 @@ Function TestFtpConnection
 	${NSD_GetText} $FtpPassInput $FTP_PASS
 	${If} $FTP_USER == ""
 	${OrIf} $FTP_PASS == ""
-		MessageBox MB_ICONEXCLAMATION "Debe indicar Usuario y Contraseña FTP"
+		MessageBox MB_ICONEXCLAMATION "${STR_MsgFaltanCredencialesFtp}"
 		Return
 	${EndIf}
 	nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "Conexión FTP exitosa."
+		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "${STR_MsgConexionFtpExito}"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "Falló la conexión FTP a $SERVER:$\n$R1"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "${STR_MsgConexionFtpError}$\n$R1"
 	${EndIf}
 FunctionEnd
 
@@ -342,11 +409,9 @@ Function TestHttpConnection
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND \
-			"Conexión HTTP exitosa."
+		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "${STR_MsgConexionHttpExito}"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND \
-			"Falló la conexión HTTP a $SERVER:$\nRespuesta recibida: $R0"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "${STR_MsgConexionHttpError}$\n${STR_MsgDetallesRespuesta} $R0"
 	${EndIf}
 FunctionEnd
 
@@ -360,7 +425,7 @@ Function AddDriveCallback
 	System::Int64Op $1 / 1073741824
 	Pop $tmpGB
 	${If} $tmpGB != ""
-		StrCpy $2 "$0 ($tmpGB GB libres)"
+		StrCpy $2 "$0 ($tmpGB ${STR_GbLibres})"
 		${NSD_CB_AddString} $hDriveDropList $2
 	${EndIf}
 	Push ""
@@ -441,7 +506,7 @@ Function LaunchApp
 	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
 		ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
 		Return
-	MessageBox MB_ICONSTOP "No se encontró el programa ${APPFILE}.$\nEjecute nuevamente el instalador."
+	MessageBox MB_ICONSTOP "${STR_MsgExeNoEncontrado}"
 FunctionEnd
 
 Function RunUninstaller
@@ -450,7 +515,7 @@ Function RunUninstaller
 	Exec '"$0"'
 	Quit
 NoUninst:
-	MessageBox MB_ICONSTOP "No se encontró el desinstalador en:$\n$0"
+	MessageBox MB_ICONSTOP "${STR_MsgUniNoEncontrado}$\n$0"
 FunctionEnd
 
 ;--------------------------------
@@ -464,9 +529,9 @@ FunctionEnd
 Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
-	${NSD_CreateLabel} 0 0 100% 12u "¿Desea Desinstalar también las Herramientas externas?"
+	${NSD_CreateLabel} 0 0 100% 12u "${STR_EtiqDesinstalarHerramientas}"
 	Pop $1
-	${NSD_CreateCheckbox} 0 16u 100% 12u "Remover todas"
+	${NSD_CreateCheckbox} 0 16u 100% 12u "${STR_EtiqRemoverTodas}"
 	Pop $unToolsCheckbox
 	nsDialogs::Show
 FunctionEnd
