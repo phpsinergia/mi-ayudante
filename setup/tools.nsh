@@ -7,31 +7,31 @@
 	Call un.RemoveFromEnvUserPath
 !macroend
 
-!macro CheckIfInstalledTool TOOL_ID SEC_ID OP_SEL
+!macro CheckIfInstalledTool TOOL_IDX TOOL_ID OP_SEL
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.json"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.php"
 		${If} "${OP_SEL}" == "0"
-			SectionSetFlags ${SEC_ID} 0
+			SectionSetFlags ${TOOL_IDX} 0
 		${ElseIf} "${OP_SEL}" == "1"
-			SectionSetFlags ${SEC_ID} ${SF_SELECTED}
+			SectionSetFlags ${TOOL_IDX} ${SF_SELECTED}
 		${ElseIf} "${OP_SEL}" == "2"
 			IntOp $0 ${SF_SELECTED} | ${SF_RO}
-			SectionSetFlags ${SEC_ID} $0
+			SectionSetFlags ${TOOL_IDX} $0
 		${ElseIf} "${OP_SEL}" == "3"
 			IntOp $0 0 | ${SF_RO}
-			SectionSetFlags ${SEC_ID} $0
+			SectionSetFlags ${TOOL_IDX} $0
 		${ElseIf} "${OP_SEL}" == "4"
 			IntOp $0 0 | ${SF_RO}
-			SectionSetFlags ${SEC_ID} $0
-			SectionSetText  ${SEC_ID} ""
+			SectionSetFlags ${TOOL_IDX} $0
+			SectionSetText  ${TOOL_IDX} ""
 		${EndIf}
 	${EndIf}
 !macroend
 
-!macro GenerateSectionTool TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_PATH
-Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
+!macro GenerateSectionTool TOOL_IDX TOOL_ID TOOL_NAME TOOL_SIZE_KB ADD_PATH
+Section /o "${TOOL_NAME}" ${TOOL_IDX}
 	AddSize ${TOOL_SIZE_KB}
 	${If} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\${TOOL_ID}\bin\*.exe"
@@ -40,7 +40,6 @@ Section /o "${TOOL_NAME}" ${SEC_${TOOL_ID}}
 		Goto SkipTool_${TOOL_ID}
 	${EndIf}
 
-	;SetOutPath "$TEMP"
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/${TOOL_ID}.zip"
 		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\${TOOL_ID}.zip" --silent --show-error --fail'
@@ -106,35 +105,26 @@ SectionEnd
 ;------------------------------------------------------------
 ; CATALOGO DE HERRAMIENTAS
 
-!define SEC_7za 9
-!define SEC_gettext 10
-!define SEC_sqlite 11
-!define SEC_mkcert 12
-!define SEC_pdftk 13
-!define SEC_pandoc 14
-!define SEC_wkhtmltopdf 15
-!define SEC_ffmpeg 16
-
 Function CheckIfInstalledAllTools
-    !insertmacro CheckIfInstalledTool "7za" ${SEC_7za} 4
-    !insertmacro CheckIfInstalledTool "gettext" ${SEC_gettext} 4
-    !insertmacro CheckIfInstalledTool "sqlite" ${SEC_sqlite} 4
-    !insertmacro CheckIfInstalledTool "mkcert" ${SEC_mkcert} 4
-    !insertmacro CheckIfInstalledTool "pdftk" ${SEC_pdftk} 4
-    !insertmacro CheckIfInstalledTool "pandoc" ${SEC_pandoc} 4
-    !insertmacro CheckIfInstalledTool "wkhtmltopdf" ${SEC_wkhtmltopdf} 4
-    !insertmacro CheckIfInstalledTool "ffmpeg" ${SEC_ffmpeg} 4
+    !insertmacro CheckIfInstalledTool 9 "7za" 4
+    !insertmacro CheckIfInstalledTool 10 "gettext" 4
+    !insertmacro CheckIfInstalledTool 11 "sqlite" 4
+    !insertmacro CheckIfInstalledTool 12 "mkcert" 4
+    !insertmacro CheckIfInstalledTool 13 "pdftk" 4
+    !insertmacro CheckIfInstalledTool 14 "pandoc" 4
+    !insertmacro CheckIfInstalledTool 15 "wkhtmltopdf" 4
+    !insertmacro CheckIfInstalledTool 16 "ffmpeg" 4
 FunctionEnd
 
 !macro GenerateAllSectionTools
-    !insertmacro GenerateSectionTool 7za "CLI 7za" 466 0
-    !insertmacro GenerateSectionTool gettext "CLI Gettext" 6080 1
-    !insertmacro GenerateSectionTool sqlite "CLI SQLite" 14257 1
-    !insertmacro GenerateSectionTool mkcert "CLI Mkcert" 5136 0
-    !insertmacro GenerateSectionTool pdftk "CLI PDFtk" 9638 1
-    !insertmacro GenerateSectionTool pandoc "CLI Pandoc" 216722 1
-    !insertmacro GenerateSectionTool wkhtmltopdf "CLI Wkhtmltopdf" 88533 1
-    !insertmacro GenerateSectionTool ffmpeg "CLI FFmpeg" 37121 1
+    !insertmacro GenerateSectionTool 9 7za "CLI 7za" 466 0
+    !insertmacro GenerateSectionTool 10 gettext "CLI Gettext" 6080 1
+    !insertmacro GenerateSectionTool 11 sqlite "CLI SQLite" 14257 1
+    !insertmacro GenerateSectionTool 12 mkcert "CLI Mkcert" 5136 0
+    !insertmacro GenerateSectionTool 13 pdftk "CLI PDFtk" 9638 1
+    !insertmacro GenerateSectionTool 14 pandoc "CLI Pandoc" 216722 1
+    !insertmacro GenerateSectionTool 15 wkhtmltopdf "CLI Wkhtmltopdf" 88533 1
+    !insertmacro GenerateSectionTool 16 ffmpeg "CLI FFmpeg" 37121 1
 !macroend
 
 !macro UninstallAllTools
