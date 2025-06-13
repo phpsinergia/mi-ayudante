@@ -203,6 +203,7 @@ ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
 
+;TODO: Replicar para Reqs
 !macro MLoadCompsJson
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `complementos` /end
@@ -242,6 +243,7 @@ ${unStrStr}
 	${Next}
 !macroend
 
+;TODO: Replicar para Reqs
 !macro MGetInfoComp
 	nsArray::Get ListCompId /at=$i
 	Pop $1
@@ -330,6 +332,7 @@ Function .onInit
 		SectionSetFlags 1 $3
 		IntOp $3 0 | ${SF_RO}
 		SectionSetFlags 2 $3
+		SectionSetText 2 ""
 	${EndIf}
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
@@ -369,14 +372,17 @@ LoadLocalTools:
 ExitFetchTools:
 FunctionEnd
 
+;TODO: Replicar para Reqs
 Function LoadCompsJson
 	!insertmacro MLoadCompsJson
 FunctionEnd
 
+;TODO: Replicar para Reqs
 Function GetInfoComp
 	!insertmacro MGetInfoComp
 FunctionEnd
 
+;TODO: Agregar Check de Reqs
 Function CheckAllTools
 	Call FetchToolsCatalog
 	Call LoadCompsJson
@@ -402,7 +408,7 @@ Function CheckAllTools
 				${ElseIf} "$ToolChk" == "4"
 					IntOp $0 0 | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
-					SectionSetText  $ToolIndice ""
+					SectionSetText $ToolIndice ""
 				${EndIf}
 			${Else}
 				SectionSetFlags $ToolIndice 0
@@ -411,6 +417,7 @@ Function CheckAllTools
 	${Next}
 FunctionEnd
 
+;TODO: Base para InstallReqByIndex
 Function InstallCompByIndex
 	${If} $i >= ${MAX_COMPS}
 	${OrIf} $i > $CompsTotal
@@ -488,8 +495,9 @@ SkipComp:
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
+;TODO: Implementar Reqs
 Function InstallReqByIndex
-	;TODO: Aquí falta un manejador de la instalación de cada Requisito (PHP8, PhpSinergIA, etc.)
+	;Aquí falta un manejador de la instalación de los Requisitos (Reqs)
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -528,7 +536,7 @@ Function ShowConfigForm
 	; 1. Grupo: **Ruta de instalación**
 	${NSD_CreateGroupBox} 5u 2u 290u 38u "${STR_EtiqRutaInstalacion}"
 	Pop $0
-		${NSD_CreateLabel}   15u 18u 90u 10u "${STR_EtiqUnidadDestino}"
+		${NSD_CreateLabel} 15u 18u 90u 10u "${STR_EtiqUnidadDestino}"
 		Pop $0
 		${NSD_CreateDropList} 110u 16u 90u 14u ""
 		Pop $DriveDropList
@@ -757,10 +765,12 @@ Function un.onInit
 	StrCpy $INSTDRIVE $0
 FunctionEnd
 
+;TODO: Replicar para Reqs
 Function un.LoadCompsJson
 	!insertmacro MLoadCompsJson
 FunctionEnd
 
+;TODO: Replicar para Reqs
 Function un.GetInfoComp
 	!insertmacro MGetInfoComp
 FunctionEnd
@@ -882,7 +892,7 @@ SectionGroup /e "Programa" 0
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup "Requisitos" 7
+SectionGroup /e "Requisitos" 7
 	Section "" 8
 		StrCpy $i 0
 		Call InstallReqByIndex
@@ -905,7 +915,7 @@ SectionGroup "Requisitos" 7
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup "Complementos" 14
+SectionGroup /e "Complementos" 14
 	Section /o "" 15
 		StrCpy $i 0
 		Call InstallCompByIndex
@@ -1069,6 +1079,7 @@ Section "-Config"
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
+;TODO: Agregar Uninstall de Reqs
 Section "Uninstall"
 	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
 	Call un.LoadCompsJson
