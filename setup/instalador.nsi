@@ -202,21 +202,21 @@ ${unStrStr}
 
 !macro MLoadToolsJson
 	nsJSON::Set /file $ToolsCatalog
-	nsJSON::Get /count /end
+	nsJSON::Get /count `complementos` /end
 	Pop $ToolsTotal
 	IntOp $ToolsTotal $ToolsTotal - 1
 	${For} $i 0 $ToolsTotal
-		nsJSON::Get /index $i "id" /end 
+		nsJSON::Get `complementos` /index $i "id" /end 
 		Pop $ToolId
-		nsJSON::Get /index $i "name" /end
+		nsJSON::Get `complementos` /index $i "name" /end
 		Pop $ToolName
-		nsJSON::Get /index $i "version" /end
+		nsJSON::Get `complementos` /index $i "version" /end
 		Pop $ToolVer
-		nsJSON::Get /index $i "size_kb" /end
+		nsJSON::Get `complementos` /index $i "size_kb" /end
 		Pop $ToolKb
-		nsJSON::Get /index $i "add_path" /end
+		nsJSON::Get `complementos` /index $i "add_path" /end
 		Pop $ToolAdd
-		nsJSON::Get /index $i "op_chk" /end
+		nsJSON::Get `complementos` /index $i "op_chk" /end
 		Pop $ToolChk
 		IntOp $ToolIndice $i + 15
 		nsArray::Set ListaId /key=$ToolIndice $ToolId
@@ -225,6 +225,17 @@ ${unStrStr}
 		nsArray::Set ListaKb /key=$ToolIndice $ToolKb
 		nsArray::Set ListaAdd /key=$ToolIndice $ToolAdd
 		nsArray::Set ListaChk /key=$ToolIndice $ToolChk
+	${Next}
+	${For} $i $ToolsTotal ${MAX_TOOLS}
+		${If} $i > $ToolsTotal
+			IntOp $ToolIndice $i + 15
+			nsArray::Set ListaId /key=$ToolIndice ""
+			nsArray::Set ListaName /key=$ToolIndice ""
+			nsArray::Set ListaVer /key=$ToolIndice ""
+			nsArray::Set ListaKb /key=$ToolIndice 0
+			nsArray::Set ListaAdd /key=$ToolIndice 0
+			nsArray::Set ListaChk /key=$ToolIndice 0
+		${EndIf}
 	${Next}
 !macroend
 
@@ -352,13 +363,6 @@ Function FetchToolsCatalog
 LoadLocalTools:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	File "tools.json"
-	SectionSetText 14 ""
-	SectionSetText 7 ""
-	SectionSetText 8 ""
-	SectionSetText 9 ""
-	SectionSetText 10 ""
-	SectionSetText 11 ""
-	SectionSetText 12 ""
 ExitFetchTools:
 FunctionEnd
 
