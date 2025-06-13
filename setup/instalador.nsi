@@ -23,13 +23,15 @@
 !define APPFILE "ayudante.exe"
 !define TARGET "\home\mi-ayudante"
 !define TOOLS "\home\herramientas"
+!define VENDOR "\home\vendor"
 !define LICENSEFILE "LICENSE"
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
 !define INSTALL "..\dist\mi-ayudante_${RELEASE}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define MAX_TOOLS 32
+!define MAX_COMPS 32
+!define MAX_REQS 5
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -70,9 +72,10 @@ Var ToolVer
 Var ToolKb
 Var ToolAdd
 Var ToolChk
-Var ToolsTotal
 Var ToolIndice
 Var ToolsCatalog
+Var CompsTotal
+;Var ReqsTotal
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -200,12 +203,12 @@ ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
 
-!macro MLoadToolsJson
+!macro MLoadCompsJson
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `complementos` /end
-	Pop $ToolsTotal
-	IntOp $ToolsTotal $ToolsTotal - 1
-	${For} $i 0 $ToolsTotal
+	Pop $CompsTotal
+	IntOp $CompsTotal $CompsTotal - 1
+	${For} $i 0 $CompsTotal
 		nsJSON::Get `complementos` /index $i "id" /end 
 		Pop $ToolId
 		nsJSON::Get `complementos` /index $i "name" /end
@@ -219,43 +222,43 @@ ${unStrStr}
 		nsJSON::Get `complementos` /index $i "op_chk" /end
 		Pop $ToolChk
 		IntOp $ToolIndice $i + 15
-		nsArray::Set ListaId /key=$ToolIndice $ToolId
-		nsArray::Set ListaName /key=$ToolIndice $ToolName
-		nsArray::Set ListaVer /key=$ToolIndice $ToolVer
-		nsArray::Set ListaKb /key=$ToolIndice $ToolKb
-		nsArray::Set ListaAdd /key=$ToolIndice $ToolAdd
-		nsArray::Set ListaChk /key=$ToolIndice $ToolChk
+		nsArray::Set ListCompId /key=$ToolIndice $ToolId
+		nsArray::Set ListCompName /key=$ToolIndice $ToolName
+		nsArray::Set ListCompVer /key=$ToolIndice $ToolVer
+		nsArray::Set ListCompKb /key=$ToolIndice $ToolKb
+		nsArray::Set ListCompAdd /key=$ToolIndice $ToolAdd
+		nsArray::Set ListCompChk /key=$ToolIndice $ToolChk
 	${Next}
-	${For} $i $ToolsTotal ${MAX_TOOLS}
-		${If} $i > $ToolsTotal
+	${For} $i $CompsTotal ${MAX_COMPS}
+		${If} $i > $CompsTotal
 			IntOp $ToolIndice $i + 15
-			nsArray::Set ListaId /key=$ToolIndice ""
-			nsArray::Set ListaName /key=$ToolIndice ""
-			nsArray::Set ListaVer /key=$ToolIndice ""
-			nsArray::Set ListaKb /key=$ToolIndice 0
-			nsArray::Set ListaAdd /key=$ToolIndice 0
-			nsArray::Set ListaChk /key=$ToolIndice 0
+			nsArray::Set ListCompId /key=$ToolIndice ""
+			nsArray::Set ListCompName /key=$ToolIndice ""
+			nsArray::Set ListCompVer /key=$ToolIndice ""
+			nsArray::Set ListCompKb /key=$ToolIndice 0
+			nsArray::Set ListCompAdd /key=$ToolIndice 0
+			nsArray::Set ListCompChk /key=$ToolIndice 0
 		${EndIf}
 	${Next}
 !macroend
 
-!macro MGetInfoTool
-	nsArray::Get ListaId /at=$i
+!macro MGetInfoComp
+	nsArray::Get ListCompId /at=$i
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListaName /at=$i
+	nsArray::Get ListCompName /at=$i
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListaVer /at=$i
+	nsArray::Get ListCompVer /at=$i
 	Pop $1
 	Pop $ToolVer
-	nsArray::Get ListaKb /at=$i
+	nsArray::Get ListCompKb /at=$i
 	Pop $1
 	Pop $ToolKb
-	nsArray::Get ListaAdd /at=$i
+	nsArray::Get ListCompAdd /at=$i
 	Pop $1
 	Pop $ToolAdd
-	nsArray::Get ListaChk /at=$i
+	nsArray::Get ListCompChk /at=$i
 	Pop $1
 	Pop $ToolChk
 	IntOp $ToolIndice $i + 15
@@ -366,20 +369,20 @@ LoadLocalTools:
 ExitFetchTools:
 FunctionEnd
 
-Function LoadToolsJson
-	!insertmacro MLoadToolsJson
+Function LoadCompsJson
+	!insertmacro MLoadCompsJson
 FunctionEnd
 
-Function GetInfoTool
-	!insertmacro MGetInfoTool
+Function GetInfoComp
+	!insertmacro MGetInfoComp
 FunctionEnd
 
 Function CheckAllTools
 	Call FetchToolsCatalog
-	Call LoadToolsJson
-	${For} $i 0 $ToolsTotal
-		${If} $i < ${MAX_TOOLS}
-			Call GetInfoTool
+	Call LoadCompsJson
+	${For} $i 0 $CompsTotal
+		${If} $i < ${MAX_COMPS}
+			Call GetInfoComp
 			SectionSetText $ToolIndice $ToolName
 			SectionSetSize $ToolIndice $ToolKb
 			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
@@ -408,12 +411,12 @@ Function CheckAllTools
 	${Next}
 FunctionEnd
 
-Function InstallToolByIndex
-	${If} $i >= ${MAX_TOOLS}
-	${OrIf} $i > $ToolsTotal
+Function InstallCompByIndex
+	${If} $i >= ${MAX_COMPS}
+	${OrIf} $i > $CompsTotal
 		Return
 	${EndIf}
-	Call GetInfoTool
+	Call GetInfoComp
 	${If} ${SectionIsSelected} $ToolIndice
 	${Else}
 		Return
@@ -422,7 +425,7 @@ Function InstallToolByIndex
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
 	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
-		Goto SkipTool
+		Goto SkipComp
 	${EndIf}
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
@@ -431,7 +434,7 @@ Function InstallToolByIndex
 		Pop $R2
 		${If} $R1 != "0"
 			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaFtp} $ToolId$\n$R2"
-			Goto SkipTool
+			Goto SkipComp
 		${EndIf}
 	${ElseIf} $PROTOCOL == "HTTP"
 		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
@@ -440,10 +443,10 @@ Function InstallToolByIndex
 		Pop $R2
 		${If} $R1 != "0"
 			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaHttp} $ToolId$\n${STR_CodigoRespuesta} $R1"
-			Goto SkipTool
+			Goto SkipComp
 		${EndIf}
 	${Else}
-		Goto SkipTool
+		Goto SkipComp
 	${EndIf}
 	DetailPrint "${STR_MsgExitoDescarga} $R0"
 	StrCpy $R7 "$TEMP\$ToolId_tmp"
@@ -454,7 +457,7 @@ Function InstallToolByIndex
 	Pop $R1
 	${If} $R1 != "success"
 		MessageBox MB_ICONSTOP "${STR_MsgErrorDescomprimir} $ToolName: $R1"
-		Goto SkipTool
+		Goto SkipComp
 	${EndIf}
 	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
 	IntOp $R0 $R4 - $ToolKb
@@ -463,7 +466,7 @@ Function InstallToolByIndex
 	Goto Tag_OK
 Tag_Mismatch:
 	MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolKb KB)"
-	Goto SkipTool
+	Goto SkipComp
 Tag_OK:
 	DetailPrint "${STR_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $R7 2
@@ -479,10 +482,14 @@ Tag_OK:
 		Push "$INSTDRIVE${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
-SkipTool:
+SkipComp:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
+FunctionEnd
+
+Function InstallReqByIndex
+	;TODO: Aquí falta un manejador de la instalación de cada Requisito (PHP8, PhpSinergIA, etc.)
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -490,10 +497,6 @@ Function SkipLicenseIfUpdate
 		Abort
 	${EndIf}
 	!insertmacro MUI_HEADER_TEXT "${STR_TituloLicencia}" "${STR_SubtituloLicencia}"
-FunctionEnd
-
-Function InstallReqByIndex
-	;TODO: Aquí falta un manejador de la instalación de cada Requisito (PHP8, PhpSinergIA, etc.)
 FunctionEnd
 
 Function CheckPreRequisites
@@ -754,12 +757,12 @@ Function un.onInit
 	StrCpy $INSTDRIVE $0
 FunctionEnd
 
-Function un.LoadToolsJson
-	!insertmacro MLoadToolsJson
+Function un.LoadCompsJson
+	!insertmacro MLoadCompsJson
 FunctionEnd
 
-Function un.GetInfoTool
-	!insertmacro MGetInfoTool
+Function un.GetInfoComp
+	!insertmacro MGetInfoComp
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -905,131 +908,131 @@ SectionGroupEnd
 SectionGroup "Complementos" 14
 	Section /o "" 15
 		StrCpy $i 0
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 16
 		StrCpy $i 1
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 17
 		StrCpy $i 2
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 18
 		StrCpy $i 3
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 19
 		StrCpy $i 4
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 20
 		StrCpy $i 5
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 21
 		StrCpy $i 6
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 22
 		StrCpy $i 7
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 23
 		StrCpy $i 8
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 24
 		Push 9
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 25
 		Push 10
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 26
 		Push 11
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 27
 		Push 12
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 28
 		Push 13
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 29
 		Push 14
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 30
 		Push 15
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 31
 		Push 16
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 32
 		Push 17
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 33
 		Push 18
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 34
 		Push 19
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 35
 		Push 20
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 36
 		Push 21
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 37
 		Push 22
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 38
 		Push 23
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 39
 		Push 24
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 40
 		Push 25
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 41
 		Push 26
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 42
 		Push 27
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 43
 		Push 28
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 44
 		Push 29
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 45
 		Push 30
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 	Section /o "" 46
 		Push 31
-		Call InstallToolByIndex
+		Call InstallCompByIndex
 	SectionEnd
 SectionGroupEnd
 
@@ -1068,7 +1071,7 @@ SectionEnd
 
 Section "Uninstall"
 	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
-	Call un.LoadToolsJson
+	Call un.LoadCompsJson
 	Delete "$INSTDIR\*.*"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
@@ -1078,9 +1081,9 @@ Section "Uninstall"
 	SetOutPath "$INSTDRIVE\home"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
-	${For} $i 0 $ToolsTotal
-		${If} $i < ${MAX_TOOLS}
-			Call un.GetInfoTool
+	${For} $i 0 $CompsTotal
+		${If} $i < ${MAX_COMPS}
+			Call un.GetInfoComp
 			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
 			Push "$INSTDRIVE${TOOLS}\$ToolId"
 			Call un.RemoveFromEnvUserPath
