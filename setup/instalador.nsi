@@ -75,7 +75,7 @@ Var ToolChk
 Var ToolIndice
 Var ToolsCatalog
 Var CompsTotal
-;Var ReqsTotal
+Var ReqsTotal
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -135,7 +135,7 @@ Var CompsTotal
 !define STR_MsgErrorDescomprimir "Error al descomprimir"
 !define STR_CodigoRespuesta "Código de respuesta:"
 !define STR_MsgErrorTamano "Tamaño incorrecto de "
-!define STR_MsgExitoDescarga "Descargado:"
+!define STR_MsgDescargando "Descargando:"
 !define STR_MsgInstalandoHerramienta "Instalando herramienta:"
 
 ;--------------------------------
@@ -203,7 +203,6 @@ ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
 
-;TODO: Replicar para Reqs
 !macro MLoadCompsJson
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `complementos` /end
@@ -243,7 +242,6 @@ ${unStrStr}
 	${Next}
 !macroend
 
-;TODO: Replicar para Reqs
 !macro MGetInfoComp
 	nsArray::Get ListCompId /at=$i
 	Pop $1
@@ -264,6 +262,67 @@ ${unStrStr}
 	Pop $1
 	Pop $ToolChk
 	IntOp $ToolIndice $i + 15
+!macroend
+
+!macro MLoadReqsJson
+	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Get /count `requisitos` /end
+	Pop $ReqsTotal
+	IntOp $ReqsTotal $ReqsTotal - 1
+	${For} $i 0 $ReqsTotal
+		nsJSON::Get `requisitos` /index $i "id" /end 
+		Pop $ToolId
+		nsJSON::Get `requisitos` /index $i "name" /end
+		Pop $ToolName
+		nsJSON::Get `requisitos` /index $i "version" /end
+		Pop $ToolVer
+		nsJSON::Get `requisitos` /index $i "size_kb" /end
+		Pop $ToolKb
+		nsJSON::Get `requisitos` /index $i "add_path" /end
+		Pop $ToolAdd
+		nsJSON::Get `requisitos` /index $i "op_chk" /end
+		Pop $ToolChk
+		IntOp $ToolIndice $i + 8
+		nsArray::Set ListReqId /key=$ToolIndice $ToolId
+		nsArray::Set ListReqName /key=$ToolIndice $ToolName
+		nsArray::Set ListReqVer /key=$ToolIndice $ToolVer
+		nsArray::Set ListReqKb /key=$ToolIndice $ToolKb
+		nsArray::Set ListReqAdd /key=$ToolIndice $ToolAdd
+		nsArray::Set ListReqChk /key=$ToolIndice $ToolChk
+	${Next}
+	${For} $i $ReqsTotal ${MAX_COMPS}
+		${If} $i > $ReqsTotal
+			IntOp $ToolIndice $i + 8
+			nsArray::Set ListReqId /key=$ToolIndice ""
+			nsArray::Set ListReqName /key=$ToolIndice ""
+			nsArray::Set ListReqVer /key=$ToolIndice ""
+			nsArray::Set ListReqKb /key=$ToolIndice 0
+			nsArray::Set ListReqAdd /key=$ToolIndice 0
+			nsArray::Set ListReqChk /key=$ToolIndice 0
+		${EndIf}
+	${Next}
+!macroend
+
+!macro MGetInfoReq
+	nsArray::Get ListReqId /at=$i
+	Pop $1
+	Pop $ToolId
+	nsArray::Get ListReqName /at=$i
+	Pop $1
+	Pop $ToolName
+	nsArray::Get ListReqVer /at=$i
+	Pop $1
+	Pop $ToolVer
+	nsArray::Get ListReqKb /at=$i
+	Pop $1
+	Pop $ToolKb
+	nsArray::Get ListReqAdd /at=$i
+	Pop $1
+	Pop $ToolAdd
+	nsArray::Get ListReqChk /at=$i
+	Pop $1
+	Pop $ToolChk
+	IntOp $ToolIndice $i + 8
 !macroend
 
 ;--------------------------------
@@ -372,17 +431,76 @@ LoadLocalTools:
 ExitFetchTools:
 FunctionEnd
 
-;TODO: Replicar para Reqs
+Function DownloadSingleTool
+	${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
+		Goto SkipTool
+	${EndIf}
+	${If} $PROTOCOL == "FTP"
+		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaFtp} $ToolId$\n$R2"
+			Goto SkipTool
+		${EndIf}
+	${ElseIf} $PROTOCOL == "HTTP"
+		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaHttp} $ToolId$\n${STR_CodigoRespuesta} $R1"
+			Goto SkipTool
+		${EndIf}
+	${Else}
+		Goto SkipTool
+	${EndIf}
+	DetailPrint "${STR_MsgDescargando} $R0"
+	StrCpy $R7 "$TEMP\$ToolId_tmp"
+	RMDir /r "$R7"
+	CreateDirectory "$R7"
+	SetOutPath "$R7"
+	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$R7"
+	Pop $R1
+	${If} $R1 != "success"
+		MessageBox MB_ICONSTOP "${STR_MsgErrorDescomprimir} $ToolName: $R1"
+		Goto SkipTool
+	${EndIf}
+	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - $ToolKb
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 SizeMismatch
+	Goto SuccessTool
+SizeMismatch:
+	MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolKb KB)"
+	Goto SkipTool
+SuccessTool:
+	Push Tag_OK
+	Return
+SkipTool:
+	Push Tag_FIN
+FunctionEnd
+
 Function LoadCompsJson
 	!insertmacro MLoadCompsJson
 FunctionEnd
 
-;TODO: Replicar para Reqs
+Function LoadReqsJson
+	!insertmacro MLoadReqsJson
+FunctionEnd
+
 Function GetInfoComp
 	!insertmacro MGetInfoComp
 FunctionEnd
 
-;TODO: Agregar Check de Reqs
+Function GetInfoReq
+	!insertmacro MGetInfoReq
+FunctionEnd
+
 Function CheckAllTools
 	Call FetchToolsCatalog
 	Call LoadCompsJson
@@ -415,9 +533,39 @@ Function CheckAllTools
 			${EndIf}
 		${EndIf}
 	${Next}
+	Call LoadReqsJson
+	${For} $i 0 $ReqsTotal
+		${If} $i < ${MAX_REQS}
+			Call GetInfoReq
+			SectionSetText $ToolIndice $ToolName
+			SectionSetSize $ToolIndice $ToolKb
+			;TODO: Diferenciar otros directorios como ${VENDOR}
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
+				${If} "$ToolChk" == "0"
+					SectionSetFlags $ToolIndice 0
+				${ElseIf} "$ToolChk" == "1"
+					SectionSetFlags $ToolIndice ${SF_SELECTED}
+				${ElseIf} "$ToolChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+				${ElseIf} "$ToolChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+				${ElseIf} "$ToolChk" == "4"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+					SectionSetText $ToolIndice ""
+				${EndIf}
+			${Else}
+				SectionSetFlags $ToolIndice 1
+			${EndIf}
+		${EndIf}
+	${Next}
 FunctionEnd
 
-;TODO: Base para InstallReqByIndex
 Function InstallCompByIndex
 	${If} $i >= ${MAX_COMPS}
 	${OrIf} $i > $CompsTotal
@@ -428,52 +576,9 @@ Function InstallCompByIndex
 	${Else}
 		Return
 	${EndIf}
-	${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
-		Goto SkipComp
-	${EndIf}
-	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
-		Pop $R1
-		Pop $R2
-		${If} $R1 != "0"
-			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaFtp} $ToolId$\n$R2"
-			Goto SkipComp
-		${EndIf}
-	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
-		Pop $R1
-		Pop $R2
-		${If} $R1 != "0"
-			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaHttp} $ToolId$\n${STR_CodigoRespuesta} $R1"
-			Goto SkipComp
-		${EndIf}
-	${Else}
-		Goto SkipComp
-	${EndIf}
-	DetailPrint "${STR_MsgExitoDescarga} $R0"
-	StrCpy $R7 "$TEMP\$ToolId_tmp"
-	RMDir /r "$R7"
-	CreateDirectory "$R7"
-	SetOutPath "$R7"
-	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$R7"
-	Pop $R1
-	${If} $R1 != "success"
-		MessageBox MB_ICONSTOP "${STR_MsgErrorDescomprimir} $ToolName: $R1"
-		Goto SkipComp
-	${EndIf}
-	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
-	IntOp $R0 $R4 - $ToolKb
-	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
-	IntCmp $R0 1 0 0 Tag_Mismatch
-	Goto Tag_OK
-Tag_Mismatch:
-	MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolKb KB)"
-	Goto SkipComp
+	Call DownloadSingleTool
+	Pop $0
+	Goto $0
 Tag_OK:
 	DetailPrint "${STR_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $R7 2
@@ -489,15 +594,45 @@ Tag_OK:
 		Push "$INSTDRIVE${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
-SkipComp:
+Tag_FIN:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-;TODO: Implementar Reqs
 Function InstallReqByIndex
-	;Aquí falta un manejador de la instalación de los Requisitos (Reqs)
+	${If} $i >= ${MAX_REQS}
+	${OrIf} $i > $ReqsTotal
+		Return
+	${EndIf}
+	Call GetInfoReq
+	${If} ${SectionIsSelected} $ToolIndice
+	${Else}
+		Return
+	${EndIf}
+	Call DownloadSingleTool
+	Pop $0
+	Goto $0
+Tag_OK:
+	DetailPrint "${STR_MsgInstalandoHerramienta} $ToolId"
+	StrCpy $R8 $R7 2
+	StrCpy $R9 $INSTDRIVE 2
+	;TODO: Diferenciar otros directorios como ${VENDOR}
+	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	${If} "$R8" == "$R9"
+		Rename "$R7" "$INSTDRIVE${TOOLS}\$ToolId"
+	${Else}
+		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+	${EndIf}
+	${If} $ToolAdd == "1"
+		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Call AddToEnvUserPath
+	${EndIf}
+Tag_FIN:
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	Delete "$TEMP\$ToolId.zip"
+	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -765,14 +900,20 @@ Function un.onInit
 	StrCpy $INSTDRIVE $0
 FunctionEnd
 
-;TODO: Replicar para Reqs
 Function un.LoadCompsJson
 	!insertmacro MLoadCompsJson
 FunctionEnd
 
-;TODO: Replicar para Reqs
+Function un.LoadReqsJson
+	!insertmacro MLoadReqsJson
+FunctionEnd
+
 Function un.GetInfoComp
 	!insertmacro MGetInfoComp
+FunctionEnd
+
+Function un.GetInfoReq
+	!insertmacro MGetInfoReq
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -1079,10 +1220,10 @@ Section "-Config"
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 SectionEnd
 
-;TODO: Agregar Uninstall de Reqs
 Section "Uninstall"
 	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
 	Call un.LoadCompsJson
+	Call un.LoadReqsJson
 	Delete "$INSTDIR\*.*"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
@@ -1100,7 +1241,16 @@ Section "Uninstall"
 			Call un.RemoveFromEnvUserPath
 		${EndIf}
 	${Next}
+	${For} $i 0 $ReqsTotal
+		${If} $i < ${MAX_REQS}
+			Call un.GetInfoReq
+			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+	${Next}
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveDirIfEmpty
+	RMDir /r "$INSTDRIVE${VENDOR}"
 Done:
 SectionEnd
