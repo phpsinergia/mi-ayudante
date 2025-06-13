@@ -31,7 +31,7 @@
 !define INSTALL "..\dist\mi-ayudante_${RELEASE}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define MAX_COMPS 32
-!define MAX_REQS 5
+!define MAX_REQS 7
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -76,6 +76,8 @@ Var ToolIndice
 Var ToolsCatalog
 Var CompsTotal
 Var ReqsTotal
+Var CompsVisibles
+Var ReqsVisibles
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -137,6 +139,11 @@ Var ReqsTotal
 !define STR_MsgErrorTamano "Tamaño incorrecto de "
 !define STR_MsgDescargando "Descargando:"
 !define STR_MsgInstalandoHerramienta "Instalando herramienta:"
+!define STR_EtiqReinstalar "(Reinstalar)"
+!define STR_SecPrograma "Programa"
+!define STR_SecRequisitos "Requisitos"
+!define STR_SecComplementos "Complementos"
+!define STR_SecActualizaciones "Buscar Actualizaciones"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -282,7 +289,7 @@ ${unStrStr}
 		Pop $ToolAdd
 		nsJSON::Get `requisitos` /index $i "op_chk" /end
 		Pop $ToolChk
-		IntOp $ToolIndice $i + 8
+		IntOp $ToolIndice $i + 6
 		nsArray::Set ListReqId /key=$ToolIndice $ToolId
 		nsArray::Set ListReqName /key=$ToolIndice $ToolName
 		nsArray::Set ListReqVer /key=$ToolIndice $ToolVer
@@ -292,7 +299,7 @@ ${unStrStr}
 	${Next}
 	${For} $i $ReqsTotal ${MAX_COMPS}
 		${If} $i > $ReqsTotal
-			IntOp $ToolIndice $i + 8
+			IntOp $ToolIndice $i + 6
 			nsArray::Set ListReqId /key=$ToolIndice ""
 			nsArray::Set ListReqName /key=$ToolIndice ""
 			nsArray::Set ListReqVer /key=$ToolIndice ""
@@ -322,7 +329,7 @@ ${unStrStr}
 	nsArray::Get ListReqChk /at=$i
 	Pop $1
 	Pop $ToolChk
-	IntOp $ToolIndice $i + 8
+	IntOp $ToolIndice $i + 6
 !macroend
 
 ;--------------------------------
@@ -381,6 +388,7 @@ Function .onInit
 		StrCpy $TextFinish "${STR_InstruccionesFinishActualizador}"
 		SectionSetFlags 1 0
 		SectionSetFlags 2 ${SF_SELECTED}
+		SectionSetText 1 "${NAME} ${STR_EtiqReinstalar}"
 	${Else}
 		StrCpy $TextCaption "${STR_VentanaInstalador}"
 		StrCpy $TitleWelcome "${STR_TituloWelcomeInstalador}"
@@ -504,6 +512,8 @@ FunctionEnd
 Function CheckAllTools
 	Call FetchToolsCatalog
 	Call LoadCompsJson
+	StrCpy $CompsVisibles "0"
+	StrCpy $ReqsVisibles "0"
 	${For} $i 0 $CompsTotal
 		${If} $i < ${MAX_COMPS}
 			Call GetInfoComp
@@ -515,14 +525,18 @@ Function CheckAllTools
 			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
 				${If} "$ToolChk" == "0"
 					SectionSetFlags $ToolIndice 0
+					IntOp $CompsVisibles $CompsVisibles + 1
 				${ElseIf} "$ToolChk" == "1"
 					SectionSetFlags $ToolIndice ${SF_SELECTED}
+					IntOp $CompsVisibles $CompsVisibles + 1
 				${ElseIf} "$ToolChk" == "2"
 					IntOp $0 ${SF_SELECTED} | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
+					IntOp $CompsVisibles $CompsVisibles + 1
 				${ElseIf} "$ToolChk" == "3"
 					IntOp $0 0 | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
+					IntOp $CompsVisibles $CompsVisibles + 1
 				${ElseIf} "$ToolChk" == "4"
 					IntOp $0 0 | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
@@ -530,30 +544,37 @@ Function CheckAllTools
 				${EndIf}
 			${Else}
 				SectionSetFlags $ToolIndice 0
+				IntOp $CompsVisibles $CompsVisibles + 1
 			${EndIf}
 		${EndIf}
 	${Next}
+	${If} $CompsVisibles == "0"
+		SectionSetText 14 ""
+	${EndIf}
 	Call LoadReqsJson
 	${For} $i 0 $ReqsTotal
 		${If} $i < ${MAX_REQS}
 			Call GetInfoReq
 			SectionSetText $ToolIndice $ToolName
 			SectionSetSize $ToolIndice $ToolKb
-			;TODO: Diferenciar otros directorios como ${VENDOR}
 			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
 			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
 			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
 			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
 				${If} "$ToolChk" == "0"
 					SectionSetFlags $ToolIndice 0
+					IntOp $ReqsVisibles $ReqsVisibles + 1
 				${ElseIf} "$ToolChk" == "1"
 					SectionSetFlags $ToolIndice ${SF_SELECTED}
+					IntOp $ReqsVisibles $ReqsVisibles + 1
 				${ElseIf} "$ToolChk" == "2"
 					IntOp $0 ${SF_SELECTED} | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
+					IntOp $ReqsVisibles $ReqsVisibles + 1
 				${ElseIf} "$ToolChk" == "3"
 					IntOp $0 0 | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
+					IntOp $ReqsVisibles $ReqsVisibles + 1
 				${ElseIf} "$ToolChk" == "4"
 					IntOp $0 0 | ${SF_RO}
 					SectionSetFlags $ToolIndice $0
@@ -561,9 +582,13 @@ Function CheckAllTools
 				${EndIf}
 			${Else}
 				SectionSetFlags $ToolIndice 1
+				IntOp $ReqsVisibles $ReqsVisibles + 1
 			${EndIf}
 		${EndIf}
 	${Next}
+	${If} $ReqsVisibles == "0"
+		SectionSetText 5 ""
+	${EndIf}
 FunctionEnd
 
 Function InstallCompByIndex
@@ -617,7 +642,6 @@ Tag_OK:
 	DetailPrint "${STR_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $R7 2
 	StrCpy $R9 $INSTDRIVE 2
-	;TODO: Diferenciar otros directorios como ${VENDOR}
 	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
 		Rename "$R7" "$INSTDRIVE${TOOLS}\$ToolId"
@@ -628,6 +652,13 @@ Tag_OK:
 	${If} $ToolAdd == "1"
 		Push "$INSTDRIVE${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
+	${EndIf}
+	${If} $ToolId == "vendor"
+		DetailPrint "${STR_MsgInstalandoHerramienta} $ToolName v$ToolVer"
+		Rename "$INSTDRIVE${TOOLS}\$ToolId" "$INSTDRIVE${VENDOR}"
+		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
+		SetOutPath "$INSTDRIVE${TOOLS}\$ToolId"
+		File "meta.json"
 	${EndIf}
 Tag_FIN:
 	SetOutPath "$INSTDRIVE$INSTDIR"
@@ -985,8 +1016,8 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-SectionGroup /e "Programa" 0
-	Section "!Mi Ayudante (*)" 1
+SectionGroup /e "${STR_SecPrograma}" 0
+	Section "!${NAME} (*)" 1
 	;Creación de directorios
 		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
 		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
@@ -1022,41 +1053,45 @@ SectionGroup /e "Programa" 0
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	SectionEnd
-	Section /o "Actualizaciones" 2
+	Section /o "${STR_SecActualizaciones}" 2
 		;TODO: Aquí falta un manejador de actualizaciones -> al directorio $INSTDIR
 	SectionEnd
 	Section "" 3
 	SectionEnd
-	Section "" 4
-	SectionEnd
-	Section "" 5
-	SectionEnd
 SectionGroupEnd
 
-SectionGroup /e "Requisitos" 7
-	Section "" 8
+SectionGroup /e "${STR_SecRequisitos}" 5
+	Section "" 6
 		StrCpy $i 0
 		Call InstallReqByIndex
 	SectionEnd
-	Section "" 9
+	Section "" 7
 		StrCpy $i 1
 		Call InstallReqByIndex
 	SectionEnd
-	Section "" 10
+	Section "" 8
 		StrCpy $i 2
 		Call InstallReqByIndex
 	SectionEnd
-	Section "" 11
+	Section "" 9
 		StrCpy $i 3
 		Call InstallReqByIndex
 	SectionEnd
-	Section "" 12
+	Section "" 10
 		StrCpy $i 4
+		Call InstallReqByIndex
+	SectionEnd
+	Section "" 11
+		StrCpy $i 5
+		Call InstallReqByIndex
+	SectionEnd
+	Section "" 12
+		StrCpy $i 6
 		Call InstallReqByIndex
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup /e "Complementos" 14
+SectionGroup /e "${STR_SecComplementos}" 14
 	Section /o "" 15
 		StrCpy $i 0
 		Call InstallCompByIndex
