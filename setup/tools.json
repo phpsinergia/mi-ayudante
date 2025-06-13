@@ -1,6 +1,1 @@
-[
-{"id":"7za", "name":"CLI 7za", "version":"4.42", "size_kb":466, "add_path":1, "op_chk":4},
-{"id":"gettext", "name":"CLI Gettext", "version":"0.19.8", "size_kb":6080, "add_path":1, "op_chk":4},
-{"id":"mkcert", "name":"CLI Mkcert", "version":"1.4.1", "size_kb":5136, "add_path":0, "op_chk":4},
-{"id":"ffmpeg", "name":"CLI FFmpeg", "version":"7.1.1", "size_kb":37121, "add_path":1, "op_chk":4},
-]
+[]

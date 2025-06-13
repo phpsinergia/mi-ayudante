@@ -284,10 +284,7 @@ Function .onInit
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-
-	;TODO: Cambiar para que lea Lanzamiento en Install_Dir/config.ini [Base] (si existe) 
 	ReadRegStr $VERSION HKCU "Software\${NAME}" "Version"
-
 	StrCpy $SkipPre "0"
 	${If} $2 != ""
 		StrCpy $SkipPre $2
@@ -336,7 +333,7 @@ Function FetchToolsCatalog
 	${If} $SERVER == ""
 	${OrIf} $PROTOCOL == ""
 	${OrIf} $PROTOCOL == "---"
-		Goto LoadLocal
+		Goto LoadLocalTools
 	${Endif}
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/tools.json"
@@ -350,12 +347,19 @@ Function FetchToolsCatalog
 		Pop $R2
 	${EndIf}
 	${If} $R1 == "0"
-		Goto ExitFetch
+		Goto ExitFetchTools
 	${EndIf}
-LoadLocal:
+LoadLocalTools:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	File "tools.json"
-ExitFetch:
+	SectionSetText 14 ""
+	SectionSetText 7 ""
+	SectionSetText 8 ""
+	SectionSetText 9 ""
+	SectionSetText 10 ""
+	SectionSetText 11 ""
+	SectionSetText 12 ""
+ExitFetchTools:
 FunctionEnd
 
 Function LoadToolsJson
@@ -472,8 +476,9 @@ Tag_OK:
 		Call AddToEnvUserPath
 	${EndIf}
 SkipTool:
+	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
-	RMDir /r "$TEMP\$ToolId_tmp" ;TODO: Revisar por qué no funciona
+	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -481,6 +486,10 @@ Function SkipLicenseIfUpdate
 		Abort
 	${EndIf}
 	!insertmacro MUI_HEADER_TEXT "${STR_TituloLicencia}" "${STR_SubtituloLicencia}"
+FunctionEnd
+
+Function InstallReqByIndex
+	;TODO: Aquí falta un manejador de la instalación de cada Requisito (PHP8, PhpSinergIA, etc.)
 FunctionEnd
 
 Function CheckPreRequisites
@@ -491,7 +500,7 @@ Function CheckPreRequisites
 	Pop $0
 	!insertmacro MUI_HEADER_TEXT "${STR_TituloPrereq}" "${STR_SubtituloPrereq}"
 
-	;TODO: Aquí falta añadir la comprobación real (y sus resultados)
+	;TODO: Aquí falta añadir la comprobación real de Pre-requisitos (y sus resultados)
 
 	${NSD_CreateCheckbox} 100u 130u 150u 10u "${STR_EtiqNomostrarDenuevo}"
 	Pop $SkipPreCheckbox
@@ -763,21 +772,6 @@ Function un.ReadChoiceUninstall
 	${NSD_GetState} $unToolsCheckbox $unToolsCheckboxState
 FunctionEnd
 
-Function un.RMDirUP
-	!define RMDirUP '!insertmacro RMDirUPCall'
-	!macro RMDirUPCall _PATH
-		push '${_PATH}'
-		Call un.RMDirUP
-	!macroend
-	ClearErrors
-	Exch $0
-	RMDir "$0\.."
-	IfErrors Skip
-		${RMDirUP} "$0\.."
-	Skip:
-	Pop $0
-FunctionEnd
-
 Function un.RemoveDirIfEmpty
 	Exch $0
 	IfFileExists "$0\*\*.*" 0 +2
@@ -871,7 +865,7 @@ SectionGroup /e "Programa" 0
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	SectionEnd
 	Section /o "Actualizaciones" 2
-		;TODO: Pendiente
+		;TODO: Aquí falta un manejador de actualizaciones -> al directorio $INSTDIR
 	SectionEnd
 	Section "" 3
 	SectionEnd
@@ -882,19 +876,25 @@ SectionGroup /e "Programa" 0
 SectionGroupEnd
 
 SectionGroup "Requisitos" 7
-	Section "PHP 8" 8
-		AddSize 99688
-		;TODO: Pendiente
+	Section "" 8
+		StrCpy $i 0
+		Call InstallReqByIndex
 	SectionEnd
-	Section "PhpSinergIA" 9
-		AddSize 887
-		;TODO: Pendiente
+	Section "" 9
+		StrCpy $i 1
+		Call InstallReqByIndex
 	SectionEnd
 	Section "" 10
+		StrCpy $i 2
+		Call InstallReqByIndex
 	SectionEnd
 	Section "" 11
+		StrCpy $i 3
+		Call InstallReqByIndex
 	SectionEnd
 	Section "" 12
+		StrCpy $i 4
+		Call InstallReqByIndex
 	SectionEnd
 SectionGroupEnd
 
@@ -1065,18 +1065,14 @@ SectionEnd
 Section "Uninstall"
 	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
 	Call un.LoadToolsJson
-	Delete "$INSTDIR\tools.json"
-	Delete "$INSTDIR\config.ini"
-	Delete "$INSTDIR\${LICENSEFILE}.txt"
-	Delete "$INSTDIR\${APPFILE}"
-	Delete "$INSTDIR\${README}"
+	Delete "$INSTDIR\*.*"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
+	SetOutPath "$INSTDRIVE\home"
 	RMDir /r "$INSTDIR"
-	${RMDirUP} "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	${For} $i 0 $ToolsTotal
 		${If} $i < ${MAX_TOOLS}
