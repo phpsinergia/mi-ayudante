@@ -12,6 +12,7 @@
 !include "Sections.nsh"
 !include "WinMessages.nsh"
 !include "StrFunc.nsh"
+!include "nsArray.nsh"
 
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
@@ -28,6 +29,7 @@
 !define UNINSTALL "Desinstalar.exe"
 !define INSTALL "..\dist\mi-ayudante_${RELEASE}.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+!define MAX_TOOLS 32
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -61,6 +63,16 @@ Var hDriveDropList
 Var tmpGB
 Var btnTest
 Var btnUninstall
+Var i
+Var ToolId
+Var ToolName
+Var ToolVer
+Var ToolKb
+Var ToolAdd
+Var ToolChk
+Var ToolsTotal
+Var ToolIndice
+Var ToolsCatalog
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -120,6 +132,8 @@ Var btnUninstall
 !define STR_MsgErrorDescomprimir "Error al descomprimir"
 !define STR_CodigoRespuesta "Código de respuesta:"
 !define STR_MsgErrorTamano "Tamaño incorrecto de "
+!define STR_MsgExitoDescarga "Descargado:"
+!define STR_MsgInstalandoHerramienta "Instalando herramienta:"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -149,6 +163,7 @@ Var btnUninstall
 !define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "${STR_SubtituloInstCompletada}"
 !define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "${STR_TituloInstCancelada}"
 !define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "${STR_SubtituloInstCancelada}"
+!define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
@@ -185,7 +200,55 @@ ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
 
-!include "tools.nsh"
+!macro MLoadToolsJson
+	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Get /count /end
+	Pop $ToolsTotal
+	IntOp $ToolsTotal $ToolsTotal - 1
+	${For} $i 0 $ToolsTotal
+		nsJSON::Get /index $i "id" /end 
+		Pop $ToolId
+		nsJSON::Get /index $i "name" /end
+		Pop $ToolName
+		nsJSON::Get /index $i "version" /end
+		Pop $ToolVer
+		nsJSON::Get /index $i "size_kb" /end
+		Pop $ToolKb
+		nsJSON::Get /index $i "add_path" /end
+		Pop $ToolAdd
+		nsJSON::Get /index $i "op_chk" /end
+		Pop $ToolChk
+		IntOp $ToolIndice $i + 15
+		nsArray::Set ListaId /key=$ToolIndice $ToolId
+		nsArray::Set ListaName /key=$ToolIndice $ToolName
+		nsArray::Set ListaVer /key=$ToolIndice $ToolVer
+		nsArray::Set ListaKb /key=$ToolIndice $ToolKb
+		nsArray::Set ListaAdd /key=$ToolIndice $ToolAdd
+		nsArray::Set ListaChk /key=$ToolIndice $ToolChk
+	${Next}
+!macroend
+
+!macro MGetInfoTool
+	nsArray::Get ListaId /at=$i
+	Pop $1
+	Pop $ToolId
+	nsArray::Get ListaName /at=$i
+	Pop $1
+	Pop $ToolName
+	nsArray::Get ListaVer /at=$i
+	Pop $1
+	Pop $ToolVer
+	nsArray::Get ListaKb /at=$i
+	Pop $1
+	Pop $ToolKb
+	nsArray::Get ListaAdd /at=$i
+	Pop $1
+	Pop $ToolAdd
+	nsArray::Get ListaChk /at=$i
+	Pop $1
+	Pop $ToolChk
+	IntOp $ToolIndice $i + 15
+!macroend
 
 ;--------------------------------
 ; PAGINAS
@@ -199,7 +262,7 @@ PageEx license
 PageExEnd
 Page custom ShowConfigForm SaveConfigForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
-!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckIfInstalledAllTools
+!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllTools
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -261,6 +324,156 @@ Function .onInit
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
 	${EndIf}
+FunctionEnd
+
+Function FetchToolsCatalog
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	File "tools.json"
+	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\tools.json"
+	${If} ${FileExists} $ToolsCatalog
+		Delete $ToolsCatalog
+	${EndIf}
+	${If} $SERVER == ""
+	${OrIf} $PROTOCOL == ""
+	${OrIf} $PROTOCOL == "---"
+		Goto LoadLocal
+	${Endif}
+	${If} $PROTOCOL == "FTP"
+		StrCpy $R0 "ftp://$SERVER/herramientas/tools.json"
+		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
+		Pop $R1
+		Pop $R2
+	${ElseIf} $PROTOCOL == "HTTP"
+		StrCpy $R0 "https://$SERVER/herramientas/tools.json"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
+		Pop $R1
+		Pop $R2
+	${EndIf}
+	${If} $R1 == "0"
+		Goto ExitFetch
+	${EndIf}
+LoadLocal:
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	File "tools.json"
+ExitFetch:
+FunctionEnd
+
+Function LoadToolsJson
+	!insertmacro MLoadToolsJson
+FunctionEnd
+
+Function GetInfoTool
+	!insertmacro MGetInfoTool
+FunctionEnd
+
+Function CheckAllTools
+	Call FetchToolsCatalog
+	Call LoadToolsJson
+	${For} $i 0 $ToolsTotal
+		${If} $i < ${MAX_TOOLS}
+			Call GetInfoTool
+			SectionSetText $ToolIndice $ToolName
+			SectionSetSize $ToolIndice $ToolKb
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
+				${If} "$ToolChk" == "0"
+					SectionSetFlags $ToolIndice 0
+				${ElseIf} "$ToolChk" == "1"
+					SectionSetFlags $ToolIndice ${SF_SELECTED}
+				${ElseIf} "$ToolChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+				${ElseIf} "$ToolChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+				${ElseIf} "$ToolChk" == "4"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndice $0
+					SectionSetText  $ToolIndice ""
+				${EndIf}
+			${Else}
+				SectionSetFlags $ToolIndice 0
+			${EndIf}
+		${EndIf}
+	${Next}
+FunctionEnd
+
+Function InstallToolByIndex
+	${If} $i >= ${MAX_TOOLS}
+	${OrIf} $i > $ToolsTotal
+		Return
+	${EndIf}
+	Call GetInfoTool
+	${If} ${SectionIsSelected} $ToolIndice
+	${Else}
+		Return
+	${EndIf}
+	${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.php"
+		Goto SkipTool
+	${EndIf}
+	${If} $PROTOCOL == "FTP"
+		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaFtp} $ToolId$\n$R2"
+			Goto SkipTool
+		${EndIf}
+	${ElseIf} $PROTOCOL == "HTTP"
+		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorDescargaHttp} $ToolId$\n${STR_CodigoRespuesta} $R1"
+			Goto SkipTool
+		${EndIf}
+	${Else}
+		Goto SkipTool
+	${EndIf}
+	DetailPrint "${STR_MsgExitoDescarga} $R0"
+	StrCpy $R7 "$TEMP\$ToolId_tmp"
+	RMDir /r "$R7"
+	CreateDirectory "$R7"
+	SetOutPath "$R7"
+	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$R7"
+	Pop $R1
+	${If} $R1 != "success"
+		MessageBox MB_ICONSTOP "${STR_MsgErrorDescomprimir} $ToolName: $R1"
+		Goto SkipTool
+	${EndIf}
+	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - $ToolKb
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 Tag_Mismatch
+	Goto Tag_OK
+Tag_Mismatch:
+	MessageBox MB_ICONEXCLAMATION "${STR_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolKb KB)"
+	Goto SkipTool
+Tag_OK:
+	DetailPrint "${STR_MsgInstalandoHerramienta} $ToolId"
+	StrCpy $R8 $R7 2
+	StrCpy $R9 $INSTDRIVE 2
+	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	${If} "$R8" == "$R9"
+		Rename "$R7" "$INSTDRIVE${TOOLS}\$ToolId"
+	${Else}
+		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+	${EndIf}
+	${If} $ToolAdd == "1"
+		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Call AddToEnvUserPath
+	${EndIf}
+SkipTool:
+	Delete "$TEMP\$ToolId.zip"
+	RMDir /r "$TEMP\$ToolId_tmp" ;TODO: Revisar por qué no funciona
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -510,12 +723,14 @@ Function LaunchApp
 FunctionEnd
 
 Function RunUninstaller
-	StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
-	IfFileExists "$0" 0 NoUninst
-	Exec '"$0"'
-	Quit
+	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "¿Desea desinstalar la versión instalada?" IDNO EndAsk
+		StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+		IfFileExists "$0" 0 NoUninst
+		Exec '"$0"'
+		Quit
 NoUninst:
 	MessageBox MB_ICONSTOP "${STR_MsgUniNoEncontrado}$\n$0"
+EndAsk:
 FunctionEnd
 
 ;--------------------------------
@@ -524,6 +739,14 @@ FunctionEnd
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $INSTDRIVE $0
+FunctionEnd
+
+Function un.LoadToolsJson
+	!insertmacro MLoadToolsJson
+FunctionEnd
+
+Function un.GetInfoTool
+	!insertmacro MGetInfoTool
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -610,8 +833,8 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-SectionGroup /e "Programa"
-	Section "!Mi Ayudante (*)"
+SectionGroup /e "Programa" 0
+	Section "!Mi Ayudante (*)" 1
 	;Creación de directorios
 		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
 		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
@@ -647,21 +870,163 @@ SectionGroup /e "Programa"
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	SectionEnd
-	Section /o "Actualizaciones"
+	Section /o "Actualizaciones" 2
+		;TODO: Pendiente
+	SectionEnd
+	Section "" 3
+	SectionEnd
+	Section "" 4
+	SectionEnd
+	Section "" 5
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup "Requisitos"
-	Section "PHP 8"
+SectionGroup "Requisitos" 7
+	Section "PHP 8" 8
 		AddSize 99688
+		;TODO: Pendiente
 	SectionEnd
-	Section "PhpSinergIA"
+	Section "PhpSinergIA" 9
 		AddSize 887
+		;TODO: Pendiente
+	SectionEnd
+	Section "" 10
+	SectionEnd
+	Section "" 11
+	SectionEnd
+	Section "" 12
 	SectionEnd
 SectionGroupEnd
 
-SectionGroup "Complementos"
-	!insertmacro GenerateAllSectionTools
+SectionGroup "Complementos" 14
+	Section /o "" 15
+		StrCpy $i 0
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 16
+		StrCpy $i 1
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 17
+		StrCpy $i 2
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 18
+		StrCpy $i 3
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 19
+		StrCpy $i 4
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 20
+		StrCpy $i 5
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 21
+		StrCpy $i 6
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 22
+		StrCpy $i 7
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 23
+		StrCpy $i 8
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 24
+		Push 9
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 25
+		Push 10
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 26
+		Push 11
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 27
+		Push 12
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 28
+		Push 13
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 29
+		Push 14
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 30
+		Push 15
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 31
+		Push 16
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 32
+		Push 17
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 33
+		Push 18
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 34
+		Push 19
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 35
+		Push 20
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 36
+		Push 21
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 37
+		Push 22
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 38
+		Push 23
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 39
+		Push 24
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 40
+		Push 25
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 41
+		Push 26
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 42
+		Push 27
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 43
+		Push 28
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 44
+		Push 29
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 45
+		Push 30
+		Call InstallToolByIndex
+	SectionEnd
+	Section /o "" 46
+		Push 31
+		Call InstallToolByIndex
+	SectionEnd
 SectionGroupEnd
 
 Section "-Config"
@@ -698,6 +1063,9 @@ Section "-Config"
 SectionEnd
 
 Section "Uninstall"
+	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
+	Call un.LoadToolsJson
+	Delete "$INSTDIR\tools.json"
 	Delete "$INSTDIR\config.ini"
 	Delete "$INSTDIR\${LICENSEFILE}.txt"
 	Delete "$INSTDIR\${APPFILE}"
@@ -705,12 +1073,19 @@ Section "Uninstall"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
-	RMDir /r "$INSTDIR"
-	${RMDirUP} "$INSTDIR"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
+	RMDir /r "$INSTDIR"
+	${RMDirUP} "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
-	!insertmacro UninstallAllTools
+	${For} $i 0 $ToolsTotal
+		${If} $i < ${MAX_TOOLS}
+			Call un.GetInfoTool
+			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+	${Next}
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveDirIfEmpty
 Done:
