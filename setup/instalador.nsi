@@ -79,6 +79,9 @@ Var CompsTotal
 Var ReqsTotal
 Var CompsVisibles
 Var ReqsVisibles
+Var LogFile
+Var LogMsg
+Var Timestamp
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -149,8 +152,16 @@ Var ReqsVisibles
 !define TXT_MsgCalculandoEspacio "Calculando el espacio utilizado..."
 !define TXT_MsgErrorHashNoCalculado "No se pudo obtener el Hash del archivo:"
 !define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
+!define TXT_LogSecPrograma "INSTALANDO ARCHIVOS DEL PROGRAMA"
+!define TXT_LogSecConfig "CONFIGURANDO LA APLICACIÓN"
+!define TXT_EtiqVerRegistro "Ver Registro de Instalación"
 !define TXT_MsgHashValidado "Hash validado:"
-!define TXT_EtiqVerRegistro "Ver Registro de Instalación (inst.log)"
+!define TXT_LogFechaHora "Fecha / Hora:"
+!define TXT_LogVersion "Versión actual:"
+!define TXT_LogUnidadDestino "Unidad de destino:"
+!define TXT_LogDirInstalacion "Directorio instalación:"
+!define TXT_LogServidorDescargas "Servidor de descargas:"
+!define TXT_LogProtocoloTransfer "Protocolo de transferencia:"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -179,7 +190,7 @@ Var ReqsVisibles
 !define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "${TXT_TituloInstCancelada}"
 !define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "${TXT_SubtituloInstCancelada}"
 !define MUI_FINISHPAGE_LINK "${TXT_EtiqVerRegistro}"
-!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\inst.log"
+!define MUI_FINISHPAGE_LINK_LOCATION "$LogFile"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${README}"
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "${TXT_EtiqRevisarNotas}"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
@@ -376,6 +387,7 @@ Page custom CheckPreRequisites LeavePreRequisites " "
 UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Spanish"
+!insertmacro GetTime
 
 ;--------------------------------
 ; FUNCIONES: INSTALACIÓN
@@ -390,7 +402,7 @@ Function .onInit
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-	ReadRegStr $VERSION HKCU "Software\${NAME}" "Version"
+	ReadRegStr $VERSION HKCU "${HKCUNI}" "DisplayVersion"
 	StrCpy $SkipPrereq "0"
 	${If} $2 != ""
 		StrCpy $SkipPrereq $2
@@ -398,6 +410,13 @@ Function .onInit
 	${If} $VERSION == ""
 		StrCpy $VERSION ${RELEASE}
 	${EndIf}
+	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
+	IntFmt $R2 "%04d" $R2
+	IntFmt $R1 "%02d" $R1
+	IntFmt $R0 "%02d" $R0
+	IntFmt $R4 "%02d" $R4
+	IntFmt $R5 "%02d" $R5
+	StrCpy  $Timestamp "$R2$R1$R0$R4$R5"
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
@@ -405,25 +424,27 @@ Function .onInit
 		${If} $1 != ""
 			StrCpy $INSTDRIVE $1
 		${EndIf}
+		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaActualizador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeActualizador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
-		SectionSetFlags 1 0
-		SectionSetFlags 2 ${SF_SELECTED}
-		SectionSetText 1 "${NAME} ${TXT_EtiqReinstalar}"
+		SectionSetFlags 2 0
+		SectionSetFlags 3 ${SF_SELECTED}
+		SectionSetText 2 "${NAME} ${TXT_EtiqReinstalar}"
 	${Else}
+		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaInstalador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeInstalador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeInstalador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishInstalador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishInstalador}"
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags 1 $3
-		IntOp $3 0 | ${SF_RO}
 		SectionSetFlags 2 $3
-		SectionSetText 2 ""
+		IntOp $3 0 | ${SF_RO}
+		SectionSetFlags 3 $3
+		SectionSetText 3 ""
 	${EndIf}
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
@@ -475,22 +496,28 @@ Function DownloadSingleTool
 	${EndIf}
 	${If} $PROTOCOL == "FTP"
 		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
+		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgDescargando} $R0"
 		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
-			MessageBox MB_ICONEXCLAMATION "${TXT_MsgErrorDescargaFtp} $ToolId$\n$R2"
+			StrCpy $LogMsg "${TXT_MsgErrorDescargaFtp} $ToolId$\n$R2"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONEXCLAMATION "$LogMsg"
 			Goto SkipTool
 		${EndIf}
 	${ElseIf} $PROTOCOL == "HTTP"
 		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
+		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgDescargando} $R0"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
-			MessageBox MB_ICONEXCLAMATION "${TXT_MsgErrorDescargaHttp} $ToolId$\n${TXT_CodigoRespuesta} $R1"
+			StrCpy $LogMsg "${TXT_MsgErrorDescargaHttp} $ToolId$\n${TXT_CodigoRespuesta} $R1"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONEXCLAMATION "$LogMsg"
 			Goto SkipTool
 		${EndIf}
 	${Else}
@@ -502,8 +529,10 @@ Function DownloadSingleTool
 	nsExec::ExecToStack 'CertUtil -hashfile "$TEMP\$ToolId.zip" SHA256'
 	Pop $0
 	Pop $1
-	StrCmp $0 0 +3
-		MessageBox MB_ICONSTOP "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+	StrCmp $0 0 +5
+		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
 	${If} $1 != ""
 	${AndIf} $ToolHash != ""
@@ -512,11 +541,15 @@ Function DownloadSingleTool
 			DetailPrint "${TXT_MsgHashValidado} $ToolHash"
 			Goto ValidateOk
 		${Else}
-			MessageBox MB_ICONSTOP "${TXT_MsgErrorHashNoCoincide} $ToolId.zip$\n$2 ≠ $ToolHash"
+			StrCpy $LogMsg "${TXT_MsgErrorHashNoCoincide} $ToolId.zip$\n$2 ≠ $ToolHash"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONSTOP "$LogMsg"
 			Goto SkipTool
 		${EndIf}
 	${Else}
-		MessageBox MB_ICONSTOP "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
 	${EndIf}
 ValidateOk:
@@ -527,7 +560,9 @@ ValidateOk:
 	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$R7"
 	Pop $R1
 	${If} $R1 != "success"
-		MessageBox MB_ICONSTOP "${TXT_MsgErrorDescomprimir} $ToolName: $R1"
+		StrCpy $LogMsg "${TXT_MsgErrorDescomprimir} $ToolName: $R1"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
 	${EndIf}
 	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
@@ -536,7 +571,9 @@ ValidateOk:
 	IntCmp $R0 1 0 0 SizeMismatch
 	Goto SuccessTool
 SizeMismatch:
-	MessageBox MB_ICONEXCLAMATION "${TXT_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	StrCpy $LogMsg "${TXT_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	DetailPrint "$LogMsg"
+	MessageBox MB_ICONEXCLAMATION "$LogMsg"
 	Goto SkipTool
 SuccessTool:
 	Push "OK"
@@ -1051,8 +1088,27 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
-SectionGroup /e "${TXT_SecPrograma}" 0
-	Section "!${NAME} (*)" 1
+Section "" 0
+	DetailPrint "============================================"
+	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
+	IntFmt $R2 "%04d" $R2
+	IntFmt $R1 "%02d" $R1
+	IntFmt $R0 "%02d" $R0
+	IntFmt $R4 "%02d" $R4
+	IntFmt $R5 "%02d" $R5
+	DetailPrint "${TXT_LogFechaHora} $R0-$R1-$R2  $R4:$R5"
+	DetailPrint "${TXT_LogVersion} v$VERSION"
+	DetailPrint "${TXT_LogUnidadDestino} $INSTDRIVE"
+	DetailPrint "${TXT_LogDirInstalacion} $INSTDIR"
+	DetailPrint "${TXT_LogServidorDescargas} $SERVER"
+	DetailPrint "${TXT_LogProtocoloTransfer} $PROTOCOL"
+	DetailPrint "============================================"
+SectionEnd
+
+SectionGroup /e "${TXT_SecPrograma}" 1
+	Section "!${NAME} (*)" 2
+		DetailPrint "============================================"
+		DetailPrint "${TXT_LogSecPrograma}"
 	;Creación de directorios
 		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
 		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
@@ -1087,11 +1143,10 @@ SectionGroup /e "${TXT_SecPrograma}" 0
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+		DetailPrint "============================================"
 	SectionEnd
-	Section /o "${TXT_SecActualizaciones}" 2
+	Section /o "${TXT_SecActualizaciones}" 3
 		Call HandleUpdateApp
-	SectionEnd
-	Section "" 3
 	SectionEnd
 SectionGroupEnd
 
@@ -1258,6 +1313,8 @@ SectionGroup /e "${TXT_SecComplementos}" 14
 SectionGroupEnd
 
 Section "-Config"
+	DetailPrint "============================================"
+	DetailPrint "${TXT_LogSecConfig}"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$SERVER"
@@ -1281,13 +1338,15 @@ Section "-Config"
 	StrCpy $FTP_PASS ""
 	DetailPrint "${TXT_MsgCalculandoEspacio}"
 	${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
+	DetailPrint "$1 KB"
 	IntFmt $1 "0x%08X" $1
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	DetailPrint "============================================"
 SectionEnd
 
 Section "-DumpLog"
-	DumpLog::DumpLogUTF8 "$INSTDRIVE$INSTDIR\inst.log" .r0
+	DumpLog::DumpLogUTF8 "$LogFile" .r0
 SectionEnd
 
 Section "Uninstall"
