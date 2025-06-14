@@ -142,7 +142,7 @@ Var Timestamp
 !define TXT_CodigoRespuesta "Código de respuesta:"
 !define TXT_MsgErrorTamano "Tamaño incorrecto de "
 !define TXT_MsgDescargando "Descargando:"
-!define TXT_MsgVerificando "Verificando Hash SHA256:"
+!define TXT_MsgVerificando "Validando Hash SHA256:"
 !define TXT_MsgInstalandoHerramienta "Instalando herramienta:"
 !define TXT_EtiqReinstalar "(Reinstalar)"
 !define TXT_SecPrograma "Programa"
@@ -154,14 +154,16 @@ Var Timestamp
 !define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
 !define TXT_LogSecPrograma "INSTALANDO ARCHIVOS DEL PROGRAMA"
 !define TXT_LogSecConfig "CONFIGURANDO LA APLICACIÓN"
+!define TXT_LogTitulo "INSTALACION DE ${NAME}"
 !define TXT_EtiqVerRegistro "Ver Registro de Instalación"
 !define TXT_MsgHashValidado "Hash validado:"
 !define TXT_LogFechaHora "Fecha / Hora:"
 !define TXT_LogVersion "Versión actual:"
-!define TXT_LogUnidadDestino "Unidad de destino:"
-!define TXT_LogDirInstalacion "Directorio instalación:"
 !define TXT_LogServidorDescargas "Servidor de descargas:"
 !define TXT_LogProtocoloTransfer "Protocolo de transferencia:"
+!define TXT_LogAddPath "Agregando al Entorno Path:"
+!define TXT_LogCreateShortCut "Creando Accesos directos en Escritorio y Menú Inicio"
+!define TXT_LogWriteReg "Escribiendo Registro:"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -230,6 +232,8 @@ ${StrCase}
 ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
+
+!insertmacro GetTime
 
 !macro MLoadCompsJson
 	nsJSON::Set /file $ToolsCatalog
@@ -387,7 +391,6 @@ Page custom CheckPreRequisites LeavePreRequisites " "
 UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Spanish"
-!insertmacro GetTime
 
 ;--------------------------------
 ; FUNCIONES: INSTALACIÓN
@@ -553,6 +556,7 @@ Function DownloadSingleTool
 		Goto SkipTool
 	${EndIf}
 ValidateOk:
+	DetailPrint "..."
 	StrCpy $R7 "$TEMP\$ToolId_tmp"
 	RMDir /r "$R7"
 	CreateDirectory "$R7"
@@ -694,6 +698,7 @@ Function InstallCompByIndex
 	${OrIf} $R7 == ""
 		Goto Tag_FIN_Comp
 	${EndIf}
+	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $R7 2
 	StrCpy $R9 $INSTDRIVE 2
@@ -709,6 +714,7 @@ Function InstallCompByIndex
 		Call AddToEnvUserPath
 	${EndIf}
 Tag_FIN_Comp:
+	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
@@ -730,6 +736,7 @@ Function InstallReqByIndex
 	${OrIf} $R7 == ""
 		Goto Tag_FIN_Req
 	${EndIf}
+	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $R7 2
 	StrCpy $R9 $INSTDRIVE 2
@@ -745,6 +752,7 @@ Function InstallReqByIndex
 		Call AddToEnvUserPath
 	${EndIf}
 	${If} $ToolId == "vendor"
+		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolName v$ToolVersion"
 		RMDir /r "$INSTDRIVE${VENDOR}"
 		Rename "$INSTDRIVE${TOOLS}\$ToolId" "$INSTDRIVE${VENDOR}"
@@ -753,6 +761,7 @@ Function InstallReqByIndex
 		File "meta.json"
 	${EndIf}
 Tag_FIN_Req:
+	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
@@ -968,6 +977,7 @@ LoopClean:
 	${StrRep} $1 $1 ";;" ";"
 	Goto LoopClean
 WriteAndBroadcast:
+	DetailPrint "${TXT_LogAddPath} $0"
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndAdd:
@@ -1090,6 +1100,7 @@ FunctionEnd
 
 Section "" 0
 	DetailPrint "============================================"
+	DetailPrint "${TXT_LogTitulo}"
 	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
 	IntFmt $R2 "%04d" $R2
 	IntFmt $R1 "%02d" $R1
@@ -1098,8 +1109,8 @@ Section "" 0
 	IntFmt $R5 "%02d" $R5
 	DetailPrint "${TXT_LogFechaHora} $R0-$R1-$R2  $R4:$R5"
 	DetailPrint "${TXT_LogVersion} v$VERSION"
-	DetailPrint "${TXT_LogUnidadDestino} $INSTDRIVE"
-	DetailPrint "${TXT_LogDirInstalacion} $INSTDIR"
+	DetailPrint "${TXT_EtiqUnidadDestino} $INSTDRIVE"
+	DetailPrint "${TXT_EtiqRutaInstalacion} $INSTDIR"
 	DetailPrint "${TXT_LogServidorDescargas} $SERVER"
 	DetailPrint "${TXT_LogProtocoloTransfer} $PROTOCOL"
 	DetailPrint "============================================"
@@ -1141,6 +1152,7 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 			File "config.ini"
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
+		DetailPrint "${TXT_LogCreateShortCut}"
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		DetailPrint "============================================"
@@ -1315,6 +1327,8 @@ SectionGroupEnd
 Section "-Config"
 	DetailPrint "============================================"
 	DetailPrint "${TXT_LogSecConfig}"
+	DetailPrint "${TXT_LogWriteReg} HKCU Software\${NAME}"
+	DetailPrint "${TXT_LogWriteReg} HKCU ${HKCUNI}"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$SERVER"
