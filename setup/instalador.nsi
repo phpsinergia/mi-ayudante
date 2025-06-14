@@ -29,10 +29,11 @@
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\mi-ayudante_${RELEASE}.exe"
+!define INSTALL "..\dist\Instalar-Mi-Ayudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define MAX_COMPS 32
 !define MAX_REQS 7
+!define MAX_ACTS 1
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -77,6 +78,7 @@ Var ToolIndex
 Var ToolsCatalog
 Var CompsTotal
 Var ReqsTotal
+Var ActsTotal
 Var CompsVisibles
 Var ReqsVisibles
 Var LogFile
@@ -164,6 +166,9 @@ Var Timestamp
 !define TXT_LogAddPath "Agregando al Entorno Path:"
 !define TXT_LogCreateShortCut "Creando Accesos directos en Escritorio y Menú Inicio"
 !define TXT_LogWriteReg "Escribiendo Registro:"
+!define TXT_LogDescargandoActualizacion "Descargando Actualizacion:"
+!define TXT_LogInstalandoActualizacion "Instalando Actualizacion:"
+!define TXT_MsgErrorActualizacion "Error al descargar la actualización"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -371,6 +376,74 @@ ${unStrStr}
 	IntOp $ToolIndex $i + 6
 !macroend
 
+!macro MLoadActsJson
+	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Get /count `actualizaciones` /end
+	Pop $ActsTotal
+	IntOp $ActsTotal $ActsTotal - 1
+	${For} $i 0 $ActsTotal
+		nsJSON::Get `actualizaciones` /index $i "id" /end 
+		Pop $ToolId
+		nsJSON::Get `actualizaciones` /index $i "name" /end
+		Pop $ToolName
+		nsJSON::Get `actualizaciones` /index $i "version" /end
+		Pop $ToolVersion
+		nsJSON::Get `actualizaciones` /index $i "size_kb" /end
+		Pop $ToolSizeKb
+		nsJSON::Get `actualizaciones` /index $i "add_path" /end
+		Pop $ToolAddPath
+		nsJSON::Get `actualizaciones` /index $i "op_chk" /end
+		Pop $ToolOpChk
+		nsJSON::Get `actualizaciones` /index $i "hash" /end
+		Pop $ToolHash
+		IntOp $ToolIndex $i + 3
+		nsArray::Set ListActId /key=$ToolIndex $ToolId
+		nsArray::Set ListActName /key=$ToolIndex $ToolName
+		nsArray::Set ListActVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListActSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListActAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListActOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListActHash /key=$ToolIndex $ToolHash
+	${Next}
+	${For} $i $ActsTotal ${MAX_ACTS}
+		${If} $i > $ActsTotal
+			IntOp $ToolIndex $i + 3
+			nsArray::Set ListActId /key=$ToolIndex ""
+			nsArray::Set ListActName /key=$ToolIndex ""
+			nsArray::Set ListActVersion /key=$ToolIndex ""
+			nsArray::Set ListActSizeKb /key=$ToolIndex 0
+			nsArray::Set ListActAddPath /key=$ToolIndex 0
+			nsArray::Set ListActOpChk /key=$ToolIndex 0
+			nsArray::Set ListActHash /key=$ToolIndex ""
+		${EndIf}
+	${Next}
+!macroend
+
+!macro MGetInfoAct
+	nsArray::Get ListActId /at=$i
+	Pop $1
+	Pop $ToolId
+	nsArray::Get ListActName /at=$i
+	Pop $1
+	Pop $ToolName
+	nsArray::Get ListActVersion /at=$i
+	Pop $1
+	Pop $ToolVersion
+	nsArray::Get ListActSizeKb /at=$i
+	Pop $1
+	Pop $ToolSizeKb
+	nsArray::Get ListActAddPath /at=$i
+	Pop $1
+	Pop $ToolAddPath
+	nsArray::Get ListActOpChk /at=$i
+	Pop $1
+	Pop $ToolOpChk
+	nsArray::Get ListActHash /at=$i
+	Pop $1
+	Pop $ToolHash
+	IntOp $ToolIndex $i + 3
+!macroend
+
 ;--------------------------------
 ; PAGINAS
 
@@ -453,10 +526,6 @@ Function .onInit
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
 	${EndIf}
-FunctionEnd
-
-Function HandleUpdateApp
-	;TODO: Pendiente de implementar
 FunctionEnd
 
 Function FetchToolsCatalog
@@ -594,12 +663,20 @@ Function LoadReqsJson
 	!insertmacro MLoadReqsJson
 FunctionEnd
 
+Function LoadActsJson
+	!insertmacro MLoadActsJson
+FunctionEnd
+
 Function GetInfoComp
 	!insertmacro MGetInfoComp
 FunctionEnd
 
 Function GetInfoReq
 	!insertmacro MGetInfoReq
+FunctionEnd
+
+Function GetInfoAct
+	!insertmacro MGetInfoAct
 FunctionEnd
 
 Function CheckAllTools
@@ -672,7 +749,7 @@ Function CheckAllTools
 					SectionSetText $ToolIndex ""
 				${EndIf}
 			${Else}
-				SectionSetFlags $ToolIndex 1
+				SectionSetFlags $ToolIndex ${SF_SELECTED}
 				IntOp $ReqsVisibles $ReqsVisibles + 1
 			${EndIf}
 		${EndIf}
@@ -680,6 +757,19 @@ Function CheckAllTools
 	${If} $ReqsVisibles == "0"
 		SectionSetText 5 ""
 	${EndIf}
+	Call LoadActsJson
+	${For} $i 0 $ActsTotal
+		${If} $i < ${MAX_ACTS}
+			Call GetInfoAct
+			SectionSetText $ToolIndex "$ToolName $ToolVersion"
+			SectionSetSize $ToolIndex $ToolSizeKb
+			${If} $ToolVersion == $VERSION
+				SectionSetText $ToolIndex ""
+			${Else}
+				SectionSetFlags $ToolIndex ${SF_SELECTED}
+			${EndIf}
+		${EndIf}
+	${Next}
 FunctionEnd
 
 Function InstallCompByIndex
@@ -767,6 +857,46 @@ Tag_FIN_Req:
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
+Function InstallActByIndex
+	${If} $i >= ${MAX_ACTS}
+	${OrIf} $i > $ActsTotal
+		Return
+	${EndIf}
+	Call GetInfoAct
+	${If} ${SectionIsSelected} $ToolIndex
+	${Else}
+		Return
+	${EndIf}
+	${If} $ToolId == "release"
+		${If} $ToolVersion == $VERSION
+			Return
+		${EndIf}
+		MessageBox MB_YESNO|MB_ICONQUESTION "¿Desea actualizar?$\n v$VERSION -> $ToolVersion" IDNO EndAct
+	${EndIf}
+	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
+	Call DownloadSingleTool
+	Pop $0
+	${If} $0 == "NO"
+	${OrIf} $R7 == ""
+		DetailPrint "${TXT_MsgErrorActualizacion}"
+		Goto Tag_FIN_Act
+	${EndIf}
+	DetailPrint "..."
+	DetailPrint "${TXT_LogInstalandoActualizacion} $ToolVersion"
+	CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE$INSTDIR\"
+	${If} $ToolId == "release"
+		StrCpy $VERSION $ToolVersion
+		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
+		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
+	${EndIf}
+Tag_FIN_Act:
+	DetailPrint "..."
+	SetOutPath "$INSTDRIVE$INSTDIR"
+	Delete "$TEMP\$ToolId.zip"
+	RMDir /r "$TEMP\$ToolId_tmp"
+EndAct:
+FunctionEnd
+
 Function SkipLicenseIfUpdate
 	${If} $IsUpdateInstall == "1"
 		Abort
@@ -783,6 +913,21 @@ Function CheckPreRequisites
 	!insertmacro MUI_HEADER_TEXT "${TXT_TituloPrereq}" "${TXT_SubtituloPrereq}"
 
 	;TODO: Aquí falta añadir la comprobación real de Pre-requisitos (y sus resultados)
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
+	;
 
 	${NSD_CreateCheckbox} 100u 130u 150u 10u "${TXT_EtiqNomostrarDenuevo}"
 	Pop $SkipPreCheckbox
@@ -1158,7 +1303,8 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 		DetailPrint "============================================"
 	SectionEnd
 	Section /o "${TXT_SecActualizaciones}" 3
-		Call HandleUpdateApp
+		StrCpy $i 0
+		Call InstallActByIndex
 	SectionEnd
 SectionGroupEnd
 
