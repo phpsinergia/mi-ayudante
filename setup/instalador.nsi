@@ -150,7 +150,7 @@ Var ReqsVisibles
 !define TXT_MsgErrorHashNoCalculado "No se pudo obtener el Hash del archivo:"
 !define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
 !define TXT_MsgHashValidado "Hash validado:"
-!define TXT_EtiqVerRegistro "Ver Registro de Instalación (Logs)"
+!define TXT_EtiqVerRegistro "Ver Registro de Instalación (inst.log)"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -1284,6 +1284,10 @@ Section "-Config"
 	IntFmt $1 "0x%08X" $1
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+SectionEnd
+
+Section "-DumpLog"
+	DumpLog::DumpLogUTF8 "$INSTDRIVE$INSTDIR\inst.log" .r0
 SectionEnd
 
 Section "Uninstall"
