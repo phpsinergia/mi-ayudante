@@ -150,6 +150,7 @@ Var ReqsVisibles
 !define TXT_MsgErrorHashNoCalculado "No se pudo obtener el Hash del archivo:"
 !define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
 !define TXT_MsgHashValidado "Hash validado:"
+!define TXT_EtiqVerRegistro "Ver Registro de Instalación (Logs)"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -165,8 +166,6 @@ Var ReqsVisibles
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
 !define MUI_FINISHPAGE_RUN_TEXT "${TXT_EtiqEjecutarApp}"
-!define MUI_FINISHPAGE_LINK "${TXT_EtiqRevisarNotas}"
-!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\${README}"
 !define MUI_FINISHPAGE_TITLE $TitleFinish
 !define MUI_FINISHPAGE_TEXT $TextFinish
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
@@ -179,6 +178,11 @@ Var ReqsVisibles
 !define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "${TXT_SubtituloInstCompletada}"
 !define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "${TXT_TituloInstCancelada}"
 !define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "${TXT_SubtituloInstCancelada}"
+!define MUI_FINISHPAGE_LINK "${TXT_EtiqVerRegistro}"
+!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\inst.log"
+!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${README}"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "${TXT_EtiqRevisarNotas}"
+!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
 ;--------------------------------
@@ -1292,7 +1296,7 @@ Section "Uninstall"
 	Delete "$SMPROGRAMS\${NAME}.lnk"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
-	SetOutPath "$INSTDRIVE\home"
+	SetOutPath "$TEMP"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	${For} $i 0 $CompsTotal
@@ -1313,8 +1317,7 @@ Section "Uninstall"
 	${Next}
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveDirIfEmpty
-	Push "$INSTDRIVE${TARGET}"
-	Call un.RemoveDirIfEmpty
 	RMDir /r "$INSTDRIVE${VENDOR}"
 Done:
+	RMDir /r "$INSTDRIVE${TARGET}"
 SectionEnd
