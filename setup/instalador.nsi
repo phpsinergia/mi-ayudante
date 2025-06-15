@@ -29,7 +29,8 @@
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\Instalar-Mi-Ayudante.exe"
+!define UPDATER "Instalar-MiAyudante.exe"
+!define INSTALL "..\dist\${UPDATER}"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define MAX_COMPS 32
 !define MAX_REQS 7
@@ -84,6 +85,7 @@ Var ReqsVisibles
 Var LogFile
 Var LogMsg
 Var Timestamp
+Var UpdaterPath
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -150,7 +152,6 @@ Var Timestamp
 !define TXT_SecPrograma "Programa"
 !define TXT_SecRequisitos "Requisitos"
 !define TXT_SecComplementos "Complementos"
-!define TXT_SecActualizaciones "Buscar Actualizaciones"
 !define TXT_MsgCalculandoEspacio "Calculando el espacio utilizado..."
 !define TXT_MsgErrorHashNoCalculado "No se pudo obtener el Hash del archivo:"
 !define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
@@ -169,6 +170,9 @@ Var Timestamp
 !define TXT_LogDescargandoActualizacion "Descargando Actualizacion:"
 !define TXT_LogInstalandoActualizacion "Instalando Actualizacion:"
 !define TXT_MsgErrorActualizacion "Error al descargar la actualización"
+!define TXT_MsgConfirmaActualizacion "¿Confirma que desea actualizar ${NAME}, con las siguientes versiones...?"
+!define TXT_MsgActual "Actual"
+!define TXT_MsgNueva "Nueva"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -474,11 +478,28 @@ Function .onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
 	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPrereq"
+	ReadRegStr $3 HKCU "Software\${NAME}" "Installer"
 	ReadRegStr $SERVER HKCU "Software\${NAME}" "Server"
 	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
 	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
 	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
 	ReadRegStr $VERSION HKCU "${HKCUNI}" "DisplayVersion"
+	${If} $0 != ""
+		StrCpy $INSTDIR $0
+		${If} $1 != ""
+			StrCpy $INSTDRIVE $1
+			StrCpy $UpdaterPath "$INSTDRIVE$INSTDIR\${UPDATER}"
+			${If} $3 != ""
+				${If} $UpdaterPath == $FullPath
+				${AndIf} $3 != $UpdaterPath
+					Delete $3
+					WriteRegStr HKCU "Software\${NAME}" "Installer" "$FullPath"
+				${EndIf}
+			${EndIf}
+		${EndIf}
+	${Else}
+		WriteRegStr HKCU "Software\${NAME}" "Installer" "$FullPath"
+	${EndIf}
 	StrCpy $SkipPrereq "0"
 	${If} $2 != ""
 		StrCpy $SkipPrereq $2
@@ -496,10 +517,6 @@ Function .onInit
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
-		StrCpy $INSTDIR $0
-		${If} $1 != ""
-			StrCpy $INSTDRIVE $1
-		${EndIf}
 		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaActualizador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeActualizador}"
@@ -761,12 +778,16 @@ Function CheckAllTools
 	${For} $i 0 $ActsTotal
 		${If} $i < ${MAX_ACTS}
 			Call GetInfoAct
-			SectionSetText $ToolIndex "$ToolName $ToolVersion"
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} $ToolVersion == $VERSION
-				SectionSetText $ToolIndex ""
+			${If} $IsUpdateInstall == "1"
+				SectionSetText $ToolIndex "$ToolName $ToolVersion"
+				SectionSetSize $ToolIndex $ToolSizeKb
+				${If} $ToolVersion == $VERSION
+					SectionSetText $ToolIndex ""
+				${Else}
+					SectionSetFlags $ToolIndex ${SF_SELECTED}
+				${EndIf}
 			${Else}
-				SectionSetFlags $ToolIndex ${SF_SELECTED}
+				SectionSetText $ToolIndex ""
 			${EndIf}
 		${EndIf}
 	${Next}
@@ -871,7 +892,7 @@ Function InstallActByIndex
 		${If} $ToolVersion == $VERSION
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "¿Desea actualizar?$\n v$VERSION -> $ToolVersion" IDNO EndAct
+		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n ${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndAct
 	${EndIf}
 	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
 	Call DownloadSingleTool
@@ -1002,6 +1023,7 @@ Function SaveConfigForm
 	${NSD_GetText} $FtpUserInput $FTP_USER
 	${NSD_GetText} $FtpPassInput $FTP_PASS
 	${NSD_GetText} $ProtocolDropList $PROTOCOL
+	StrCpy $UpdaterPath "$INSTDRIVE$INSTDIR\${UPDATER}"
 	${If} $SERVER == ""
 	${AndIf} $PROTOCOL != "---"
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
@@ -1297,12 +1319,9 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 			File "config.ini"
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
-		DetailPrint "${TXT_LogCreateShortCut}"
-		CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-		CreateShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 		DetailPrint "============================================"
 	SectionEnd
-	Section /o "${TXT_SecActualizaciones}" 3
+	Section /o "" 3
 		StrCpy $i 0
 		Call InstallActByIndex
 	SectionEnd
@@ -1501,7 +1520,17 @@ Section "-Config"
 	DetailPrint "$1 KB"
 	IntFmt $1 "0x%08X" $1
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+	${IfNot} ${FileExists} $UpdaterPath
+		CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
+	${EndIf}
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	DetailPrint "${TXT_LogCreateShortCut}"
+	CreateDirectory "$SMPROGRAMS\${NAME}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\Desinstalar.lnk" "$INSTDRIVE$INSTDIR\${UNINSTALL}" "" ""
+	CreateShortCut "$DESKTOP\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	DetailPrint "============================================"
 SectionEnd
 
@@ -1514,9 +1543,14 @@ Section "Uninstall"
 	Call un.LoadCompsJson
 	Call un.LoadReqsJson
 	Delete "$INSTDIR\*.*"
+	Delete "$INSTDIR\${UPDATER}"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
-	Delete "$SMPROGRAMS\${NAME}.lnk"
+	Delete "$DESKTOP\Actualizar.lnk"
+	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
+	Delete "$SMPROGRAMS\${NAME}\Actualizar.lnk"
+	Delete "$SMPROGRAMS\${NAME}\Desinstalar.lnk"
+	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	SetOutPath "$TEMP"
