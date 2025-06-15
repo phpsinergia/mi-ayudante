@@ -138,7 +138,7 @@ Var UpdaterPath
 !define TXT_BotonDesinstalar "Desinstalar"
 !define TXT_BotonComprobar "Comprobar"
 !define TXT_EtiqRecordarCreds "Recordar credenciales (FTP)"
-!define TXT_EtiqDesinstalarHerramientas "¿Desea Desinstalar también las Herramientas externas?"
+!define TXT_EtiqDesinstalarHerramientas "¿Desea Desinstalar también las Herramientas externas (Requisitos y Complementos)?"
 !define TXT_EtiqRemoverTodas "Remover todas"
 !define TXT_MsgErrorDescargaFtp "No se pudo descargar por FTP"
 !define TXT_MsgErrorDescargaHttp "No se pudo descargar por HTTP"
@@ -171,6 +171,7 @@ Var UpdaterPath
 !define TXT_LogInstalandoActualizacion "Instalando Actualizacion:"
 !define TXT_MsgErrorActualizacion "Error al descargar la actualización"
 !define TXT_MsgConfirmaActualizacion "¿Confirma que desea actualizar ${NAME}, con las siguientes versiones...?"
+!define TXT_MsgActualizacionCancelada "Actualización cancelada por el usuario"
 !define TXT_MsgActual "Actual"
 !define TXT_MsgNueva "Nueva"
 
@@ -547,8 +548,8 @@ FunctionEnd
 
 Function FetchToolsCatalog
 	SetOutPath "$INSTDRIVE$INSTDIR"
-	File "tools.json"
-	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\tools.json"
+	File "catalogo.json"
+	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\catalogo.json"
 	${If} ${FileExists} $ToolsCatalog
 		Delete $ToolsCatalog
 	${EndIf}
@@ -558,12 +559,12 @@ Function FetchToolsCatalog
 		Goto LoadLocalTools
 	${Endif}
 	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/tools.json"
+		StrCpy $R0 "ftp://$SERVER/herramientas/catalogo.json"
 		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/tools.json"
+		StrCpy $R0 "https://$SERVER/herramientas/catalogo.json"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
 		Pop $R1
 		Pop $R2
@@ -573,7 +574,7 @@ Function FetchToolsCatalog
 	${EndIf}
 LoadLocalTools:
 	SetOutPath "$INSTDRIVE$INSTDIR"
-	File "tools.json"
+	File "catalogo.json"
 ExitFetchTools:
 FunctionEnd
 
@@ -892,7 +893,7 @@ Function InstallActByIndex
 		${If} $ToolVersion == $VERSION
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n ${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndAct
+		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndAct
 	${EndIf}
 	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
 	Call DownloadSingleTool
@@ -915,7 +916,9 @@ Tag_FIN_Act:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
+	Return
 EndAct:
+	DetailPrint "${TXT_MsgActualizacionCancelada}"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -1076,7 +1079,7 @@ Function TestFtpConnection
 FunctionEnd
 
 Function TestHttpConnection
-	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/tools.json"'
+	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/catalogo.json"'
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"
@@ -1499,12 +1502,8 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$SERVER"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
 	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
-	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
-	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
+	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$INSTDRIVE${VENDOR}"
+	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$INSTDRIVE${TOOLS}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	${If} $RememberCreds == "1"
 		WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
@@ -1513,6 +1512,12 @@ Section "-Config"
 		DeleteRegValue HKCU "Software\${NAME}" "FTP_User"
 		DeleteRegValue HKCU "Software\${NAME}" "FTP_Pass"
 	${EndIf}
+	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
+	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	StrCpy $FTP_USER ""
 	StrCpy $FTP_PASS ""
 	DetailPrint "${TXT_MsgCalculandoEspacio}"
@@ -1528,7 +1533,6 @@ Section "-Config"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\Desinstalar.lnk" "$INSTDRIVE$INSTDIR\${UNINSTALL}" "" ""
 	CreateShortCut "$DESKTOP\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	DetailPrint "============================================"
@@ -1539,7 +1543,7 @@ Section "-DumpLog"
 SectionEnd
 
 Section "Uninstall"
-	StrCpy $ToolsCatalog "$INSTDIR\tools.json"
+	StrCpy $ToolsCatalog "$INSTDIR\catalogo.json"
 	Call un.LoadCompsJson
 	Call un.LoadReqsJson
 	Delete "$INSTDIR\*.*"
@@ -1549,7 +1553,6 @@ Section "Uninstall"
 	Delete "$DESKTOP\Actualizar.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\Actualizar.lnk"
-	Delete "$SMPROGRAMS\${NAME}\Desinstalar.lnk"
 	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
