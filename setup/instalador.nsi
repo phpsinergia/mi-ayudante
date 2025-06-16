@@ -4,7 +4,6 @@
 
 ;--------------------------------
 ; INCLUDES
-
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
@@ -17,7 +16,6 @@
 
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
-
 !define RELEASE "1.0.0"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
@@ -32,13 +30,20 @@
 !define UPDATER "Instalar-MiAyudante.exe"
 !define INSTALL "..\dist\${UPDATER}"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define MAX_COMPS 32
-!define MAX_REQS 7
-!define MAX_ACTS 1
+!define MAX_ACTUALIZACIONES 10
+!define MAX_REQUISITOS 10
+!define MAX_COMPLEMENTOS 30
+!define MAX_EXTENSIONES 20
+!define MAX_RECURSOS 30
+!define SecPrograma 2
+!define SecLanzamiento 3
+!define GrpRequisitos 15
+!define GrpComplementos 28
+!define GrpExtensiones 61
+!define GrpRecursos 84
 
 ;--------------------------------
 ; VARIABLES GLOBALES
-
 Var VERSION
 Var INSTDRIVE
 Var SERVER
@@ -67,7 +72,13 @@ Var hDriveDropList
 Var tmpGB
 Var btnTest
 Var btnUninstall
+Var LogFile
+Var LogMsg
+Var Timestamp
+Var UpdaterPath
+Var Ajuste
 Var i
+Var n
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -77,107 +88,20 @@ Var ToolOpChk
 Var ToolHash
 Var ToolIndex
 Var ToolsCatalog
+Var ToolTemp
+;TODO: Revisar
 Var CompsTotal
 Var ReqsTotal
 Var ActsTotal
 Var CompsVisibles
 Var ReqsVisibles
-Var LogFile
-Var LogMsg
-Var Timestamp
-Var UpdaterPath
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
-
-!define TXT_DescripcionArchivo "Instalador de ${NAME} para Windows"
-!define TXT_TituloLicencia "Acuerdo de Licencia"
-!define TXT_SubtituloLicencia "Por favor revise los términos de la licencia antes de instalar el software."
-!define TXT_InstruccionesLicencia "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\nDebe aceptar el acuerdo para poder instalar ${NAME}."
-!define TXT_InstruccionesComponentes "Marque los componentes que desee instalar y desmarque aquellos que no desee. Presione Instalar para comenzar el proceso (requiere conexión a Internet)."
-!define TXT_EtiqEjecutarApp "Ejecutar ${NAME} ahora"
-!define TXT_EtiqRevisarNotas "Revisar notas en ${README}"
-!define TXT_BotonAcepto "ACEPTO"
-!define TXT_VentanaActualizador "Actualización de ${NAME}"
-!define TXT_VentanaInstalador "Instalación de ${NAME}"
-!define TXT_TituloWelcomeActualizador "Asistente para Actualizar$\n${NAME} v$VERSION"
-!define TXT_InstruccionesWelcomeActualizador "Este programa ACTUALIZARÁ el software ${NAME} que está instalado en:$\n$\n$INSTDRIVE$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
-!define TXT_TituloFinishActualizador "Finalizando el Asistente para$\nActualizar ${NAME}"
-!define TXT_InstruccionesFinishActualizador "${NAME} ha sido actualizado en:$\n$\n$INSTDRIVE$0$\n$\nPresione Terminar para cerrar este asistente."
-!define TXT_TituloWelcomeInstalador "Asistente para Instalar$\n${NAME} v$VERSION"
-!define TXT_InstruccionesWelcomeInstalador "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
-!define TXT_TituloFinishInstalador "Finalizando el Asistente para$\nInstalar ${NAME}"
-!define TXT_InstruccionesFinishInstalador "${NAME} ha sido instalado en su computadora.$\n$\nPresione Terminar para cerrar este asistente."
-!define TXT_TituloInstFinalizada "Instalación completada"
-!define TXT_SubtituloInstCompletada "Se ha completado el proceso de instalación de ${NAME}."
-!define TXT_TituloInstCancelada "Instalación cancelada"
-!define TXT_SubtituloInstCancelada "La instalación fue cancelada por el usuario."
-!define TXT_TituloPrereq "Comprobación de Pre-requisitos"
-!define TXT_SubtituloPrereq "Debe tener instalados PHP y Composer en su computadora local."
-!define TXT_EtiqNomostrarDenuevo "No volver a mostrar esta página"
-!define TXT_TituloComponentes "Opciones de instalación"
-!define TXT_SubtituloComponentes "Indique los datos necesarios para descargar y copiar los componentes."
-!define TXT_GbLibres "GB libres"
-!define TXT_MsgFaltaDominio "Debe indicar el Dominio del Servidor"
-!define TXT_MsgFaltanCredencialesFtp "Debe indicar Usuario y Contraseña FTP"
-!define TXT_MsgFaltaProtocolo "Seleccione un Protocolo (HTTP o FTP) para realizar la prueba."
-!define TXT_MsgConexionHttpExito "Conexión HTTP exitosa"
-!define TXT_MsgConexionHttpError "Falló la conexión HTTP a $SERVER:"
-!define TXT_MsgConexionFtpExito "Conexión FTP exitosa"
-!define TXT_MsgConexionFtpError "Falló la conexión FTP a $SERVER:"
-!define TXT_MsgDetallesRespuesta "Respuesta recibida:"
-!define TXT_MsgExeNoEncontrado "No se encontró el programa ${APPFILE}.$\nEjecute nuevamente el instalador."
-!define TXT_MsgUniNoEncontrado "No se encontró el desinstalador en:"
-!define TXT_EtiqRutaInstalacion "Ruta de instalación"
-!define TXT_EtiqUnidadDestino "Unidad de destino:"
-!define TXT_EtiqConfigDescargas "Configuración de descargas"
-!define TXT_EtiqProtocolo "Protocolo:"
-!define TXT_EtiqDominioServidor "Dominio del servidor:"
-!define TXT_EtiqUsuarioFtp "Usuario FTP:"
-!define TXT_EtiqPassFtp "Contraseña FTP:"
-!define TXT_BotonDesinstalar "Desinstalar"
-!define TXT_BotonComprobar "Comprobar"
-!define TXT_EtiqRecordarCreds "Recordar credenciales (FTP)"
-!define TXT_EtiqDesinstalarHerramientas "¿Desea Desinstalar también las Herramientas externas (Requisitos y Complementos)?"
-!define TXT_EtiqRemoverTodas "Remover todas"
-!define TXT_MsgErrorDescargaFtp "No se pudo descargar por FTP"
-!define TXT_MsgErrorDescargaHttp "No se pudo descargar por HTTP"
-!define TXT_MsgErrorDescomprimir "Error al descomprimir"
-!define TXT_CodigoRespuesta "Código de respuesta:"
-!define TXT_MsgErrorTamano "Tamaño incorrecto de "
-!define TXT_MsgDescargando "Descargando:"
-!define TXT_MsgVerificando "Validando Hash SHA256:"
-!define TXT_MsgInstalandoHerramienta "Instalando herramienta:"
-!define TXT_EtiqReinstalar "(Reinstalar)"
-!define TXT_SecPrograma "Programa"
-!define TXT_SecRequisitos "Requisitos"
-!define TXT_SecComplementos "Complementos"
-!define TXT_MsgCalculandoEspacio "Calculando el espacio utilizado..."
-!define TXT_MsgErrorHashNoCalculado "No se pudo obtener el Hash del archivo:"
-!define TXT_MsgErrorHashNoCoincide "No coincide el Hash del archivo:"
-!define TXT_LogSecPrograma "INSTALANDO ARCHIVOS DEL PROGRAMA"
-!define TXT_LogSecConfig "CONFIGURANDO LA APLICACIÓN"
-!define TXT_LogTitulo "INSTALACION DE ${NAME}"
-!define TXT_EtiqVerRegistro "Ver Registro de Instalación"
-!define TXT_MsgHashValidado "Hash validado:"
-!define TXT_LogFechaHora "Fecha / Hora:"
-!define TXT_LogVersion "Versión actual:"
-!define TXT_LogServidorDescargas "Servidor de descargas:"
-!define TXT_LogProtocoloTransfer "Protocolo de transferencia:"
-!define TXT_LogAddPath "Agregando al Entorno Path:"
-!define TXT_LogCreateShortCut "Creando Accesos directos en Escritorio y Menú Inicio"
-!define TXT_LogWriteReg "Escribiendo Registro:"
-!define TXT_LogDescargandoActualizacion "Descargando Actualizacion:"
-!define TXT_LogInstalandoActualizacion "Instalando Actualizacion:"
-!define TXT_MsgErrorActualizacion "Error al descargar la actualización"
-!define TXT_MsgConfirmaActualizacion "¿Confirma que desea actualizar ${NAME}, con las siguientes versiones...?"
-!define TXT_MsgActualizacionCancelada "Actualización cancelada por el usuario"
-!define TXT_MsgActual "Actual"
-!define TXT_MsgNueva "Nueva"
+!include "idioma_es.nsh"
 
 ;--------------------------------
 ; DEFINICIONES MUI
-
 !define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
@@ -210,7 +134,6 @@ Var UpdaterPath
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
-
 Unicode true
 Name "${NAME}"
 OutFile "${INSTALL}"
@@ -224,7 +147,6 @@ AllowSkipFiles on
 SetCompressor lzma
 Caption $TextCaption
 LicenseBkColor /windows
-
 VIProductVersion ${RELEASE}.0
 VIAddVersionKey /LANG=0 "ProductVersion" "${RELEASE}"
 VIAddVersionKey /LANG=0 "FileVersion" ${RELEASE}
@@ -234,7 +156,6 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
 ; MACROS
-
 ${StrTrimNewLines}
 ${StrRep}
 ${StrStr}
@@ -242,212 +163,7 @@ ${StrCase}
 ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
-
 !insertmacro GetTime
-
-!macro MLoadCompsJson
-	nsJSON::Set /file $ToolsCatalog
-	nsJSON::Get /count `complementos` /end
-	Pop $CompsTotal
-	IntOp $CompsTotal $CompsTotal - 1
-	${For} $i 0 $CompsTotal
-		nsJSON::Get `complementos` /index $i "id" /end 
-		Pop $ToolId
-		nsJSON::Get `complementos` /index $i "name" /end
-		Pop $ToolName
-		nsJSON::Get `complementos` /index $i "version" /end
-		Pop $ToolVersion
-		nsJSON::Get `complementos` /index $i "size_kb" /end
-		Pop $ToolSizeKb
-		nsJSON::Get `complementos` /index $i "add_path" /end
-		Pop $ToolAddPath
-		nsJSON::Get `complementos` /index $i "op_chk" /end
-		Pop $ToolOpChk
-		nsJSON::Get `complementos` /index $i "hash" /end
-		Pop $ToolHash
-		IntOp $ToolIndex $i + 15
-		nsArray::Set ListCompId /key=$ToolIndex $ToolId
-		nsArray::Set ListCompName /key=$ToolIndex $ToolName
-		nsArray::Set ListCompVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListCompSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListCompAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListCompOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListCompHash /key=$ToolIndex $ToolHash
-	${Next}
-	${For} $i $CompsTotal ${MAX_COMPS}
-		${If} $i > $CompsTotal
-			IntOp $ToolIndex $i + 15
-			nsArray::Set ListCompId /key=$ToolIndex ""
-			nsArray::Set ListCompName /key=$ToolIndex ""
-			nsArray::Set ListCompVersion /key=$ToolIndex ""
-			nsArray::Set ListCompSizeKb /key=$ToolIndex 0
-			nsArray::Set ListCompAddPath /key=$ToolIndex 0
-			nsArray::Set ListCompOpChk /key=$ToolIndex 0
-			nsArray::Set ListCompHash /key=$ToolIndex ""
-		${EndIf}
-	${Next}
-!macroend
-
-!macro MGetInfoComp
-	nsArray::Get ListCompId /at=$i
-	Pop $1
-	Pop $ToolId
-	nsArray::Get ListCompName /at=$i
-	Pop $1
-	Pop $ToolName
-	nsArray::Get ListCompVersion /at=$i
-	Pop $1
-	Pop $ToolVersion
-	nsArray::Get ListCompSizeKb /at=$i
-	Pop $1
-	Pop $ToolSizeKb
-	nsArray::Get ListCompAddPath /at=$i
-	Pop $1
-	Pop $ToolAddPath
-	nsArray::Get ListCompOpChk /at=$i
-	Pop $1
-	Pop $ToolOpChk
-	nsArray::Get ListCompHash /at=$i
-	Pop $1
-	Pop $ToolHash
-	IntOp $ToolIndex $i + 15
-!macroend
-
-!macro MLoadReqsJson
-	nsJSON::Set /file $ToolsCatalog
-	nsJSON::Get /count `requisitos` /end
-	Pop $ReqsTotal
-	IntOp $ReqsTotal $ReqsTotal - 1
-	${For} $i 0 $ReqsTotal
-		nsJSON::Get `requisitos` /index $i "id" /end 
-		Pop $ToolId
-		nsJSON::Get `requisitos` /index $i "name" /end
-		Pop $ToolName
-		nsJSON::Get `requisitos` /index $i "version" /end
-		Pop $ToolVersion
-		nsJSON::Get `requisitos` /index $i "size_kb" /end
-		Pop $ToolSizeKb
-		nsJSON::Get `requisitos` /index $i "add_path" /end
-		Pop $ToolAddPath
-		nsJSON::Get `requisitos` /index $i "op_chk" /end
-		Pop $ToolOpChk
-		nsJSON::Get `requisitos` /index $i "hash" /end
-		Pop $ToolHash
-		IntOp $ToolIndex $i + 6
-		nsArray::Set ListReqId /key=$ToolIndex $ToolId
-		nsArray::Set ListReqName /key=$ToolIndex $ToolName
-		nsArray::Set ListReqVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListReqSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListReqAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListReqOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListReqHash /key=$ToolIndex $ToolHash
-	${Next}
-	${For} $i $ReqsTotal ${MAX_COMPS}
-		${If} $i > $ReqsTotal
-			IntOp $ToolIndex $i + 6
-			nsArray::Set ListReqId /key=$ToolIndex ""
-			nsArray::Set ListReqName /key=$ToolIndex ""
-			nsArray::Set ListReqVersion /key=$ToolIndex ""
-			nsArray::Set ListReqSizeKb /key=$ToolIndex 0
-			nsArray::Set ListReqAddPath /key=$ToolIndex 0
-			nsArray::Set ListReqOpChk /key=$ToolIndex 0
-			nsArray::Set ListReqHash /key=$ToolIndex ""
-		${EndIf}
-	${Next}
-!macroend
-
-!macro MGetInfoReq
-	nsArray::Get ListReqId /at=$i
-	Pop $1
-	Pop $ToolId
-	nsArray::Get ListReqName /at=$i
-	Pop $1
-	Pop $ToolName
-	nsArray::Get ListReqVersion /at=$i
-	Pop $1
-	Pop $ToolVersion
-	nsArray::Get ListReqSizeKb /at=$i
-	Pop $1
-	Pop $ToolSizeKb
-	nsArray::Get ListReqAddPath /at=$i
-	Pop $1
-	Pop $ToolAddPath
-	nsArray::Get ListReqOpChk /at=$i
-	Pop $1
-	Pop $ToolOpChk
-	nsArray::Get ListReqHash /at=$i
-	Pop $1
-	Pop $ToolHash
-	IntOp $ToolIndex $i + 6
-!macroend
-
-!macro MLoadActsJson
-	nsJSON::Set /file $ToolsCatalog
-	nsJSON::Get /count `actualizaciones` /end
-	Pop $ActsTotal
-	IntOp $ActsTotal $ActsTotal - 1
-	${For} $i 0 $ActsTotal
-		nsJSON::Get `actualizaciones` /index $i "id" /end 
-		Pop $ToolId
-		nsJSON::Get `actualizaciones` /index $i "name" /end
-		Pop $ToolName
-		nsJSON::Get `actualizaciones` /index $i "version" /end
-		Pop $ToolVersion
-		nsJSON::Get `actualizaciones` /index $i "size_kb" /end
-		Pop $ToolSizeKb
-		nsJSON::Get `actualizaciones` /index $i "add_path" /end
-		Pop $ToolAddPath
-		nsJSON::Get `actualizaciones` /index $i "op_chk" /end
-		Pop $ToolOpChk
-		nsJSON::Get `actualizaciones` /index $i "hash" /end
-		Pop $ToolHash
-		IntOp $ToolIndex $i + 3
-		nsArray::Set ListActId /key=$ToolIndex $ToolId
-		nsArray::Set ListActName /key=$ToolIndex $ToolName
-		nsArray::Set ListActVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListActSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListActAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListActOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListActHash /key=$ToolIndex $ToolHash
-	${Next}
-	${For} $i $ActsTotal ${MAX_ACTS}
-		${If} $i > $ActsTotal
-			IntOp $ToolIndex $i + 3
-			nsArray::Set ListActId /key=$ToolIndex ""
-			nsArray::Set ListActName /key=$ToolIndex ""
-			nsArray::Set ListActVersion /key=$ToolIndex ""
-			nsArray::Set ListActSizeKb /key=$ToolIndex 0
-			nsArray::Set ListActAddPath /key=$ToolIndex 0
-			nsArray::Set ListActOpChk /key=$ToolIndex 0
-			nsArray::Set ListActHash /key=$ToolIndex ""
-		${EndIf}
-	${Next}
-!macroend
-
-!macro MGetInfoAct
-	nsArray::Get ListActId /at=$i
-	Pop $1
-	Pop $ToolId
-	nsArray::Get ListActName /at=$i
-	Pop $1
-	Pop $ToolName
-	nsArray::Get ListActVersion /at=$i
-	Pop $1
-	Pop $ToolVersion
-	nsArray::Get ListActSizeKb /at=$i
-	Pop $1
-	Pop $ToolSizeKb
-	nsArray::Get ListActAddPath /at=$i
-	Pop $1
-	Pop $ToolAddPath
-	nsArray::Get ListActOpChk /at=$i
-	Pop $1
-	Pop $ToolOpChk
-	nsArray::Get ListActHash /at=$i
-	Pop $1
-	Pop $ToolHash
-	IntOp $ToolIndex $i + 3
-!macroend
 
 ;--------------------------------
 ; PAGINAS
@@ -459,7 +175,7 @@ PageEx license
 	LicenseText "${TXT_InstruccionesLicencia}" "${TXT_BotonAcepto}"
 	Caption " "
 PageExEnd
-Page custom ShowConfigForm SaveConfigForm " "
+Page custom ShowOptionsForm SaveOptionsForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
 !define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllTools
 !insertmacro MUI_PAGE_COMPONENTS
@@ -524,9 +240,9 @@ Function .onInit
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
-		SectionSetFlags 2 0
-		SectionSetFlags 3 ${SF_SELECTED}
-		SectionSetText 2 "${NAME} ${TXT_EtiqReinstalar}"
+		SectionSetFlags ${SecPrograma} 0
+		SectionSetFlags ${SecLanzamiento} ${SF_SELECTED}
+		SectionSetText ${SecPrograma} "${NAME} ${TXT_EtiqReinstalar}"
 	${Else}
 		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaInstalador}"
@@ -535,390 +251,15 @@ Function .onInit
 		StrCpy $TitleFinish "${TXT_TituloFinishInstalador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishInstalador}"
 		IntOp $3 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags 2 $3
+		SectionSetFlags ${SecPrograma} $3
 		IntOp $3 0 | ${SF_RO}
-		SectionSetFlags 3 $3
-		SectionSetText 3 ""
+		SectionSetFlags ${SecLanzamiento} $3
+		SectionSetText ${SecLanzamiento} ""
 	${EndIf}
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
 	${EndIf}
-FunctionEnd
-
-Function FetchToolsCatalog
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	File "catalogo.json"
-	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\catalogo.json"
-	${If} ${FileExists} $ToolsCatalog
-		Delete $ToolsCatalog
-	${EndIf}
-	${If} $SERVER == ""
-	${OrIf} $PROTOCOL == ""
-	${OrIf} $PROTOCOL == "---"
-		Goto LoadLocalTools
-	${Endif}
-	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/catalogo.json"
-		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
-		Pop $R1
-		Pop $R2
-	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/catalogo.json"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
-		Pop $R1
-		Pop $R2
-	${EndIf}
-	${If} $R1 == "0"
-		Goto ExitFetchTools
-	${EndIf}
-LoadLocalTools:
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	File "catalogo.json"
-ExitFetchTools:
-FunctionEnd
-
-Function DownloadSingleTool
-	${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-		Goto SkipTool
-	${EndIf}
-	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
-		DetailPrint "============================================"
-		DetailPrint "${TXT_MsgDescargando} $R0"
-		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
-		Pop $R1
-		Pop $R2
-		${If} $R1 != "0"
-			StrCpy $LogMsg "${TXT_MsgErrorDescargaFtp} $ToolId$\n$R2"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipTool
-		${EndIf}
-	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
-		DetailPrint "============================================"
-		DetailPrint "${TXT_MsgDescargando} $R0"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
-		Pop $R1
-		Pop $R2
-		${If} $R1 != "0"
-			StrCpy $LogMsg "${TXT_MsgErrorDescargaHttp} $ToolId$\n${TXT_CodigoRespuesta} $R1"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipTool
-		${EndIf}
-	${Else}
-		Goto SkipTool
-	${EndIf}
-	!insertmacro WordFind
-	DetailPrint "${TXT_MsgVerificando} $ToolName ($ToolId.zip)"
-	;Validación de hash SHA256 del .ZIP descargado
-	nsExec::ExecToStack 'CertUtil -hashfile "$TEMP\$ToolId.zip" SHA256'
-	Pop $0
-	Pop $1
-	StrCmp $0 0 +5
-		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
-	${If} $1 != ""
-	${AndIf} $ToolHash != ""
-		${WordFind} "$1" "$ToolHash" "+1" $2
-		${If} $2 != ""
-			DetailPrint "${TXT_MsgHashValidado} $ToolHash"
-			Goto ValidateOk
-		${Else}
-			StrCpy $LogMsg "${TXT_MsgErrorHashNoCoincide} $ToolId.zip$\n$2 ≠ $ToolHash"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONSTOP "$LogMsg"
-			Goto SkipTool
-		${EndIf}
-	${Else}
-		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
-	${EndIf}
-ValidateOk:
-	DetailPrint "..."
-	StrCpy $R7 "$TEMP\$ToolId_tmp"
-	RMDir /r "$R7"
-	CreateDirectory "$R7"
-	SetOutPath "$R7"
-	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$R7"
-	Pop $R1
-	${If} $R1 != "success"
-		StrCpy $LogMsg "${TXT_MsgErrorDescomprimir} $ToolName: $R1"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
-	${EndIf}
-	${GetSize} "$R7" "/S=0K" $R4 $R5 $R6
-	IntOp $R0 $R4 - $ToolSizeKb
-	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
-	IntCmp $R0 1 0 0 SizeMismatch
-	Goto SuccessTool
-SizeMismatch:
-	StrCpy $LogMsg "${TXT_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
-	DetailPrint "$LogMsg"
-	MessageBox MB_ICONEXCLAMATION "$LogMsg"
-	Goto SkipTool
-SuccessTool:
-	Push "OK"
-	Return
-SkipTool:
-	Push "NO"
-FunctionEnd
-
-Function LoadCompsJson
-	!insertmacro MLoadCompsJson
-FunctionEnd
-
-Function LoadReqsJson
-	!insertmacro MLoadReqsJson
-FunctionEnd
-
-Function LoadActsJson
-	!insertmacro MLoadActsJson
-FunctionEnd
-
-Function GetInfoComp
-	!insertmacro MGetInfoComp
-FunctionEnd
-
-Function GetInfoReq
-	!insertmacro MGetInfoReq
-FunctionEnd
-
-Function GetInfoAct
-	!insertmacro MGetInfoAct
-FunctionEnd
-
-Function CheckAllTools
-	Call FetchToolsCatalog
-	Call LoadCompsJson
-	StrCpy $CompsVisibles "0"
-	StrCpy $ReqsVisibles "0"
-	${For} $i 0 $CompsTotal
-		${If} $i < ${MAX_COMPS}
-			Call GetInfoComp
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${Else}
-				SectionSetFlags $ToolIndex 0
-				IntOp $CompsVisibles $CompsVisibles + 1
-			${EndIf}
-		${EndIf}
-	${Next}
-	${If} $CompsVisibles == "0"
-		SectionSetText 14 ""
-	${EndIf}
-	Call LoadReqsJson
-	${For} $i 0 $ReqsTotal
-		${If} $i < ${MAX_REQS}
-			Call GetInfoReq
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${Else}
-				SectionSetFlags $ToolIndex ${SF_SELECTED}
-				IntOp $ReqsVisibles $ReqsVisibles + 1
-			${EndIf}
-		${EndIf}
-	${Next}
-	${If} $ReqsVisibles == "0"
-		SectionSetText 5 ""
-	${EndIf}
-	Call LoadActsJson
-	${For} $i 0 $ActsTotal
-		${If} $i < ${MAX_ACTS}
-			Call GetInfoAct
-			${If} $IsUpdateInstall == "1"
-				SectionSetText $ToolIndex "$ToolName $ToolVersion"
-				SectionSetSize $ToolIndex $ToolSizeKb
-				${If} $ToolVersion == $VERSION
-					SectionSetText $ToolIndex ""
-				${Else}
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-				${EndIf}
-			${Else}
-				SectionSetText $ToolIndex ""
-			${EndIf}
-		${EndIf}
-	${Next}
-FunctionEnd
-
-Function InstallCompByIndex
-	${If} $i >= ${MAX_COMPS}
-	${OrIf} $i > $CompsTotal
-		Return
-	${EndIf}
-	Call GetInfoComp
-	${If} ${SectionIsSelected} $ToolIndex
-	${Else}
-		Return
-	${EndIf}
-	Call DownloadSingleTool
-	Pop $0
-	${If} $0 == "NO"
-	${OrIf} $R7 == ""
-		Goto Tag_FIN_Comp
-	${EndIf}
-	DetailPrint "..."
-	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
-	StrCpy $R8 $R7 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-	${If} "$R8" == "$R9"
-		Rename "$R7" "$INSTDRIVE${TOOLS}\$ToolId"
-	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
-	${EndIf}
-	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
-		Call AddToEnvUserPath
-	${EndIf}
-Tag_FIN_Comp:
-	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	Delete "$TEMP\$ToolId.zip"
-	RMDir /r "$TEMP\$ToolId_tmp"
-FunctionEnd
-
-Function InstallReqByIndex
-	${If} $i >= ${MAX_REQS}
-	${OrIf} $i > $ReqsTotal
-		Return
-	${EndIf}
-	Call GetInfoReq
-	${If} ${SectionIsSelected} $ToolIndex
-	${Else}
-		Return
-	${EndIf}
-	Call DownloadSingleTool
-	Pop $0
-	${If} $0 == "NO"
-	${OrIf} $R7 == ""
-		Goto Tag_FIN_Req
-	${EndIf}
-	DetailPrint "..."
-	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
-	StrCpy $R8 $R7 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-	${If} "$R8" == "$R9"
-		Rename "$R7" "$INSTDRIVE${TOOLS}\$ToolId"
-	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
-	${EndIf}
-	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
-		Call AddToEnvUserPath
-	${EndIf}
-	${If} $ToolId == "vendor"
-		DetailPrint "============================================"
-		DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolName v$ToolVersion"
-		RMDir /r "$INSTDRIVE${VENDOR}"
-		Rename "$INSTDRIVE${TOOLS}\$ToolId" "$INSTDRIVE${VENDOR}"
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		SetOutPath "$INSTDRIVE${TOOLS}\$ToolId"
-		File "meta.json"
-	${EndIf}
-Tag_FIN_Req:
-	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	Delete "$TEMP\$ToolId.zip"
-	RMDir /r "$TEMP\$ToolId_tmp"
-FunctionEnd
-
-Function InstallActByIndex
-	${If} $i >= ${MAX_ACTS}
-	${OrIf} $i > $ActsTotal
-		Return
-	${EndIf}
-	Call GetInfoAct
-	${If} ${SectionIsSelected} $ToolIndex
-	${Else}
-		Return
-	${EndIf}
-	${If} $ToolId == "release"
-		${If} $ToolVersion == $VERSION
-			Return
-		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndAct
-	${EndIf}
-	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
-	Call DownloadSingleTool
-	Pop $0
-	${If} $0 == "NO"
-	${OrIf} $R7 == ""
-		DetailPrint "${TXT_MsgErrorActualizacion}"
-		Goto Tag_FIN_Act
-	${EndIf}
-	DetailPrint "..."
-	DetailPrint "${TXT_LogInstalandoActualizacion} $ToolVersion"
-	CopyFiles /SILENT "$R7\*.*" "$INSTDRIVE$INSTDIR\"
-	${If} $ToolId == "release"
-		StrCpy $VERSION $ToolVersion
-		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
-	${EndIf}
-Tag_FIN_Act:
-	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	Delete "$TEMP\$ToolId.zip"
-	RMDir /r "$TEMP\$ToolId_tmp"
-	Return
-EndAct:
-	DetailPrint "${TXT_MsgActualizacionCancelada}"
 FunctionEnd
 
 Function SkipLicenseIfUpdate
@@ -928,244 +269,15 @@ Function SkipLicenseIfUpdate
 	!insertmacro MUI_HEADER_TEXT "${TXT_TituloLicencia}" "${TXT_SubtituloLicencia}"
 FunctionEnd
 
-Function CheckPreRequisites
-	${If} $SkipPrereq == "1"
-		Abort
-	${EndIf}
-	nsDialogs::Create 1018
-	Pop $0
-	!insertmacro MUI_HEADER_TEXT "${TXT_TituloPrereq}" "${TXT_SubtituloPrereq}"
-
-	;TODO: Aquí falta añadir la comprobación real de Pre-requisitos (y sus resultados)
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-	;
-
-	${NSD_CreateCheckbox} 100u 130u 150u 10u "${TXT_EtiqNomostrarDenuevo}"
-	Pop $SkipPreCheckbox
-	nsDialogs::Show
-FunctionEnd
-
-Function LeavePreRequisites
-	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
-FunctionEnd
-
-Function ShowConfigForm
-	nsDialogs::Create 1018
-	Pop $0
-	${If} $PROTOCOL == ""
-		StrCpy $PROTOCOL "---"
-	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "${TXT_TituloComponentes}" "${TXT_SubtituloComponentes}"
-	; 1. Grupo: **Ruta de instalación**
-	${NSD_CreateGroupBox} 5u 2u 290u 38u "${TXT_EtiqRutaInstalacion}"
-	Pop $0
-		${NSD_CreateLabel} 15u 18u 90u 10u "${TXT_EtiqUnidadDestino}"
-		Pop $0
-		${NSD_CreateDropList} 110u 16u 90u 14u ""
-		Pop $DriveDropList
-		StrCpy $hDriveDropList $DriveDropList
-		Call FillDriveList
-		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
-		${If} $IsUpdateInstall == "1"
-			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
-			${NSD_CreateButton} 215u 16u 60u 16u "${TXT_BotonDesinstalar}"
-			Pop $btnUninstall
-			${NSD_OnClick} $btnUninstall RunUninstaller
-		${EndIf}
-	; 2. Grupo: **Configuración de descargas**
-	${NSD_CreateGroupBox} 5u 46u 290u 95u "${TXT_EtiqConfigDescargas}"
-	Pop $0
-		${NSD_CreateLabel} 15u 61u 90u 10u "${TXT_EtiqProtocolo}"
-		Pop $0
-		${NSD_CreateDropList} 110u 59u 90u 12u ""
-		Pop $ProtocolDropList
-			${NSD_CB_AddString} $ProtocolDropList "---"
-			${NSD_CB_AddString} $ProtocolDropList "HTTP"
-			${NSD_CB_AddString} $ProtocolDropList "FTP"
-			${NSD_CB_SelectString} $ProtocolDropList "$PROTOCOL"
-		${NSD_CreateLabel} 15u 77u 90u 10u "${TXT_EtiqDominioServidor}"
-		Pop $0
-		${NSD_CreateText} 110u 75u 90u 12u "$SERVER"
-		Pop $ServerInput
-		${NSD_CreateButton} 215u 59u 60u 16u "${TXT_BotonComprobar}"
-		Pop $btnTest
-		${NSD_OnClick} $btnTest TestConnection
-		${NSD_CreateLabel} 15u 93u 90u 10u "${TXT_EtiqUsuarioFtp}"
-		Pop $0
-		${NSD_CreateText} 110u 91u 90u 12u "$FTP_USER"
-		Pop $FtpUserInput
-		${NSD_CreateLabel} 15u 109u 90u 10u "${TXT_EtiqPassFtp}"
-		Pop $0
-		${NSD_CreatePassword} 110u 107u 90u 12u "$FTP_PASS"
-		Pop $FtpPassInput
-		${NSD_CreateCheckbox} 110u 124u 150u 10u "${TXT_EtiqRecordarCreds}"
-		Pop $RememberCredsCheckbox
-		${If} $RememberCreds == "1"
-			${NSD_Check} $RememberCredsCheckbox
-		${EndIf}
-	nsDialogs::Show
-FunctionEnd
-
-Function SaveConfigForm
-	${NSD_GetText} $DriveDropList $0
-	StrCpy $INSTDRIVE $0 2
-	${NSD_GetText} $ServerInput $SERVER
-	${NSD_GetText} $FtpUserInput $FTP_USER
-	${NSD_GetText} $FtpPassInput $FTP_PASS
-	${NSD_GetText} $ProtocolDropList $PROTOCOL
-	StrCpy $UpdaterPath "$INSTDRIVE$INSTDIR\${UPDATER}"
-	${If} $SERVER == ""
-	${AndIf} $PROTOCOL != "---"
-		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
-		Abort
-	${Endif}
-	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
-	${If} $PROTOCOL == "FTP"
-		${If} $FTP_USER == ""
-		${OrIf} $FTP_PASS == ""
-			MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltanCredencialesFtp}"
-			Abort
-		${EndIf}
-	${EndIf}
-FunctionEnd
-
-Function TestConnection
-	${NSD_GetText} $ServerInput $SERVER
-	${If} $SERVER == ""
-		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
-		Return
-	${EndIf}
-	System::Call 'user32::EnableWindow(p$btnTest,i0)'
-	${NSD_GetText} $ProtocolDropList $PROTOCOL
-	${If} $PROTOCOL == "FTP"
-		Call TestFtpConnection
-	${ElseIf} $PROTOCOL == "HTTP"
-		Call TestHttpConnection
-	${Else}
-		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaProtocolo}"
-	${EndIf}
-	System::Call 'user32::EnableWindow(p$btnTest,i1)'
-FunctionEnd
-
-Function TestFtpConnection
-	${NSD_GetText} $FtpUserInput $FTP_USER
-	${NSD_GetText} $FtpPassInput $FTP_PASS
-	${If} $FTP_USER == ""
-	${OrIf} $FTP_PASS == ""
-		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltanCredencialesFtp}"
-		Return
-	${EndIf}
-	nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
-	Pop $R0
-	Pop $R1
-	${If} $R0 == 0
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "${TXT_MsgConexionFtpExito}"
-	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "${TXT_MsgConexionFtpError}$\n$R1"
-	${EndIf}
-FunctionEnd
-
-Function TestHttpConnection
-	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/catalogo.json"'
-	Pop $R1
-	Pop $R0
-	${If} $R0 == "200"
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "${TXT_MsgConexionHttpExito}"
-	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "${TXT_MsgConexionHttpError}$\n${TXT_MsgDetallesRespuesta} $R0"
-	${EndIf}
-FunctionEnd
-
-Function FillDriveList
-	${GetDrives} "ALL" AddDriveCallback
-FunctionEnd
-
-Function AddDriveCallback
-	StrCpy $0 $9
-	${DriveSpace} "$0" "/D=F" $1
-	System::Int64Op $1 / 1073741824
-	Pop $tmpGB
-	${If} $tmpGB != ""
-		StrCpy $2 "$0 ($tmpGB ${TXT_GbLibres})"
-		${NSD_CB_AddString} $hDriveDropList $2
-	${EndIf}
-	Push ""
-FunctionEnd
-
-Function AddToEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
-	${StrTrimNewLines} $0 $0
-	${StrRep} $0 $0 '"' ''
-	${If} $0 == ""
-		Goto EndAdd
-	${EndIf}
-	ReadRegStr $1 HKCU "Environment" "Path"
-	StrCpy $2 ";$1;"
-	StrCpy $3 ";$0;"
-	${StrCase} $2 $2 U
-	${StrCase} $3 $3 U
-	${StrStr} $2 $2 $3
-	${If} $2 != ""
-		Goto CleanAndSave
-	${EndIf}
-	StrLen $2 $1
-	${If} $2 > 0
-		IntOp $2 $2 - 1
-		StrCpy $3 $1 1 $2
-	${Else}
-		StrCpy $3 ""
-	${EndIf}
-	${If} $3 == ";"
-		StrCpy $1 "$1$0"
-	${ElseIf} $1 == ""
-		StrCpy $1 "$0"
-	${Else}
-		StrCpy $1 "$1;$0"
-	${EndIf}
-CleanAndSave:
-LoopClean:
-	${StrStr} $2 $1 ";;"
-	${If} $2 == ""
-		Goto WriteAndBroadcast
-	${EndIf}
-	${StrRep} $1 $1 ";;" ";"
-	Goto LoopClean
-WriteAndBroadcast:
-	DetailPrint "${TXT_LogAddPath} $0"
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
-EndAdd:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-
 Function LaunchApp
 	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
-		ExecShell "" "$INSTDRIVE$INSTDIR\${APPFILE}"
+		ExecShell "" '"$INSTDRIVE$INSTDIR\${APPFILE}"'
 		Return
 	MessageBox MB_ICONSTOP "${TXT_MsgExeNoEncontrado}"
 FunctionEnd
 
 Function RunUninstaller
-	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "¿Desea desinstalar la versión instalada?" IDNO EndAsk
+	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "${TXT_MsgConfirmaDesinstalacion}" IDNO EndAsk
 		StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 		IfFileExists "$0" 0 NoUninst
 		Exec '"$0"'
@@ -1175,28 +287,17 @@ NoUninst:
 EndAsk:
 FunctionEnd
 
+!include "secciones.nsh"
+!include "tools.nsh"
+!include "prereqs.nsh"
+!include "opciones.nsh"
+
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $INSTDRIVE $0
-FunctionEnd
-
-Function un.LoadCompsJson
-	!insertmacro MLoadCompsJson
-FunctionEnd
-
-Function un.LoadReqsJson
-	!insertmacro MLoadReqsJson
-FunctionEnd
-
-Function un.GetInfoComp
-	!insertmacro MGetInfoComp
-FunctionEnd
-
-Function un.GetInfoReq
-	!insertmacro MGetInfoReq
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -1220,55 +321,12 @@ Function un.RemoveDirIfEmpty
 	RMDir "$0"
 FunctionEnd
 
-Function un.RemoveFromEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
-	${unStrTrimNewLines} $0 $0
-	${unStrRep} $0 $0 '"' ''
-	ReadRegStr $1 HKCU "Environment" "Path"
-	${If} $1 == ""
-		Goto EndRm
-	${EndIf}
-	${unStrRep} $1 "$1" ";$0;" ";"
-	${unStrRep} $1 "$1" "$0;" ""
-	${unStrRep} $1 "$1" ";$0" ""
-LoopCleanRm:
-	${unStrStr} $2 $1 ";;"
-	${If} $2 == ""
-		Goto TrimEnds
-	${EndIf}
-	${unStrRep} $1 $1 ";;" ";"
-	Goto LoopCleanRm
-TrimEnds:
-	${If} $1 != ""
-		StrCpy $2 $1 1
-		${If} $2 == ";"
-			StrCpy $1 $1 "" 1
-		${EndIf}
-		StrLen $2 $1
-		${If} $2 > 0
-			IntOp $2 $2 - 1
-			StrCpy $3 $1 1 $2
-			${If} $3 == ";"
-				StrCpy $1 $1 $2
-			${EndIf}
-		${EndIf}
-	${EndIf}
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
-EndRm:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
+!include "un.tools.nsh"
 
 ;--------------------------------
 ; SECCIONES
 
-Section "" 0
+Section "-Inicial" 0
 	DetailPrint "============================================"
 	DetailPrint "${TXT_LogTitulo}"
 	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
@@ -1287,7 +345,7 @@ Section "" 0
 SectionEnd
 
 SectionGroup /e "${TXT_SecPrograma}" 1
-	Section "!${NAME} (*)" 2
+	Section "${NAME} (*)" 2
 		DetailPrint "============================================"
 		DetailPrint "${TXT_LogSecPrograma}"
 	;Creación de directorios
@@ -1324,175 +382,133 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
 		DetailPrint "============================================"
 	SectionEnd
-	Section /o "" 3
-		StrCpy $i 0
-		Call InstallActByIndex
-	SectionEnd
+	!insertmacro SECTION_ACTUALIZACION 3
+	!insertmacro SECTION_ACTUALIZACION 4
+	!insertmacro SECTION_ACTUALIZACION 5
+	!insertmacro SECTION_ACTUALIZACION 6
+	!insertmacro SECTION_ACTUALIZACION 7
+	!insertmacro SECTION_ACTUALIZACION 8
+	!insertmacro SECTION_ACTUALIZACION 9
+	!insertmacro SECTION_ACTUALIZACION 10
+	!insertmacro SECTION_ACTUALIZACION 11
+	!insertmacro SECTION_ACTUALIZACION 12
 SectionGroupEnd
 
-SectionGroup /e "${TXT_SecRequisitos}" 5
-	Section "" 6
-		StrCpy $i 0
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 7
-		StrCpy $i 1
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 8
-		StrCpy $i 2
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 9
-		StrCpy $i 3
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 10
-		StrCpy $i 4
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 11
-		StrCpy $i 5
-		Call InstallReqByIndex
-	SectionEnd
-	Section "" 12
-		StrCpy $i 6
-		Call InstallReqByIndex
-	SectionEnd
+Section "-Pre: Requisitos" 14
+SectionEnd
+
+SectionGroup /e "${TXT_GrpRequisitos}" 15
+	!insertmacro SECTION_REQUISITO 16
+	!insertmacro SECTION_REQUISITO 17
+	!insertmacro SECTION_REQUISITO 18
+	!insertmacro SECTION_REQUISITO 19
+	!insertmacro SECTION_REQUISITO 20
+	!insertmacro SECTION_REQUISITO 21
+	!insertmacro SECTION_REQUISITO 22
+	!insertmacro SECTION_REQUISITO 23
+	!insertmacro SECTION_REQUISITO 24
+	!insertmacro SECTION_REQUISITO 25
 SectionGroupEnd
 
-SectionGroup /e "${TXT_SecComplementos}" 14
-	Section /o "" 15
-		StrCpy $i 0
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 16
-		StrCpy $i 1
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 17
-		StrCpy $i 2
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 18
-		StrCpy $i 3
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 19
-		StrCpy $i 4
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 20
-		StrCpy $i 5
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 21
-		StrCpy $i 6
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 22
-		StrCpy $i 7
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 23
-		StrCpy $i 8
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 24
-		Push 9
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 25
-		Push 10
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 26
-		Push 11
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 27
-		Push 12
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 28
-		Push 13
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 29
-		Push 14
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 30
-		Push 15
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 31
-		Push 16
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 32
-		Push 17
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 33
-		Push 18
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 34
-		Push 19
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 35
-		Push 20
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 36
-		Push 21
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 37
-		Push 22
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 38
-		Push 23
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 39
-		Push 24
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 40
-		Push 25
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 41
-		Push 26
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 42
-		Push 27
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 43
-		Push 28
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 44
-		Push 29
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 45
-		Push 30
-		Call InstallCompByIndex
-	SectionEnd
-	Section /o "" 46
-		Push 31
-		Call InstallCompByIndex
-	SectionEnd
+Section "-Pre: Complementos" 27
+SectionEnd
+
+SectionGroup "${TXT_GrpComplementos}" 28
+	!insertmacro SECTION_COMPLEMENTO 29
+	!insertmacro SECTION_COMPLEMENTO 30
+	!insertmacro SECTION_COMPLEMENTO 31
+	!insertmacro SECTION_COMPLEMENTO 32
+	!insertmacro SECTION_COMPLEMENTO 33
+	!insertmacro SECTION_COMPLEMENTO 34
+	!insertmacro SECTION_COMPLEMENTO 35
+	!insertmacro SECTION_COMPLEMENTO 36
+	!insertmacro SECTION_COMPLEMENTO 37
+	!insertmacro SECTION_COMPLEMENTO 38
+	!insertmacro SECTION_COMPLEMENTO 39
+	!insertmacro SECTION_COMPLEMENTO 40
+	!insertmacro SECTION_COMPLEMENTO 41
+	!insertmacro SECTION_COMPLEMENTO 42
+	!insertmacro SECTION_COMPLEMENTO 43
+	!insertmacro SECTION_COMPLEMENTO 44
+	!insertmacro SECTION_COMPLEMENTO 45
+	!insertmacro SECTION_COMPLEMENTO 46
+	!insertmacro SECTION_COMPLEMENTO 47
+	!insertmacro SECTION_COMPLEMENTO 48
+	!insertmacro SECTION_COMPLEMENTO 49
+	!insertmacro SECTION_COMPLEMENTO 50
+	!insertmacro SECTION_COMPLEMENTO 51
+	!insertmacro SECTION_COMPLEMENTO 52
+	!insertmacro SECTION_COMPLEMENTO 53
+	!insertmacro SECTION_COMPLEMENTO 54
+	!insertmacro SECTION_COMPLEMENTO 55
+	!insertmacro SECTION_COMPLEMENTO 56
+	!insertmacro SECTION_COMPLEMENTO 57
+	!insertmacro SECTION_COMPLEMENTO 58
 SectionGroupEnd
 
-Section "-Config"
+Section "-Pre: Extensiones" 60
+SectionEnd
+
+SectionGroup "${TXT_GrpExtensiones}" 61
+	!insertmacro SECTION_EXTENSION 62
+	!insertmacro SECTION_EXTENSION 63
+	!insertmacro SECTION_EXTENSION 64
+	!insertmacro SECTION_EXTENSION 65
+	!insertmacro SECTION_EXTENSION 66
+	!insertmacro SECTION_EXTENSION 67
+	!insertmacro SECTION_EXTENSION 68
+	!insertmacro SECTION_EXTENSION 69
+	!insertmacro SECTION_EXTENSION 70
+	!insertmacro SECTION_EXTENSION 71
+	!insertmacro SECTION_EXTENSION 72
+	!insertmacro SECTION_EXTENSION 73
+	!insertmacro SECTION_EXTENSION 74
+	!insertmacro SECTION_EXTENSION 75
+	!insertmacro SECTION_EXTENSION 76
+	!insertmacro SECTION_EXTENSION 77
+	!insertmacro SECTION_EXTENSION 78
+	!insertmacro SECTION_EXTENSION 79
+	!insertmacro SECTION_EXTENSION 80
+	!insertmacro SECTION_EXTENSION 81
+SectionGroupEnd
+
+Section "-Pre: Recursos" 83
+SectionEnd
+
+SectionGroup "${TXT_GrpRecursos}" 84
+	!insertmacro SECTION_RECURSO 85
+	!insertmacro SECTION_RECURSO 86
+	!insertmacro SECTION_RECURSO 87
+	!insertmacro SECTION_RECURSO 88
+	!insertmacro SECTION_RECURSO 89
+	!insertmacro SECTION_RECURSO 90
+	!insertmacro SECTION_RECURSO 91
+	!insertmacro SECTION_RECURSO 92
+	!insertmacro SECTION_RECURSO 93
+	!insertmacro SECTION_RECURSO 94
+	!insertmacro SECTION_RECURSO 95
+	!insertmacro SECTION_RECURSO 96
+	!insertmacro SECTION_RECURSO 97
+	!insertmacro SECTION_RECURSO 98
+	!insertmacro SECTION_RECURSO 99
+	!insertmacro SECTION_RECURSO 100
+	!insertmacro SECTION_RECURSO 101
+	!insertmacro SECTION_RECURSO 102
+	!insertmacro SECTION_RECURSO 103
+	!insertmacro SECTION_RECURSO 104
+	!insertmacro SECTION_RECURSO 105
+	!insertmacro SECTION_RECURSO 106
+	!insertmacro SECTION_RECURSO 107
+	!insertmacro SECTION_RECURSO 108
+	!insertmacro SECTION_RECURSO 109
+	!insertmacro SECTION_RECURSO 110
+	!insertmacro SECTION_RECURSO 111
+	!insertmacro SECTION_RECURSO 112
+	!insertmacro SECTION_RECURSO 113
+	!insertmacro SECTION_RECURSO 114
+SectionGroupEnd
+
+Section "-Config" 116
 	DetailPrint "============================================"
 	DetailPrint "${TXT_LogSecConfig}"
 	DetailPrint "${TXT_LogWriteReg} HKCU Software\${NAME}"
@@ -1527,6 +543,11 @@ Section "-Config"
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	${IfNot} ${FileExists} $UpdaterPath
 		CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
+	${Else}
+		${If} $UpdaterPath != $FullPath
+			Delete $UpdaterPath
+			CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
+		${EndIf}
 	${EndIf}
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 	DetailPrint "${TXT_LogCreateShortCut}"
@@ -1538,8 +559,10 @@ Section "-Config"
 	DetailPrint "============================================"
 SectionEnd
 
-Section "-DumpLog"
+Section "-Final" 117
 	DumpLog::DumpLogUTF8 "$LogFile" .r0
+	Pop $0
+	;DetailPrint "DumpLog→$0"
 SectionEnd
 
 Section "Uninstall"
@@ -1560,7 +583,7 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	${For} $i 0 $CompsTotal
-		${If} $i < ${MAX_COMPS}
+		${If} $i < ${MAX_COMPLEMENTOS}
 			Call un.GetInfoComp
 			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
 			Push "$INSTDRIVE${TOOLS}\$ToolId"
@@ -1568,7 +591,7 @@ Section "Uninstall"
 		${EndIf}
 	${Next}
 	${For} $i 0 $ReqsTotal
-		${If} $i < ${MAX_REQS}
+		${If} $i < ${MAX_REQUISITOS}
 			Call un.GetInfoReq
 			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
 			Push "$INSTDRIVE${TOOLS}\$ToolId"
