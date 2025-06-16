@@ -1,3 +1,5 @@
+﻿Var SkipPreCheckbox
+
 ;--------------------------------
 ; FUNCIONES
 

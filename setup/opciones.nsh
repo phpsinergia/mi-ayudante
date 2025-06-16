@@ -1,3 +1,14 @@
+﻿Var btnTest
+Var tmpGB
+Var hDriveDropList
+Var btnUninstall
+Var DriveDropList
+Var ServerInput
+Var FtpUserInput
+Var FtpPassInput
+Var ProtocolDropList
+Var RememberCredsCheckbox
+
 ;--------------------------------
 ; FUNCIONES
 

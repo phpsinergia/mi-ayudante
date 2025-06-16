@@ -30,17 +30,6 @@
 !define UPDATER "Instalar-MiAyudante.exe"
 !define INSTALL "..\dist\${UPDATER}"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define MAX_ACTUALIZACIONES 10
-!define MAX_REQUISITOS 10
-!define MAX_COMPLEMENTOS 30
-!define MAX_EXTENSIONES 20
-!define MAX_RECURSOS 30
-!define SecPrograma 2
-!define SecLanzamiento 3
-!define GrpRequisitos 15
-!define GrpComplementos 28
-!define GrpExtensiones 61
-!define GrpRecursos 84
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -52,15 +41,8 @@ Var FTP_PASS
 Var PROTOCOL
 Var FullPath
 Var IsUpdateInstall
-Var ServerInput
-Var DriveDropList
-Var FtpUserInput
-Var FtpPassInput
-Var ProtocolDropList
 Var SkipPrereq
-Var RememberCredsCheckbox
 Var RememberCreds
-Var SkipPreCheckbox
 Var TitleWelcome
 Var TextWelcome
 Var TitleFinish
@@ -68,33 +50,16 @@ Var TextFinish
 Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
-Var hDriveDropList
-Var tmpGB
-Var btnTest
-Var btnUninstall
 Var LogFile
-Var LogMsg
 Var Timestamp
 Var UpdaterPath
-Var Ajuste
-Var i
-Var n
-Var ToolId
-Var ToolName
-Var ToolVersion
-Var ToolSizeKb
-Var ToolAddPath
-Var ToolOpChk
-Var ToolHash
-Var ToolIndex
+Var YEAR
+Var MONTH
+Var DAY
+Var HOUR
+Var MIN
+Var SEC
 Var ToolsCatalog
-Var ToolTemp
-;TODO: Revisar
-Var CompsTotal
-Var ReqsTotal
-Var ActsTotal
-Var CompsVisibles
-Var ReqsVisibles
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -146,7 +111,6 @@ ShowUninstDetails show
 AllowSkipFiles on
 SetCompressor lzma
 Caption $TextCaption
-LicenseBkColor /windows
 VIProductVersion ${RELEASE}.0
 VIAddVersionKey /LANG=0 "ProductVersion" "${RELEASE}"
 VIAddVersionKey /LANG=0 "FileVersion" ${RELEASE}
@@ -167,14 +131,9 @@ ${unStrStr}
 
 ;--------------------------------
 ; PAGINAS
-
 !insertmacro MUI_PAGE_WELCOME
-PageEx license
-	PageCallbacks SkipLicenseIfUpdate ""
-	LicenseData "..\${LICENSEFILE}"
-	LicenseText "${TXT_InstruccionesLicencia}" "${TXT_BotonAcepto}"
-	Caption " "
-PageExEnd
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
+!insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
 Page custom ShowOptionsForm SaveOptionsForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
 !define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllTools
@@ -224,13 +183,13 @@ Function .onInit
 	${If} $VERSION == ""
 		StrCpy $VERSION ${RELEASE}
 	${EndIf}
-	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
-	IntFmt $R2 "%04d" $R2
-	IntFmt $R1 "%02d" $R1
-	IntFmt $R0 "%02d" $R0
-	IntFmt $R4 "%02d" $R4
-	IntFmt $R5 "%02d" $R5
-	StrCpy  $Timestamp "$R2$R1$R0$R4$R5"
+	${GetTime} "" "L" $DAY $MONTH $YEAR $R3 $HOUR $MIN $SEC
+	IntFmt $YEAR "%04d" $YEAR
+	IntFmt $MONTH "%02d" $MONTH
+	IntFmt $DAY "%02d" $DAY
+	IntFmt $HOUR "%02d" $HOUR
+	IntFmt $MIN "%02d" $MIN
+	StrCpy  $Timestamp "$YEAR$MONTH$DAY$HOUR$MIN"
 	StrCpy $IsUpdateInstall "0"
 	${If} $0 != ""
 		StrCpy $IsUpdateInstall "1"
@@ -240,9 +199,6 @@ Function .onInit
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
-		SectionSetFlags ${SecPrograma} 0
-		SectionSetFlags ${SecLanzamiento} ${SF_SELECTED}
-		SectionSetText ${SecPrograma} "${NAME} ${TXT_EtiqReinstalar}"
 	${Else}
 		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaInstalador}"
@@ -250,23 +206,18 @@ Function .onInit
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeInstalador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishInstalador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishInstalador}"
-		IntOp $3 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags ${SecPrograma} $3
-		IntOp $3 0 | ${SF_RO}
-		SectionSetFlags ${SecLanzamiento} $3
-		SectionSetText ${SecLanzamiento} ""
 	${EndIf}
+	Call CheckBaseComponents
 	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 	${If} $RememberCreds != "1"
 		StrCpy $RememberCreds "0"
 	${EndIf}
 FunctionEnd
 
-Function SkipLicenseIfUpdate
+Function SkipIfUpdate
 	${If} $IsUpdateInstall == "1"
 		Abort
 	${EndIf}
-	!insertmacro MUI_HEADER_TEXT "${TXT_TituloLicencia}" "${TXT_SubtituloLicencia}"
 FunctionEnd
 
 Function LaunchApp
@@ -287,10 +238,10 @@ NoUninst:
 EndAsk:
 FunctionEnd
 
-!include "secciones.nsh"
-!include "tools.nsh"
-!include "prereqs.nsh"
+!include "logs.nsh"
 !include "opciones.nsh"
+!include "prereqs.nsh"
+!include "componentes.nsh"
 
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
@@ -298,13 +249,15 @@ FunctionEnd
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $INSTDRIVE $0
+	CopyFiles /SILENT /FILESONLY "$INSTDIR\catalogo.json" "$TEMP\catalogo.json"
+	StrCpy $ToolsCatalog "$TEMP\catalogo.json"
 FunctionEnd
 
 Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
 	${NSD_CreateLabel} 0 0 100% 12u "${TXT_EtiqDesinstalarHerramientas}"
-	Pop $1
+	Pop $0
 	${NSD_CreateCheckbox} 0 16u 100% 12u "${TXT_EtiqRemoverTodas}"
 	Pop $unToolsCheckbox
 	nsDialogs::Show
@@ -321,41 +274,23 @@ Function un.RemoveDirIfEmpty
 	RMDir "$0"
 FunctionEnd
 
-!include "un.tools.nsh"
-
 ;--------------------------------
 ; SECCIONES
 
-Section "-Inicial" 0
-	DetailPrint "============================================"
-	DetailPrint "${TXT_LogTitulo}"
-	${GetTime} "" "L" $R0 $R1 $R2 $R3 $R4 $R5 $R6
-	IntFmt $R2 "%04d" $R2
-	IntFmt $R1 "%02d" $R1
-	IntFmt $R0 "%02d" $R0
-	IntFmt $R4 "%02d" $R4
-	IntFmt $R5 "%02d" $R5
-	DetailPrint "${TXT_LogFechaHora} $R0-$R1-$R2  $R4:$R5"
-	DetailPrint "${TXT_LogVersion} v$VERSION"
-	DetailPrint "${TXT_EtiqUnidadDestino} $INSTDRIVE"
-	DetailPrint "${TXT_EtiqRutaInstalacion} $INSTDIR"
-	DetailPrint "${TXT_LogServidorDescargas} $SERVER"
-	DetailPrint "${TXT_LogProtocoloTransfer} $PROTOCOL"
-	DetailPrint "============================================"
+Section "-WriteLog: Inicial" 0
+	Call WriteLogInicial
 SectionEnd
 
 SectionGroup /e "${TXT_SecPrograma}" 1
 	Section "${NAME} (*)" 2
 		DetailPrint "============================================"
 		DetailPrint "${TXT_LogSecPrograma}"
-	;Creación de directorios
 		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
 		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
 		CreateDirectory "$INSTDRIVE$INSTDIR\entornos\basico"
 		CreateDirectory "$INSTDRIVE$INSTDIR\logs"
 		CreateDirectory "$INSTDRIVE$INSTDIR\respaldos"
 		CreateDirectory "$INSTDRIVE${TOOLS}"
-	;Copia selectiva de archivos
 		SetOutPath "$INSTDRIVE$INSTDIR\base"
 		File /r "..\app\base\*.*"
 		SetOutPath "$INSTDRIVE$INSTDIR\img"
@@ -374,7 +309,6 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 		IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
 			File /r "..\app\base\entorno\*.*"
 		SetOutPath "$INSTDRIVE${TOOLS}"
-	;Actualización de config.ini
 		SetOutPath "$INSTDRIVE$INSTDIR"
 		IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
 			File "config.ini"
@@ -394,7 +328,8 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 	!insertmacro SECTION_ACTUALIZACION 12
 SectionGroupEnd
 
-Section "-Pre: Requisitos" 14
+Section "-WriteLog: Requisitos" 14
+	Call WriteLogRequisitos
 SectionEnd
 
 SectionGroup /e "${TXT_GrpRequisitos}" 15
@@ -410,7 +345,8 @@ SectionGroup /e "${TXT_GrpRequisitos}" 15
 	!insertmacro SECTION_REQUISITO 25
 SectionGroupEnd
 
-Section "-Pre: Complementos" 27
+Section "-WriteLog: Complementos" 27
+	Call WriteLogComplementos
 SectionEnd
 
 SectionGroup "${TXT_GrpComplementos}" 28
@@ -446,7 +382,8 @@ SectionGroup "${TXT_GrpComplementos}" 28
 	!insertmacro SECTION_COMPLEMENTO 58
 SectionGroupEnd
 
-Section "-Pre: Extensiones" 60
+Section "-WriteLog: Extensiones" 60
+	Call WriteLogExtensiones
 SectionEnd
 
 SectionGroup "${TXT_GrpExtensiones}" 61
@@ -472,7 +409,8 @@ SectionGroup "${TXT_GrpExtensiones}" 61
 	!insertmacro SECTION_EXTENSION 81
 SectionGroupEnd
 
-Section "-Pre: Recursos" 83
+Section "-WriteLog: Recursos" 83
+	Call WriteLogRecursos
 SectionEnd
 
 SectionGroup "${TXT_GrpRecursos}" 84
@@ -508,11 +446,15 @@ SectionGroup "${TXT_GrpRecursos}" 84
 	!insertmacro SECTION_RECURSO 114
 SectionGroupEnd
 
-Section "-Config" 116
-	DetailPrint "============================================"
-	DetailPrint "${TXT_LogSecConfig}"
-	DetailPrint "${TXT_LogWriteReg} HKCU Software\${NAME}"
-	DetailPrint "${TXT_LogWriteReg} HKCU ${HKCUNI}"
+Section "-WriteLog: Config" 116
+	Call WriteLogConfig
+SectionEnd
+
+Section "-Config" 117
+	${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
+	DetailPrint "$1 KB"
+	IntFmt $1 "0x%08X" $1
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$SERVER"
@@ -536,11 +478,6 @@ Section "-Config" 116
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	StrCpy $FTP_USER ""
 	StrCpy $FTP_PASS ""
-	DetailPrint "${TXT_MsgCalculandoEspacio}"
-	${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
-	DetailPrint "$1 KB"
-	IntFmt $1 "0x%08X" $1
-	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	${IfNot} ${FileExists} $UpdaterPath
 		CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
 	${Else}
@@ -556,19 +493,13 @@ Section "-Config" 116
 	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	DetailPrint "============================================"
 SectionEnd
 
-Section "-Final" 117
-	DumpLog::DumpLogUTF8 "$LogFile" .r0
-	Pop $0
-	;DetailPrint "DumpLog→$0"
+Section "-WriteLog: Final" 118
+	Call WriteLogFinal
 SectionEnd
 
 Section "Uninstall"
-	StrCpy $ToolsCatalog "$INSTDIR\catalogo.json"
-	Call un.LoadCompsJson
-	Call un.LoadReqsJson
 	Delete "$INSTDIR\*.*"
 	Delete "$INSTDIR\${UPDATER}"
 	Delete "$INSTDIR\${UNINSTALL}"
@@ -580,24 +511,10 @@ Section "Uninstall"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	SetOutPath "$TEMP"
+	Delete "$TEMP\catalogo.json"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
-	${For} $i 0 $CompsTotal
-		${If} $i < ${MAX_COMPLEMENTOS}
-			Call un.GetInfoComp
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
-	${For} $i 0 $ReqsTotal
-		${If} $i < ${MAX_REQUISITOS}
-			Call un.GetInfoReq
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
+	!insertmacro MUninstallTools
 	Push "$INSTDRIVE${TOOLS}"
 	Call un.RemoveDirIfEmpty
 	RMDir /r "$INSTDRIVE${VENDOR}"

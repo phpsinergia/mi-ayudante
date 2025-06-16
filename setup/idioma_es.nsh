@@ -1,14 +1,10 @@
-;--------------------------------
+﻿;--------------------------------
 ; CONSTANTES DE IDIOMA - ESPAÑOL
 
 !define TXT_DescripcionArchivo "Instalador de ${NAME} para Windows"
-!define TXT_TituloLicencia "Acuerdo de Licencia"
-!define TXT_SubtituloLicencia "Por favor revise los términos de la licencia antes de instalar el software."
-!define TXT_InstruccionesLicencia "Si acepta todos los términos del acuerdo, seleccione ACEPTO para continuar.$\n$\nDebe aceptar el acuerdo para poder instalar ${NAME}."
 !define TXT_InstruccionesComponentes "Marque los componentes que desee instalar y desmarque aquellos que no desee. Presione Instalar para comenzar el proceso (requiere conexión a Internet)."
 !define TXT_EtiqEjecutarApp "Ejecutar ${NAME} ahora"
 !define TXT_EtiqRevisarNotas "Revisar notas en ${README}"
-!define TXT_BotonAcepto "ACEPTO"
 !define TXT_VentanaActualizador "Actualización de ${NAME}"
 !define TXT_VentanaInstalador "Instalación de ${NAME}"
 !define TXT_TituloWelcomeActualizador "Asistente para Actualizar$\n${NAME} v$VERSION"
