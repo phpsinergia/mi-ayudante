@@ -41,7 +41,7 @@ Var LogMsg
 	Call un.JsonLoadRequisitos
 	${For} $Pos 0 $ComplementosTotal
 		${If} $Pos < ${MAX_COMPLEMENTOS}
-			Call un.GetInfoComplemento
+			Call un.GetInfoComplementos
 			RMDir /r "$InstDrive${TOOLS}\$ToolId"
 			Push "$InstDrive${TOOLS}\$ToolId"
 			Call un.RemoveFromEnvUserPath
@@ -49,7 +49,7 @@ Var LogMsg
 	${Next}
 	${For} $Pos 0 $RequisitosTotal
 		${If} $Pos < ${MAX_REQUISITOS}
-			Call un.GetInfoRequisito
+			Call un.GetInfoRequisitos
 			RMDir /r "$InstDrive${TOOLS}\$ToolId"
 			Push "$InstDrive${TOOLS}\$ToolId"
 			Call un.RemoveFromEnvUserPath
@@ -82,25 +82,25 @@ Var LogMsg
 		Pop $ToolHash
 		IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
 		IntOp $ToolIndex $Pos + $Ajuste
-		nsArray::Set ListComplementoId /key=$ToolIndex $ToolId
-		nsArray::Set ListComplementoName /key=$ToolIndex $ToolName
-		nsArray::Set ListComplementoVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListComplementoSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListComplementoAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListComplementoOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListComplementoHash /key=$ToolIndex $ToolHash
+		nsArray::Set ListComplementosId /key=$ToolIndex $ToolId
+		nsArray::Set ListComplementosName /key=$ToolIndex $ToolName
+		nsArray::Set ListComplementosVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListComplementosSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListComplementosAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListComplementosOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListComplementosHash /key=$ToolIndex $ToolHash
 	${Next}
 	${For} $Pos $ComplementosTotal ${MAX_COMPLEMENTOS}
 		${If} $Pos > $ComplementosTotal
 			IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
 			IntOp $ToolIndex $Pos + $Ajuste
-			nsArray::Set ListComplementoId /key=$ToolIndex ""
-			nsArray::Set ListComplementoName /key=$ToolIndex ""
-			nsArray::Set ListComplementoVersion /key=$ToolIndex ""
-			nsArray::Set ListComplementoSizeKb /key=$ToolIndex 0
-			nsArray::Set ListComplementoAddPath /key=$ToolIndex 0
-			nsArray::Set ListComplementoOpChk /key=$ToolIndex 0
-			nsArray::Set ListComplementoHash /key=$ToolIndex ""
+			nsArray::Set ListComplementosId /key=$ToolIndex ""
+			nsArray::Set ListComplementosName /key=$ToolIndex ""
+			nsArray::Set ListComplementosVersion /key=$ToolIndex ""
+			nsArray::Set ListComplementosSizeKb /key=$ToolIndex 0
+			nsArray::Set ListComplementosAddPath /key=$ToolIndex 0
+			nsArray::Set ListComplementosOpChk /key=$ToolIndex 0
+			nsArray::Set ListComplementosHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -127,25 +127,25 @@ Var LogMsg
 		Pop $ToolHash
 		IntOp $Ajuste ${GRP_REQUISITOS} + 1
 		IntOp $ToolIndex $Pos + $Ajuste
-		nsArray::Set ListRequisitoId /key=$ToolIndex $ToolId
-		nsArray::Set ListRequisitoName /key=$ToolIndex $ToolName
-		nsArray::Set ListRequisitoVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListRequisitoSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListRequisitoAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListRequisitoOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListRequisitoHash /key=$ToolIndex $ToolHash
+		nsArray::Set ListRequisitosId /key=$ToolIndex $ToolId
+		nsArray::Set ListRequisitosName /key=$ToolIndex $ToolName
+		nsArray::Set ListRequisitosVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListRequisitosSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListRequisitosAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListRequisitosOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListRequisitosHash /key=$ToolIndex $ToolHash
 	${Next}
 	${For} $Pos $RequisitosTotal ${MAX_COMPLEMENTOS}
 		${If} $Pos > $RequisitosTotal
 			IntOp $Ajuste ${GRP_REQUISITOS} + 1
 			IntOp $ToolIndex $Pos + $Ajuste
-			nsArray::Set ListRequisitoId /key=$ToolIndex ""
-			nsArray::Set ListRequisitoName /key=$ToolIndex ""
-			nsArray::Set ListRequisitoVersion /key=$ToolIndex ""
-			nsArray::Set ListRequisitoSizeKb /key=$ToolIndex 0
-			nsArray::Set ListRequisitoAddPath /key=$ToolIndex 0
-			nsArray::Set ListRequisitoOpChk /key=$ToolIndex 0
-			nsArray::Set ListRequisitoHash /key=$ToolIndex ""
+			nsArray::Set ListRequisitosId /key=$ToolIndex ""
+			nsArray::Set ListRequisitosName /key=$ToolIndex ""
+			nsArray::Set ListRequisitosVersion /key=$ToolIndex ""
+			nsArray::Set ListRequisitosSizeKb /key=$ToolIndex 0
+			nsArray::Set ListRequisitosAddPath /key=$ToolIndex 0
+			nsArray::Set ListRequisitosOpChk /key=$ToolIndex 0
+			nsArray::Set ListRequisitosHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -171,24 +171,24 @@ Var LogMsg
 		nsJSON::Get `actualizaciones` /index $Pos "hash" /end
 		Pop $ToolHash
 		IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
-		nsArray::Set ListActualizacionId /key=$ToolIndex $ToolId
-		nsArray::Set ListActualizacionName /key=$ToolIndex $ToolName
-		nsArray::Set ListActualizacionVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListActualizacionSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListActualizacionAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListActualizacionOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListActualizacionHash /key=$ToolIndex $ToolHash
+		nsArray::Set ListActualizacionesId /key=$ToolIndex $ToolId
+		nsArray::Set ListActualizacionesName /key=$ToolIndex $ToolName
+		nsArray::Set ListActualizacionesVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListActualizacionesSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListActualizacionesAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListActualizacionesOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListActualizacionesHash /key=$ToolIndex $ToolHash
 	${Next}
 	${For} $Pos $ActualizacionesTotal ${MAX_ACTUALIZACIONES}
 		${If} $Pos > $ActualizacionesTotal
 			IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
-			nsArray::Set ListActualizacionId /key=$ToolIndex ""
-			nsArray::Set ListActualizacionName /key=$ToolIndex ""
-			nsArray::Set ListActualizacionVersion /key=$ToolIndex ""
-			nsArray::Set ListActualizacionSizeKb /key=$ToolIndex 0
-			nsArray::Set ListActualizacionAddPath /key=$ToolIndex 0
-			nsArray::Set ListActualizacionOpChk /key=$ToolIndex 0
-			nsArray::Set ListActualizacionHash /key=$ToolIndex ""
+			nsArray::Set ListActualizacionesId /key=$ToolIndex ""
+			nsArray::Set ListActualizacionesName /key=$ToolIndex ""
+			nsArray::Set ListActualizacionesVersion /key=$ToolIndex ""
+			nsArray::Set ListActualizacionesSizeKb /key=$ToolIndex 0
+			nsArray::Set ListActualizacionesAddPath /key=$ToolIndex 0
+			nsArray::Set ListActualizacionesOpChk /key=$ToolIndex 0
+			nsArray::Set ListActualizacionesHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -215,25 +215,25 @@ Var LogMsg
 		Pop $ToolHash
 		IntOp $Ajuste ${GRP_EXTENSIONES} + 1
 		IntOp $ToolIndex $Pos + $Ajuste
-		nsArray::Set ListExtensionId /key=$ToolIndex $ToolId
-		nsArray::Set ListExtensionName /key=$ToolIndex $ToolName
-		nsArray::Set ListExtensionVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListExtensionSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListExtensionAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListExtensionOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListExtensionHash /key=$ToolIndex $ToolHash
+		nsArray::Set ListExtensionesId /key=$ToolIndex $ToolId
+		nsArray::Set ListExtensionesName /key=$ToolIndex $ToolName
+		nsArray::Set ListExtensionesVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListExtensionesSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListExtensionesAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListExtensionesOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListExtensionesHash /key=$ToolIndex $ToolHash
 	${Next}
 	${For} $Pos $ExtensionesTotal ${MAX_EXTENSIONES}
 		${If} $Pos > $ExtensionesTotal
 			IntOp $Ajuste ${GRP_EXTENSIONES} + 1
 			IntOp $ToolIndex $Pos + $Ajuste
-			nsArray::Set ListExtensionId /key=$ToolIndex ""
-			nsArray::Set ListExtensionName /key=$ToolIndex ""
-			nsArray::Set ListExtensionVersion /key=$ToolIndex ""
-			nsArray::Set ListExtensionSizeKb /key=$ToolIndex 0
-			nsArray::Set ListExtensionAddPath /key=$ToolIndex 0
-			nsArray::Set ListExtensionOpChk /key=$ToolIndex 0
-			nsArray::Set ListExtensionHash /key=$ToolIndex ""
+			nsArray::Set ListExtensionesId /key=$ToolIndex ""
+			nsArray::Set ListExtensionesName /key=$ToolIndex ""
+			nsArray::Set ListExtensionesVersion /key=$ToolIndex ""
+			nsArray::Set ListExtensionesSizeKb /key=$ToolIndex 0
+			nsArray::Set ListExtensionesAddPath /key=$ToolIndex 0
+			nsArray::Set ListExtensionesOpChk /key=$ToolIndex 0
+			nsArray::Set ListExtensionesHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -260,25 +260,25 @@ Var LogMsg
 		Pop $ToolHash
 		IntOp $Ajuste ${GRP_RECURSOS} + 1
 		IntOp $ToolIndex $Pos + $Ajuste
-		nsArray::Set ListRecursoId /key=$ToolIndex $ToolId
-		nsArray::Set ListRecursoName /key=$ToolIndex $ToolName
-		nsArray::Set ListRecursoVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListRecursoSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListRecursoAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListRecursoOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListRecursoHash /key=$ToolIndex $ToolHash
+		nsArray::Set ListRecursosId /key=$ToolIndex $ToolId
+		nsArray::Set ListRecursosName /key=$ToolIndex $ToolName
+		nsArray::Set ListRecursosVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListRecursosSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListRecursosAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListRecursosOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListRecursosHash /key=$ToolIndex $ToolHash
 	${Next}
 	${For} $Pos $RecursosTotal ${MAX_RECURSOS}
 		${If} $Pos > $RecursosTotal
 			IntOp $Ajuste ${GRP_RECURSOS} + 1
 			IntOp $ToolIndex $Pos + $Ajuste
-			nsArray::Set ListRecursoId /key=$ToolIndex ""
-			nsArray::Set ListRecursoName /key=$ToolIndex ""
-			nsArray::Set ListRecursoVersion /key=$ToolIndex ""
-			nsArray::Set ListRecursoSizeKb /key=$ToolIndex 0
-			nsArray::Set ListRecursoAddPath /key=$ToolIndex 0
-			nsArray::Set ListRecursoOpChk /key=$ToolIndex 0
-			nsArray::Set ListRecursoHash /key=$ToolIndex ""
+			nsArray::Set ListRecursosId /key=$ToolIndex ""
+			nsArray::Set ListRecursosName /key=$ToolIndex ""
+			nsArray::Set ListRecursosVersion /key=$ToolIndex ""
+			nsArray::Set ListRecursosSizeKb /key=$ToolIndex 0
+			nsArray::Set ListRecursosAddPath /key=$ToolIndex 0
+			nsArray::Set ListRecursosOpChk /key=$ToolIndex 0
+			nsArray::Set ListRecursosHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -286,129 +286,129 @@ Var LogMsg
 ;--------------------------------
 ;MGetInfo... (5)
 
-!macro MGetInfoActualizacion
-	nsArray::Get ListActualizacionId /at=$Pos
+!macro MGetInfoActualizaciones
+	nsArray::Get ListActualizacionesId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListActualizacionName /at=$Pos
+	nsArray::Get ListActualizacionesName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListActualizacionVersion /at=$Pos
+	nsArray::Get ListActualizacionesVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListActualizacionSizeKb /at=$Pos
+	nsArray::Get ListActualizacionesSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListActualizacionAddPath /at=$Pos
+	nsArray::Get ListActualizacionesAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListActualizacionOpChk /at=$Pos
+	nsArray::Get ListActualizacionesOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListActualizacionHash /at=$Pos
+	nsArray::Get ListActualizacionesHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
 	IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
 !macroend
 
-!macro MGetInfoRequisito
-	nsArray::Get ListRequisitoId /at=$Pos
+!macro MGetInfoRequisitos
+	nsArray::Get ListRequisitosId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListRequisitoName /at=$Pos
+	nsArray::Get ListRequisitosName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListRequisitoVersion /at=$Pos
+	nsArray::Get ListRequisitosVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListRequisitoSizeKb /at=$Pos
+	nsArray::Get ListRequisitosSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListRequisitoAddPath /at=$Pos
+	nsArray::Get ListRequisitosAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListRequisitoOpChk /at=$Pos
+	nsArray::Get ListRequisitosOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListRequisitoHash /at=$Pos
+	nsArray::Get ListRequisitosHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
 	IntOp $Ajuste ${GRP_REQUISITOS} + 1
 	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoComplemento
-	nsArray::Get ListComplementoId /at=$Pos
+!macro MGetInfoComplementos
+	nsArray::Get ListComplementosId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListComplementoName /at=$Pos
+	nsArray::Get ListComplementosName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListComplementoVersion /at=$Pos
+	nsArray::Get ListComplementosVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListComplementoSizeKb /at=$Pos
+	nsArray::Get ListComplementosSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListComplementoAddPath /at=$Pos
+	nsArray::Get ListComplementosAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListComplementoOpChk /at=$Pos
+	nsArray::Get ListComplementosOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListComplementoHash /at=$Pos
+	nsArray::Get ListComplementosHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
 	IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
 	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoExtension
-	nsArray::Get ListExtensionId /at=$Pos
+!macro MGetInfoExtensiones
+	nsArray::Get ListExtensionesId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListExtensionName /at=$Pos
+	nsArray::Get ListExtensionesName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListExtensionVersion /at=$Pos
+	nsArray::Get ListExtensionesVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListExtensionSizeKb /at=$Pos
+	nsArray::Get ListExtensionesSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListExtensionAddPath /at=$Pos
+	nsArray::Get ListExtensionesAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListExtensionOpChk /at=$Pos
+	nsArray::Get ListExtensionesOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListExtensionHash /at=$Pos
+	nsArray::Get ListExtensionesHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
 	IntOp $Ajuste ${GRP_EXTENSIONES} + 1
 	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoRecurso
-	nsArray::Get ListRecursoId /at=$Pos
+!macro MGetInfoRecursos
+	nsArray::Get ListRecursosId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListRecursoName /at=$Pos
+	nsArray::Get ListRecursosName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListRecursoVersion /at=$Pos
+	nsArray::Get ListRecursosVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListRecursoSizeKb /at=$Pos
+	nsArray::Get ListRecursosSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListRecursoAddPath /at=$Pos
+	nsArray::Get ListRecursosAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListRecursoOpChk /at=$Pos
+	nsArray::Get ListRecursosOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListRecursoHash /at=$Pos
+	nsArray::Get ListRecursosHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
 	IntOp $Ajuste ${GRP_RECURSOS} + 1
@@ -416,53 +416,53 @@ Var LogMsg
 !macroend
 
 ;--------------------------------
-;CreateSection... (5)
+;MCreateSection... (5)
 
-!macro CreateSectionActualizacion index
+!macro MCreateSectionActualizaciones index
 Section /o "" ${index}
 	IntOp $Pos ${index} - ${SEC_LANZAMIENTO}
 	${If} $Pos < ${MAX_ACTUALIZACIONES}
-		Call InstallByIndexActualizacion
+		Call InstallByIndexActualizaciones
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro CreateSectionRequisito index
+!macro MCreateSectionRequisitos index
 Section /o "" ${index}
 	IntOp $Ajuste ${GRP_REQUISITOS} + 1
 	IntOp $Pos ${index} - $Ajuste
 	${If} $Pos < ${MAX_REQUISITOS}
-		Call InstallByIndexRequisito
+		Call InstallByIndexRequisitos
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro CreateSectionComplemento index
+!macro MCreateSectionComplementos index
 Section /o "" ${index}
 	IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
 	IntOp $Pos ${index} - $Ajuste
 	${If} $Pos < ${MAX_COMPLEMENTOS}
-		Call InstallByIndexComplemento
+		Call InstallByIndexComplementos
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro CreateSectionExtension index
+!macro MCreateSectionExtensiones index
 Section /o "" ${index}
 	IntOp $Ajuste ${GRP_EXTENSIONES} + 1
 	IntOp $Pos ${index} - $Ajuste
 	${If} $Pos < ${MAX_EXTENSIONES}
-		Call InstallByIndexExtension
+		Call InstallByIndexExtensiones
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro CreateSectionRecurso index
+!macro MCreateSectionRecursos index
 Section /o "" ${index}
 	IntOp $Ajuste ${GRP_RECURSOS} + 1
 	IntOp $Pos ${index} - $Ajuste
 	${If} $Pos < ${MAX_RECURSOS}
-		Call InstallByIndexRecurso
+		Call InstallByIndexRecursos
 	${EndIf}
 SectionEnd
 !macroend
@@ -496,44 +496,44 @@ FunctionEnd
 ;--------------------------------
 ;GetInfo... (5)
 
-Function GetInfoComplemento
-	!insertmacro MGetInfoComplemento
+Function GetInfoComplementos
+	!insertmacro MGetInfoComplementos
 FunctionEnd
 
-Function GetInfoRequisito
-	!insertmacro MGetInfoRequisito
+Function GetInfoRequisitos
+	!insertmacro MGetInfoRequisitos
 FunctionEnd
 
-Function GetInfoActualizacion
-	!insertmacro MGetInfoActualizacion
+Function GetInfoActualizaciones
+	!insertmacro MGetInfoActualizaciones
 FunctionEnd
 
-Function GetInfoExtension
-	!insertmacro MGetInfoExtension
+Function GetInfoExtensiones
+	!insertmacro MGetInfoExtensiones
 FunctionEnd
 
-Function GetInfoRecurso
-	!insertmacro MGetInfoRecurso
+Function GetInfoRecursos
+	!insertmacro MGetInfoRecursos
 FunctionEnd
 
 ;--------------------------------
 ;InstallByIndex... (5)
 
-Function InstallByIndexComplemento
+Function InstallByIndexComplementos
 	${If} $Pos >= ${MAX_COMPLEMENTOS}
 	${OrIf} $Pos > $ComplementosTotal
 		Return
 	${EndIf}
-	Call GetInfoComplemento
+	Call GetInfoComplementos
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
 	${EndIf}
-	Call DownloadSingleTool
+	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Complemento
+		Goto Tag_FIN_Complementos
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -551,28 +551,28 @@ Function InstallByIndexComplemento
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Complemento:
+Tag_FIN_Complementos:
 	DetailPrint "..."
 	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexRequisito
+Function InstallByIndexRequisitos
 	${If} $Pos >= ${MAX_REQUISITOS}
 	${OrIf} $Pos > $RequisitosTotal
 		Return
 	${EndIf}
-	Call GetInfoRequisito
+	Call GetInfoRequisitos
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
 	${EndIf}
-	Call DownloadSingleTool
+	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Requisito
+		Goto Tag_FIN_Requisitos
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -599,19 +599,19 @@ Function InstallByIndexRequisito
 		File "meta.json"
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Requisito:
+Tag_FIN_Requisitos:
 	DetailPrint "..."
 	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexActualizacion
+Function InstallByIndexActualizaciones
 	${If} $Pos >= ${MAX_ACTUALIZACIONES}
 	${OrIf} $Pos > $ActualizacionesTotal
 		Return
 	${EndIf}
-	Call GetInfoActualizacion
+	Call GetInfoActualizaciones
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -620,15 +620,15 @@ Function InstallByIndexActualizacion
 		${If} $ToolVersion == $Version
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $Version$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizacion
+		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $Version$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizaciones
 	${EndIf}
 	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
-	Call DownloadSingleTool
+	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
 		DetailPrint "${TXT_MsgErrorActualizacion}"
-		Goto Tag_FIN_Actualizacion
+		Goto Tag_FIN_Actualizaciones
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_LogInstalandoActualizacion} $ToolVersion"
@@ -639,73 +639,61 @@ Function InstallByIndexActualizacion
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Actualizacion:
+Tag_FIN_Actualizaciones:
 	DetailPrint "..."
 	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 	Return
-EndActualizacion:
+EndActualizaciones:
 	DetailPrint "${TXT_MsgActualizacionCancelada}"
 FunctionEnd
 
-Function InstallByIndexExtension
+Function InstallByIndexExtensiones
 	${If} $Pos >= ${MAX_EXTENSIONES}
 	${OrIf} $Pos > $ExtensionesTotal
 		Return
 	${EndIf}
-	Call GetInfoExtension
+	Call GetInfoExtensiones
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
 	${EndIf}
-	Call DownloadSingleTool
+	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Extension
+		Goto Tag_FIN_Extensiones
 	${EndIf}
 	DetailPrint "..."
-	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
-	StrCpy $R8 $ToolTemp 2
-	StrCpy $R9 $InstDrive 2
-	RMDir /r "$InstDrive${TOOLS}\$ToolId"
-	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
-	${Else}
-		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
-	${EndIf}
-	${If} $ToolAddPath == "1"
-		Push "$InstDrive${TOOLS}\$ToolId"
-		Call AddToEnvUserPath
-	${EndIf}
+	DetailPrint "${TXT_MsgInstalandoExtension} $ToolId"
+	CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive$INSTDIR\"
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Extension:
+Tag_FIN_Extensiones:
 	DetailPrint "..."
 	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexRecurso
+Function InstallByIndexRecursos
 	${If} $Pos >= ${MAX_RECURSOS}
 	${OrIf} $Pos > $RecursosTotal
 		Return
 	${EndIf}
-	Call GetInfoRecurso
+	Call GetInfoRecursos
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
 	${EndIf}
-	Call DownloadSingleTool
+	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Recurso
+		Goto Tag_FIN_Recursos
 	${EndIf}
 	DetailPrint "..."
-	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
+	DetailPrint "${TXT_MsgInstalandoRecurso} $ToolId"
 	StrCpy $R8 $ToolTemp 2
 	StrCpy $R9 $InstDrive 2
 	RMDir /r "$InstDrive${TOOLS}\$ToolId"
@@ -715,12 +703,8 @@ Function InstallByIndexRecurso
 		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
 		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
-	${If} $ToolAddPath == "1"
-		Push "$InstDrive${TOOLS}\$ToolId"
-		Call AddToEnvUserPath
-	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Recurso:
+Tag_FIN_Recursos:
 	DetailPrint "..."
 	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
@@ -730,17 +714,7 @@ FunctionEnd
 ;--------------------------------
 ; Funciones generales
 
-Function CheckAllComponents
-	Call FetchToolsCatalog
-	Call CheckPrograma
-	Call CheckGrpActualizaciones
-	Call CheckGrpRequisitos
-	Call CheckGrpComplementos
-	Call CheckGrpExtensiones
-	Call CheckGrpRecursos
-FunctionEnd
-
-Function FetchToolsCatalog
+Function FetchCatalog
 	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\catalogo.json"
 	${If} ${FileExists} $ToolsCatalog
 		Delete $ToolsCatalog
@@ -770,6 +744,16 @@ LoadLocalTools:
 ExitFetchTools:
 FunctionEnd
 
+Function CheckAllComponents
+	Call FetchCatalog
+	Call CheckPrograma
+	Call CheckGrpActualizaciones
+	Call CheckGrpRequisitos
+	Call CheckGrpComplementos
+	Call CheckGrpExtensiones
+	Call CheckGrpRecursos
+FunctionEnd
+
 Function CheckPrograma
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
@@ -784,7 +768,7 @@ Function CheckGrpActualizaciones
 	Call JsonLoadActualizaciones
 	${For} $Pos 0 $ActualizacionesTotal
 		${If} $Pos < ${MAX_ACTUALIZACIONES}
-			Call GetInfoActualizacion
+			Call GetInfoActualizaciones
 			${If} $IsUpdateInstall == "1"
 				SectionSetText $ToolIndex "$ToolName $ToolVersion"
 				SectionSetSize $ToolIndex $ToolSizeKb
@@ -823,7 +807,7 @@ Function CheckGrpRequisitos
 	Call JsonLoadRequisitos
 	${For} $Pos 0 $RequisitosTotal
 		${If} $Pos < ${MAX_REQUISITOS}
-			Call GetInfoRequisito
+			Call GetInfoRequisitos
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
 			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -858,7 +842,7 @@ Function CheckGrpComplementos
 	Call JsonLoadComplementos
 	${For} $Pos 0 $ComplementosTotal
 		${If} $Pos < ${MAX_COMPLEMENTOS}
-			Call GetInfoComplemento
+			Call GetInfoComplementos
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
 			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -893,7 +877,7 @@ Function CheckGrpExtensiones
 	Call JsonLoadExtensiones
 	${For} $Pos 0 $ExtensionesTotal
 		${If} $Pos < ${MAX_EXTENSIONES}
-			Call GetInfoExtension
+			Call GetInfoExtensiones
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
 			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -928,7 +912,7 @@ Function CheckGrpRecursos
 	Call JsonLoadRecursos
 	${For} $Pos 0 $RecursosTotal
 		${If} $Pos < ${MAX_RECURSOS}
-			Call GetInfoRecurso
+			Call GetInfoRecursos
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
 			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -958,12 +942,15 @@ Function CheckGrpRecursos
 	${EndIf}
 FunctionEnd
 
-Function DownloadSingleTool
+Function DownloadSinglePack
 	${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
 	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
 	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 		Goto SkipTool
 	${EndIf}
+
+; descarga
+;DownloadTool:
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint "============================================"
@@ -994,6 +981,8 @@ Function DownloadSingleTool
 		Goto SkipTool
 	${EndIf}
 
+; verificación
+;ValidateTool:
 	!insertmacro WordFind
 	DetailPrint "${TXT_MsgVerificando} $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$TEMP\$ToolId.zip" SHA256'
@@ -1009,7 +998,7 @@ Function DownloadSingleTool
 		${WordFind} "$1" "$ToolHash" "+1" $2
 		${If} $2 != ""
 			DetailPrint "${TXT_MsgHashValidado} $ToolHash"
-			Goto ValidateOk
+			Goto ExtractTool
 		${Else}
 			StrCpy $LogMsg "${TXT_MsgErrorHashNoCoincide} $ToolId.zip$\n$2 ≠ $ToolHash"
 			DetailPrint "$LogMsg"
@@ -1022,8 +1011,9 @@ Function DownloadSingleTool
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
 	${EndIf}
-ValidateOk:
 
+; descompresión
+ExtractTool:
 	DetailPrint "..."
 	StrCpy $ToolTemp "$TEMP\$ToolId_tmp"
 	RMDir /r "$ToolTemp"
@@ -1040,17 +1030,16 @@ ValidateOk:
 	${GetSize} "$ToolTemp" "/S=0K" $R4 $R5 $R6
 	IntOp $R0 $R4 - $ToolSizeKb
 	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
-	IntCmp $R0 1 0 0 SizeMismatch
-	Goto SuccessTool
-SizeMismatch:
+	IntCmp $R0 1 0 0 +2
+		Goto SuccessTool
 	StrCpy $LogMsg "${TXT_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
 	DetailPrint "$LogMsg"
 	MessageBox MB_ICONEXCLAMATION "$LogMsg"
 	Goto SkipTool
+
 SuccessTool:
 	Push "OK"
 	Return
-
 SkipTool:
 	Push "NO"
 FunctionEnd
@@ -1118,12 +1107,12 @@ Function un.JsonLoadRequisitos
 	!insertmacro MJsonLoadRequisitos
 FunctionEnd
 
-Function un.GetInfoComplemento
-	!insertmacro MGetInfoComplemento
+Function un.GetInfoComplementos
+	!insertmacro MGetInfoComplementos
 FunctionEnd
 
-Function un.GetInfoRequisito
-	!insertmacro MGetInfoRequisito
+Function un.GetInfoRequisitos
+	!insertmacro MGetInfoRequisitos
 FunctionEnd
 
 Function un.RemoveFromEnvUserPath

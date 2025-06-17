@@ -1,0 +1,13 @@
+
+
+* Refactorizar DownloadSingleTool: descarga + verificación + descompresión
+
+- Depurar logs.nsh: revisar los nuevos logs generados
+
+- Verificar que el desinstalador borre las carpetas de herramientas
+
+- Corregir versión en encabezado de logs
+  Versión actual: v1.0.0 -> debería ser  1.0.1 después de la 2a. actualización
+
++ Afinar que las actualizaciones instaladas salgan de la lista
+

@@ -2,6 +2,7 @@
 ; FUNCIONES
 
 Function WriteLogInicial
+	Call SetDateTimeStamp
 	DetailPrint "============================================"
 	DetailPrint "${TXT_LogTitulo}"
 	DetailPrint "${TXT_LogFechaHora} $Day-$Month-$Year  $Hour:$Min"
@@ -10,23 +11,34 @@ Function WriteLogInicial
 	DetailPrint "${TXT_EtiqRutaInstalacion} $INSTDIR"
 	DetailPrint "${TXT_LogServidorDescargas} $Server"
 	DetailPrint "${TXT_LogProtocoloTransfer} $Protocol"
-	;DetailPrint "============================================"
 FunctionEnd
 
 Function WriteLogRequisitos
-
+	${If} $RequisitosVisibles > 0
+		DetailPrint "============================================"
+		DetailPrint "${TXT_LogTituloRequisitos}"
+	${EndIf}
 FunctionEnd
 
 Function WriteLogComplementos
-
+	${If} $ComplementosVisibles > 0
+		DetailPrint "============================================"
+		DetailPrint "${TXT_LogTituloComplementos}"
+	${EndIf}
 FunctionEnd
 
 Function WriteLogExtensiones
-
+	${If} $ExtensionesVisibles > 0
+		DetailPrint "============================================"
+		DetailPrint "${TXT_LogTituloExtensiones}"
+	${EndIf}
 FunctionEnd
 
 Function WriteLogRecursos
-
+	${If} $RecursosVisibles > 0
+		DetailPrint "============================================"
+		DetailPrint "${TXT_LogTituloRecursos}"
+	${EndIf}
 FunctionEnd
 
 Function WriteLogConfig
@@ -41,5 +53,5 @@ Function WriteLogFinal
 	DetailPrint "============================================"
 	DumpLog::DumpLogUTF8 "$LogFile" .r0
 	Pop $0
-	;DetailPrint "DumpLog→$0"
+	DetailPrint "DumpLog→$0"
 FunctionEnd

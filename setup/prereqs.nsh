@@ -26,6 +26,10 @@ Function CheckPreRequisites
 	nsDialogs::Show
 FunctionEnd
 
+Function LeavePreRequisites
+	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
+FunctionEnd
+
 Function DetectPHP
 FunctionEnd
 
@@ -36,8 +40,4 @@ Function DetectNotepad
 FunctionEnd
 
 Function DetectMSVC
-FunctionEnd
-
-Function LeavePreRequisites
-	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
 FunctionEnd

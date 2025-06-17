@@ -132,6 +132,7 @@ Function TestHttpConnection
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"
+	${AndIf} $R1 == "0"
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "${TXT_MsgConexionHttpExito}"
 	${Else}
 		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "${TXT_MsgConexionHttpError}$\n${TXT_MsgDetallesRespuesta} $R0"
@@ -143,6 +144,7 @@ Function FillDriveList
 FunctionEnd
 
 Function AddDriveCallback
+	Push $9
 	StrCpy $0 $9
 	${DriveSpace} "$0" "/D=F" $1
 	System::Int64Op $1 / 1073741824
@@ -152,4 +154,5 @@ Function AddDriveCallback
 		${NSD_CB_AddString} $hDriveDropList $2
 	${EndIf}
 	Push ""
+	Pop $9
 FunctionEnd
