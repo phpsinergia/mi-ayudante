@@ -3,17 +3,15 @@
 !define MAX_COMPLEMENTOS 30
 !define MAX_EXTENSIONES 20
 !define MAX_RECURSOS 30
+!define SEC_PROGRAMA 2
+!define SEC_LANZAMIENTO 3
+!define GRP_REQUISITOS 15
+!define GRP_COMPLEMENTOS 28
+!define GRP_EXTENSIONES 61
+!define GRP_RECURSOS 84
 
-!define SecPrograma 2
-!define SecLanzamiento 3
-!define GrpRequisitos 15
-!define GrpComplementos 28
-!define GrpExtensiones 61
-!define GrpRecursos 84
-
-Var LogMsg
-Var n
-Var i
+Var Ajuste
+Var Pos
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -23,242 +21,264 @@ Var ToolOpChk
 Var ToolHash
 Var ToolIndex
 Var ToolTemp
-Var ActsTotal
-Var CompsTotal
-Var ReqsTotal
-Var ExtsTotal
-Var RecsTotal
-Var CompsVisibles
-Var ReqsVisibles
-Var ExtsVisibles
-Var RecsVisibles
-Var Aux
+Var ActualizacionesTotal
+Var ComplementosTotal
+Var RequisitosTotal
+Var ExtensionesTotal
+Var RecursosTotal
+Var ComplementosVisibles
+Var RequisitosVisibles
+Var ExtensionesVisibles
+Var RecursosVisibles
+Var LogMsg
 
 ;--------------------------------
 ; MACROS
 
 ;--------------------------------
+!macro MUninstallTools
+	Call un.JsonLoadComplementos
+	Call un.JsonLoadRequisitos
+	${For} $Pos 0 $ComplementosTotal
+		${If} $Pos < ${MAX_COMPLEMENTOS}
+			Call un.GetInfoComplemento
+			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+	${Next}
+	${For} $Pos 0 $RequisitosTotal
+		${If} $Pos < ${MAX_REQUISITOS}
+			Call un.GetInfoRequisito
+			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+	${Next}
+!macroend
+
+;--------------------------------
 ;MJsonLoad... (5)
 
-!macro MJsonLoadComps
+!macro MJsonLoadComplementos
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `complementos` /end
-	Pop $CompsTotal
-	IntOp $CompsTotal $CompsTotal - 1
-	${For} $i 0 $CompsTotal
-		nsJSON::Get `complementos` /index $i "id" /end 
+	Pop $ComplementosTotal
+	IntOp $ComplementosTotal $ComplementosTotal - 1
+	${For} $Pos 0 $ComplementosTotal
+		nsJSON::Get `complementos` /index $Pos "id" /end 
 		Pop $ToolId
-		nsJSON::Get `complementos` /index $i "name" /end
+		nsJSON::Get `complementos` /index $Pos "name" /end
 		Pop $ToolName
-		nsJSON::Get `complementos` /index $i "version" /end
+		nsJSON::Get `complementos` /index $Pos "version" /end
 		Pop $ToolVersion
-		nsJSON::Get `complementos` /index $i "size_kb" /end
+		nsJSON::Get `complementos` /index $Pos "size_kb" /end
 		Pop $ToolSizeKb
-		nsJSON::Get `complementos` /index $i "add_path" /end
+		nsJSON::Get `complementos` /index $Pos "add_path" /end
 		Pop $ToolAddPath
-		nsJSON::Get `complementos` /index $i "op_chk" /end
+		nsJSON::Get `complementos` /index $Pos "op_chk" /end
 		Pop $ToolOpChk
-		nsJSON::Get `complementos` /index $i "hash" /end
+		nsJSON::Get `complementos` /index $Pos "hash" /end
 		Pop $ToolHash
-		IntOp $n ${GrpComplementos} + 1
-		IntOp $ToolIndex $i + $n
-		nsArray::Set ListCompId /key=$ToolIndex $ToolId
-		nsArray::Set ListCompName /key=$ToolIndex $ToolName
-		nsArray::Set ListCompVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListCompSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListCompAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListCompOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListCompHash /key=$ToolIndex $ToolHash
+		IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
+		IntOp $ToolIndex $Pos + $Ajuste
+		nsArray::Set ListComplementoId /key=$ToolIndex $ToolId
+		nsArray::Set ListComplementoName /key=$ToolIndex $ToolName
+		nsArray::Set ListComplementoVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListComplementoSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListComplementoAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListComplementoOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListComplementoHash /key=$ToolIndex $ToolHash
 	${Next}
-	${For} $i $CompsTotal ${MAX_COMPLEMENTOS}
-		${If} $i > $CompsTotal
-			IntOp $n ${GrpComplementos} + 1
-			IntOp $ToolIndex $i + $n
-			nsArray::Set ListCompId /key=$ToolIndex ""
-			nsArray::Set ListCompName /key=$ToolIndex ""
-			nsArray::Set ListCompVersion /key=$ToolIndex ""
-			nsArray::Set ListCompSizeKb /key=$ToolIndex 0
-			nsArray::Set ListCompAddPath /key=$ToolIndex 0
-			nsArray::Set ListCompOpChk /key=$ToolIndex 0
-			nsArray::Set ListCompHash /key=$ToolIndex ""
+	${For} $Pos $ComplementosTotal ${MAX_COMPLEMENTOS}
+		${If} $Pos > $ComplementosTotal
+			IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
+			IntOp $ToolIndex $Pos + $Ajuste
+			nsArray::Set ListComplementoId /key=$ToolIndex ""
+			nsArray::Set ListComplementoName /key=$ToolIndex ""
+			nsArray::Set ListComplementoVersion /key=$ToolIndex ""
+			nsArray::Set ListComplementoSizeKb /key=$ToolIndex 0
+			nsArray::Set ListComplementoAddPath /key=$ToolIndex 0
+			nsArray::Set ListComplementoOpChk /key=$ToolIndex 0
+			nsArray::Set ListComplementoHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
 
-!macro MJsonLoadReqs
+!macro MJsonLoadRequisitos
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `requisitos` /end
-	Pop $ReqsTotal
-	IntOp $ReqsTotal $ReqsTotal - 1
-	${For} $i 0 $ReqsTotal
-		nsJSON::Get `requisitos` /index $i "id" /end 
+	Pop $RequisitosTotal
+	IntOp $RequisitosTotal $RequisitosTotal - 1
+	${For} $Pos 0 $RequisitosTotal
+		nsJSON::Get `requisitos` /index $Pos "id" /end 
 		Pop $ToolId
-		nsJSON::Get `requisitos` /index $i "name" /end
+		nsJSON::Get `requisitos` /index $Pos "name" /end
 		Pop $ToolName
-		nsJSON::Get `requisitos` /index $i "version" /end
+		nsJSON::Get `requisitos` /index $Pos "version" /end
 		Pop $ToolVersion
-		nsJSON::Get `requisitos` /index $i "size_kb" /end
+		nsJSON::Get `requisitos` /index $Pos "size_kb" /end
 		Pop $ToolSizeKb
-		nsJSON::Get `requisitos` /index $i "add_path" /end
+		nsJSON::Get `requisitos` /index $Pos "add_path" /end
 		Pop $ToolAddPath
-		nsJSON::Get `requisitos` /index $i "op_chk" /end
+		nsJSON::Get `requisitos` /index $Pos "op_chk" /end
 		Pop $ToolOpChk
-		nsJSON::Get `requisitos` /index $i "hash" /end
+		nsJSON::Get `requisitos` /index $Pos "hash" /end
 		Pop $ToolHash
-		IntOp $n ${GrpRequisitos} + 1
-		IntOp $ToolIndex $i + $n
-		nsArray::Set ListReqId /key=$ToolIndex $ToolId
-		nsArray::Set ListReqName /key=$ToolIndex $ToolName
-		nsArray::Set ListReqVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListReqSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListReqAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListReqOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListReqHash /key=$ToolIndex $ToolHash
+		IntOp $Ajuste ${GRP_REQUISITOS} + 1
+		IntOp $ToolIndex $Pos + $Ajuste
+		nsArray::Set ListRequisitoId /key=$ToolIndex $ToolId
+		nsArray::Set ListRequisitoName /key=$ToolIndex $ToolName
+		nsArray::Set ListRequisitoVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListRequisitoSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListRequisitoAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListRequisitoOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListRequisitoHash /key=$ToolIndex $ToolHash
 	${Next}
-	${For} $i $ReqsTotal ${MAX_COMPLEMENTOS}
-		${If} $i > $ReqsTotal
-			IntOp $n ${GrpRequisitos} + 1
-			IntOp $ToolIndex $i + $n
-			nsArray::Set ListReqId /key=$ToolIndex ""
-			nsArray::Set ListReqName /key=$ToolIndex ""
-			nsArray::Set ListReqVersion /key=$ToolIndex ""
-			nsArray::Set ListReqSizeKb /key=$ToolIndex 0
-			nsArray::Set ListReqAddPath /key=$ToolIndex 0
-			nsArray::Set ListReqOpChk /key=$ToolIndex 0
-			nsArray::Set ListReqHash /key=$ToolIndex ""
+	${For} $Pos $RequisitosTotal ${MAX_COMPLEMENTOS}
+		${If} $Pos > $RequisitosTotal
+			IntOp $Ajuste ${GRP_REQUISITOS} + 1
+			IntOp $ToolIndex $Pos + $Ajuste
+			nsArray::Set ListRequisitoId /key=$ToolIndex ""
+			nsArray::Set ListRequisitoName /key=$ToolIndex ""
+			nsArray::Set ListRequisitoVersion /key=$ToolIndex ""
+			nsArray::Set ListRequisitoSizeKb /key=$ToolIndex 0
+			nsArray::Set ListRequisitoAddPath /key=$ToolIndex 0
+			nsArray::Set ListRequisitoOpChk /key=$ToolIndex 0
+			nsArray::Set ListRequisitoHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
 
-!macro MJsonLoadActs
+!macro MJsonLoadActualizaciones
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `actualizaciones` /end
-	Pop $ActsTotal
-	IntOp $ActsTotal $ActsTotal - 1
-	${For} $i 0 $ActsTotal
-		nsJSON::Get `actualizaciones` /index $i "id" /end 
+	Pop $ActualizacionesTotal
+	IntOp $ActualizacionesTotal $ActualizacionesTotal - 1
+	${For} $Pos 0 $ActualizacionesTotal
+		nsJSON::Get `actualizaciones` /index $Pos "id" /end 
 		Pop $ToolId
-		nsJSON::Get `actualizaciones` /index $i "name" /end
+		nsJSON::Get `actualizaciones` /index $Pos "name" /end
 		Pop $ToolName
-		nsJSON::Get `actualizaciones` /index $i "version" /end
+		nsJSON::Get `actualizaciones` /index $Pos "version" /end
 		Pop $ToolVersion
-		nsJSON::Get `actualizaciones` /index $i "size_kb" /end
+		nsJSON::Get `actualizaciones` /index $Pos "size_kb" /end
 		Pop $ToolSizeKb
-		nsJSON::Get `actualizaciones` /index $i "add_path" /end
+		nsJSON::Get `actualizaciones` /index $Pos "add_path" /end
 		Pop $ToolAddPath
-		nsJSON::Get `actualizaciones` /index $i "op_chk" /end
+		nsJSON::Get `actualizaciones` /index $Pos "op_chk" /end
 		Pop $ToolOpChk
-		nsJSON::Get `actualizaciones` /index $i "hash" /end
+		nsJSON::Get `actualizaciones` /index $Pos "hash" /end
 		Pop $ToolHash
-		IntOp $ToolIndex $i + ${SecLanzamiento}
-		nsArray::Set ListActId /key=$ToolIndex $ToolId
-		nsArray::Set ListActName /key=$ToolIndex $ToolName
-		nsArray::Set ListActVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListActSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListActAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListActOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListActHash /key=$ToolIndex $ToolHash
+		IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
+		nsArray::Set ListActualizacionId /key=$ToolIndex $ToolId
+		nsArray::Set ListActualizacionName /key=$ToolIndex $ToolName
+		nsArray::Set ListActualizacionVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListActualizacionSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListActualizacionAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListActualizacionOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListActualizacionHash /key=$ToolIndex $ToolHash
 	${Next}
-	${For} $i $ActsTotal ${MAX_ACTUALIZACIONES}
-		${If} $i > $ActsTotal
-			IntOp $ToolIndex $i + ${SecLanzamiento}
-			nsArray::Set ListActId /key=$ToolIndex ""
-			nsArray::Set ListActName /key=$ToolIndex ""
-			nsArray::Set ListActVersion /key=$ToolIndex ""
-			nsArray::Set ListActSizeKb /key=$ToolIndex 0
-			nsArray::Set ListActAddPath /key=$ToolIndex 0
-			nsArray::Set ListActOpChk /key=$ToolIndex 0
-			nsArray::Set ListActHash /key=$ToolIndex ""
+	${For} $Pos $ActualizacionesTotal ${MAX_ACTUALIZACIONES}
+		${If} $Pos > $ActualizacionesTotal
+			IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
+			nsArray::Set ListActualizacionId /key=$ToolIndex ""
+			nsArray::Set ListActualizacionName /key=$ToolIndex ""
+			nsArray::Set ListActualizacionVersion /key=$ToolIndex ""
+			nsArray::Set ListActualizacionSizeKb /key=$ToolIndex 0
+			nsArray::Set ListActualizacionAddPath /key=$ToolIndex 0
+			nsArray::Set ListActualizacionOpChk /key=$ToolIndex 0
+			nsArray::Set ListActualizacionHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
 
-!macro MJsonLoadExts
+!macro MJsonLoadExtensiones
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `extensiones` /end
-	Pop $ExtsTotal
-	IntOp $ExtsTotal $ExtsTotal - 1
-	${For} $i 0 $ExtsTotal
-		nsJSON::Get `extensiones` /index $i "id" /end 
+	Pop $ExtensionesTotal
+	IntOp $ExtensionesTotal $ExtensionesTotal - 1
+	${For} $Pos 0 $ExtensionesTotal
+		nsJSON::Get `extensiones` /index $Pos "id" /end 
 		Pop $ToolId
-		nsJSON::Get `extensiones` /index $i "name" /end
+		nsJSON::Get `extensiones` /index $Pos "name" /end
 		Pop $ToolName
-		nsJSON::Get `extensiones` /index $i "version" /end
+		nsJSON::Get `extensiones` /index $Pos "version" /end
 		Pop $ToolVersion
-		nsJSON::Get `extensiones` /index $i "size_kb" /end
+		nsJSON::Get `extensiones` /index $Pos "size_kb" /end
 		Pop $ToolSizeKb
-		nsJSON::Get `extensiones` /index $i "add_path" /end
+		nsJSON::Get `extensiones` /index $Pos "add_path" /end
 		Pop $ToolAddPath
-		nsJSON::Get `extensiones` /index $i "op_chk" /end
+		nsJSON::Get `extensiones` /index $Pos "op_chk" /end
 		Pop $ToolOpChk
-		nsJSON::Get `extensiones` /index $i "hash" /end
+		nsJSON::Get `extensiones` /index $Pos "hash" /end
 		Pop $ToolHash
-		IntOp $n ${GrpExtensiones} + 1
-		IntOp $ToolIndex $i + $n
-		nsArray::Set ListExtId /key=$ToolIndex $ToolId
-		nsArray::Set ListExtName /key=$ToolIndex $ToolName
-		nsArray::Set ListExtVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListExtSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListExtAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListExtOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListExtHash /key=$ToolIndex $ToolHash
+		IntOp $Ajuste ${GRP_EXTENSIONES} + 1
+		IntOp $ToolIndex $Pos + $Ajuste
+		nsArray::Set ListExtensionId /key=$ToolIndex $ToolId
+		nsArray::Set ListExtensionName /key=$ToolIndex $ToolName
+		nsArray::Set ListExtensionVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListExtensionSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListExtensionAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListExtensionOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListExtensionHash /key=$ToolIndex $ToolHash
 	${Next}
-	${For} $i $ExtsTotal ${MAX_EXTENSIONES}
-		${If} $i > $ExtsTotal
-			IntOp $n ${GrpExtensiones} + 1
-			IntOp $ToolIndex $i + $n
-			nsArray::Set ListExtId /key=$ToolIndex ""
-			nsArray::Set ListExtName /key=$ToolIndex ""
-			nsArray::Set ListExtVersion /key=$ToolIndex ""
-			nsArray::Set ListExtSizeKb /key=$ToolIndex 0
-			nsArray::Set ListExtAddPath /key=$ToolIndex 0
-			nsArray::Set ListExtOpChk /key=$ToolIndex 0
-			nsArray::Set ListExtHash /key=$ToolIndex ""
+	${For} $Pos $ExtensionesTotal ${MAX_EXTENSIONES}
+		${If} $Pos > $ExtensionesTotal
+			IntOp $Ajuste ${GRP_EXTENSIONES} + 1
+			IntOp $ToolIndex $Pos + $Ajuste
+			nsArray::Set ListExtensionId /key=$ToolIndex ""
+			nsArray::Set ListExtensionName /key=$ToolIndex ""
+			nsArray::Set ListExtensionVersion /key=$ToolIndex ""
+			nsArray::Set ListExtensionSizeKb /key=$ToolIndex 0
+			nsArray::Set ListExtensionAddPath /key=$ToolIndex 0
+			nsArray::Set ListExtensionOpChk /key=$ToolIndex 0
+			nsArray::Set ListExtensionHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
 
-!macro MJsonLoadRecs
+!macro MJsonLoadRecursos
 	nsJSON::Set /file $ToolsCatalog
 	nsJSON::Get /count `recursos` /end
-	Pop $RecsTotal
-	IntOp $RecsTotal $RecsTotal - 1
-	${For} $i 0 $RecsTotal
-		nsJSON::Get `recursos` /index $i "id" /end 
+	Pop $RecursosTotal
+	IntOp $RecursosTotal $RecursosTotal - 1
+	${For} $Pos 0 $RecursosTotal
+		nsJSON::Get `recursos` /index $Pos "id" /end 
 		Pop $ToolId
-		nsJSON::Get `recursos` /index $i "name" /end
+		nsJSON::Get `recursos` /index $Pos "name" /end
 		Pop $ToolName
-		nsJSON::Get `recursos` /index $i "version" /end
+		nsJSON::Get `recursos` /index $Pos "version" /end
 		Pop $ToolVersion
-		nsJSON::Get `recursos` /index $i "size_kb" /end
+		nsJSON::Get `recursos` /index $Pos "size_kb" /end
 		Pop $ToolSizeKb
-		nsJSON::Get `recursos` /index $i "add_path" /end
+		nsJSON::Get `recursos` /index $Pos "add_path" /end
 		Pop $ToolAddPath
-		nsJSON::Get `recursos` /index $i "op_chk" /end
+		nsJSON::Get `recursos` /index $Pos "op_chk" /end
 		Pop $ToolOpChk
-		nsJSON::Get `recursos` /index $i "hash" /end
+		nsJSON::Get `recursos` /index $Pos "hash" /end
 		Pop $ToolHash
-		IntOp $n ${GrpRecursos} + 1
-		IntOp $ToolIndex $i + $n
-		nsArray::Set ListRecId /key=$ToolIndex $ToolId
-		nsArray::Set ListRecName /key=$ToolIndex $ToolName
-		nsArray::Set ListRecVersion /key=$ToolIndex $ToolVersion
-		nsArray::Set ListRecSizeKb /key=$ToolIndex $ToolSizeKb
-		nsArray::Set ListRecAddPath /key=$ToolIndex $ToolAddPath
-		nsArray::Set ListRecOpChk /key=$ToolIndex $ToolOpChk
-		nsArray::Set ListRecHash /key=$ToolIndex $ToolHash
+		IntOp $Ajuste ${GRP_RECURSOS} + 1
+		IntOp $ToolIndex $Pos + $Ajuste
+		nsArray::Set ListRecursoId /key=$ToolIndex $ToolId
+		nsArray::Set ListRecursoName /key=$ToolIndex $ToolName
+		nsArray::Set ListRecursoVersion /key=$ToolIndex $ToolVersion
+		nsArray::Set ListRecursoSizeKb /key=$ToolIndex $ToolSizeKb
+		nsArray::Set ListRecursoAddPath /key=$ToolIndex $ToolAddPath
+		nsArray::Set ListRecursoOpChk /key=$ToolIndex $ToolOpChk
+		nsArray::Set ListRecursoHash /key=$ToolIndex $ToolHash
 	${Next}
-	${For} $i $RecsTotal ${MAX_RECURSOS}
-		${If} $i > $RecsTotal
-			IntOp $n ${GrpRecursos} + 1
-			IntOp $ToolIndex $i + $n
-			nsArray::Set ListRecId /key=$ToolIndex ""
-			nsArray::Set ListRecName /key=$ToolIndex ""
-			nsArray::Set ListRecVersion /key=$ToolIndex ""
-			nsArray::Set ListRecSizeKb /key=$ToolIndex 0
-			nsArray::Set ListRecAddPath /key=$ToolIndex 0
-			nsArray::Set ListRecOpChk /key=$ToolIndex 0
-			nsArray::Set ListRecHash /key=$ToolIndex ""
+	${For} $Pos $RecursosTotal ${MAX_RECURSOS}
+		${If} $Pos > $RecursosTotal
+			IntOp $Ajuste ${GRP_RECURSOS} + 1
+			IntOp $ToolIndex $Pos + $Ajuste
+			nsArray::Set ListRecursoId /key=$ToolIndex ""
+			nsArray::Set ListRecursoName /key=$ToolIndex ""
+			nsArray::Set ListRecursoVersion /key=$ToolIndex ""
+			nsArray::Set ListRecursoSizeKb /key=$ToolIndex 0
+			nsArray::Set ListRecursoAddPath /key=$ToolIndex 0
+			nsArray::Set ListRecursoOpChk /key=$ToolIndex 0
+			nsArray::Set ListRecursoHash /key=$ToolIndex ""
 		${EndIf}
 	${Next}
 !macroend
@@ -266,207 +286,185 @@ Var Aux
 ;--------------------------------
 ;MGetInfo... (5)
 
-!macro MGetInfoAct
-	nsArray::Get ListActId /at=$i
+!macro MGetInfoActualizacion
+	nsArray::Get ListActualizacionId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListActName /at=$i
+	nsArray::Get ListActualizacionName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListActVersion /at=$i
+	nsArray::Get ListActualizacionVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListActSizeKb /at=$i
+	nsArray::Get ListActualizacionSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListActAddPath /at=$i
+	nsArray::Get ListActualizacionAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListActOpChk /at=$i
+	nsArray::Get ListActualizacionOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListActHash /at=$i
+	nsArray::Get ListActualizacionHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	IntOp $ToolIndex $i + ${SecLanzamiento}
+	IntOp $ToolIndex $Pos + ${SEC_LANZAMIENTO}
 !macroend
 
-!macro MGetInfoReq
-	nsArray::Get ListReqId /at=$i
+!macro MGetInfoRequisito
+	nsArray::Get ListRequisitoId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListReqName /at=$i
+	nsArray::Get ListRequisitoName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListReqVersion /at=$i
+	nsArray::Get ListRequisitoVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListReqSizeKb /at=$i
+	nsArray::Get ListRequisitoSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListReqAddPath /at=$i
+	nsArray::Get ListRequisitoAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListReqOpChk /at=$i
+	nsArray::Get ListRequisitoOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListReqHash /at=$i
+	nsArray::Get ListRequisitoHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	IntOp $n ${GrpRequisitos} + 1
-	IntOp $ToolIndex $i + $n
+	IntOp $Ajuste ${GRP_REQUISITOS} + 1
+	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoComp
-	nsArray::Get ListCompId /at=$i
+!macro MGetInfoComplemento
+	nsArray::Get ListComplementoId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListCompName /at=$i
+	nsArray::Get ListComplementoName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListCompVersion /at=$i
+	nsArray::Get ListComplementoVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListCompSizeKb /at=$i
+	nsArray::Get ListComplementoSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListCompAddPath /at=$i
+	nsArray::Get ListComplementoAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListCompOpChk /at=$i
+	nsArray::Get ListComplementoOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListCompHash /at=$i
+	nsArray::Get ListComplementoHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	IntOp $n ${GrpComplementos} + 1
-	IntOp $ToolIndex $i + $n
+	IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
+	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoExt
-	nsArray::Get ListExtId /at=$i
+!macro MGetInfoExtension
+	nsArray::Get ListExtensionId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListExtName /at=$i
+	nsArray::Get ListExtensionName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListExtVersion /at=$i
+	nsArray::Get ListExtensionVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListExtSizeKb /at=$i
+	nsArray::Get ListExtensionSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListExtAddPath /at=$i
+	nsArray::Get ListExtensionAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListExtOpChk /at=$i
+	nsArray::Get ListExtensionOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListExtHash /at=$i
+	nsArray::Get ListExtensionHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	IntOp $n ${GrpExtensiones} + 1
-	IntOp $ToolIndex $i + $n
+	IntOp $Ajuste ${GRP_EXTENSIONES} + 1
+	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MGetInfoRec
-	nsArray::Get ListRecId /at=$i
+!macro MGetInfoRecurso
+	nsArray::Get ListRecursoId /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get ListRecName /at=$i
+	nsArray::Get ListRecursoName /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get ListRecVersion /at=$i
+	nsArray::Get ListRecursoVersion /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get ListRecSizeKb /at=$i
+	nsArray::Get ListRecursoSizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get ListRecAddPath /at=$i
+	nsArray::Get ListRecursoAddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get ListRecOpChk /at=$i
+	nsArray::Get ListRecursoOpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get ListRecHash /at=$i
+	nsArray::Get ListRecursoHash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	IntOp $n ${GrpRecursos} + 1
-	IntOp $ToolIndex $i + $n
+	IntOp $Ajuste ${GRP_RECURSOS} + 1
+	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
 ;--------------------------------
 ;SECTION_... (5)
 
-!macro SECTION_ACTUALIZACION index
+!macro CreateSectionActualizacion index
 Section /o "" ${index}
-	IntOp $i ${index} - ${SecLanzamiento}
-	${If} $i < ${MAX_ACTUALIZACIONES}
-		Call InstallByIndexAct
+	IntOp $Pos ${index} - ${SEC_LANZAMIENTO}
+	${If} $Pos < ${MAX_ACTUALIZACIONES}
+		Call InstallByIndexActualizacion
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro SECTION_REQUISITO index
+!macro CreateSectionRequisito index
 Section /o "" ${index}
-	IntOp $Aux ${GrpRequisitos} + 1
-	IntOp $i ${index} - $Aux
-	${If} $i < ${MAX_REQUISITOS}
-		Call InstallByIndexReq
+	IntOp $Ajuste ${GRP_REQUISITOS} + 1
+	IntOp $Pos ${index} - $Ajuste
+	${If} $Pos < ${MAX_REQUISITOS}
+		Call InstallByIndexRequisito
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro SECTION_COMPLEMENTO index
+!macro CreateSectionComplemento index
 Section /o "" ${index}
-	IntOp $Aux ${GrpComplementos} + 1
-	IntOp $i ${index} - $Aux
-	${If} $i < ${MAX_COMPLEMENTOS}
-		Call InstallByIndexComp
+	IntOp $Ajuste ${GRP_COMPLEMENTOS} + 1
+	IntOp $Pos ${index} - $Ajuste
+	${If} $Pos < ${MAX_COMPLEMENTOS}
+		Call InstallByIndexComplemento
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro SECTION_EXTENSION index
+!macro CreateSectionExtension index
 Section /o "" ${index}
-	IntOp $Aux ${GrpExtensiones} + 1
-	IntOp $i ${index} - $Aux
-	${If} $i < ${MAX_EXTENSIONES}
-		Call InstallByIndexExt
+	IntOp $Ajuste ${GRP_EXTENSIONES} + 1
+	IntOp $Pos ${index} - $Ajuste
+	${If} $Pos < ${MAX_EXTENSIONES}
+		Call InstallByIndexExtension
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro SECTION_RECURSO index
+!macro CreateSectionRecurso index
 Section /o "" ${index}
-	IntOp $Aux ${GrpRecursos} + 1
-	IntOp $i ${index} - $Aux
-	${If} $i < ${MAX_RECURSOS}
-		Call InstallByIndexRec
+	IntOp $Ajuste ${GRP_RECURSOS} + 1
+	IntOp $Pos ${index} - $Ajuste
+	${If} $Pos < ${MAX_RECURSOS}
+		Call InstallByIndexRecurso
 	${EndIf}
 SectionEnd
-!macroend
-
-;--------------------------------
-!macro MUninstallTools
-	Call un.JsonLoadComps
-	Call un.JsonLoadReqs
-	${For} $i 0 $CompsTotal
-		${If} $i < ${MAX_COMPLEMENTOS}
-			Call un.GetInfoComp
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
-	${For} $i 0 $ReqsTotal
-		${If} $i < ${MAX_REQUISITOS}
-			Call un.GetInfoReq
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
 !macroend
 
 ;--------------------------------
@@ -475,58 +473,58 @@ SectionEnd
 ;--------------------------------
 ;JsonLoad... (5)
 
-Function JsonLoadComps
-	!insertmacro MJsonLoadComps
+Function JsonLoadComplementos
+	!insertmacro MJsonLoadComplementos
 FunctionEnd
 
-Function JsonLoadReqs
-	!insertmacro MJsonLoadReqs
+Function JsonLoadRequisitos
+	!insertmacro MJsonLoadRequisitos
 FunctionEnd
 
-Function JsonLoadActs
-	!insertmacro MJsonLoadActs
+Function JsonLoadActualizaciones
+	!insertmacro MJsonLoadActualizaciones
 FunctionEnd
 
-Function JsonLoadExts
-	!insertmacro MJsonLoadExts
+Function JsonLoadExtensiones
+	!insertmacro MJsonLoadExtensiones
 FunctionEnd
 
-Function JsonLoadRecs
-	!insertmacro MJsonLoadRecs
+Function JsonLoadRecursos
+	!insertmacro MJsonLoadRecursos
 FunctionEnd
 
 ;--------------------------------
 ;GetInfo... (5)
 
-Function GetInfoComp
-	!insertmacro MGetInfoComp
+Function GetInfoComplemento
+	!insertmacro MGetInfoComplemento
 FunctionEnd
 
-Function GetInfoReq
-	!insertmacro MGetInfoReq
+Function GetInfoRequisito
+	!insertmacro MGetInfoRequisito
 FunctionEnd
 
-Function GetInfoAct
-	!insertmacro MGetInfoAct
+Function GetInfoActualizacion
+	!insertmacro MGetInfoActualizacion
 FunctionEnd
 
-Function GetInfoExt
-	!insertmacro MGetInfoExt
+Function GetInfoExtension
+	!insertmacro MGetInfoExtension
 FunctionEnd
 
-Function GetInfoRec
-	!insertmacro MGetInfoRec
+Function GetInfoRecurso
+	!insertmacro MGetInfoRecurso
 FunctionEnd
 
 ;--------------------------------
 ;InstallByIndex... (5)
 
-Function InstallByIndexComp
-	${If} $i >= ${MAX_COMPLEMENTOS}
-	${OrIf} $i > $CompsTotal
+Function InstallByIndexComplemento
+	${If} $Pos >= ${MAX_COMPLEMENTOS}
+	${OrIf} $Pos > $ComplementosTotal
 		Return
 	${EndIf}
-	Call GetInfoComp
+	Call GetInfoComplemento
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -535,7 +533,7 @@ Function InstallByIndexComp
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Comp
+		Goto Tag_FIN_Complemento
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -553,19 +551,19 @@ Function InstallByIndexComp
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Comp:
+Tag_FIN_Complemento:
 	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexReq
-	${If} $i >= ${MAX_REQUISITOS}
-	${OrIf} $i > $ReqsTotal
+Function InstallByIndexRequisito
+	${If} $Pos >= ${MAX_REQUISITOS}
+	${OrIf} $Pos > $RequisitosTotal
 		Return
 	${EndIf}
-	Call GetInfoReq
+	Call GetInfoRequisito
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -574,7 +572,7 @@ Function InstallByIndexReq
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Req
+		Goto Tag_FIN_Requisito
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -601,19 +599,19 @@ Function InstallByIndexReq
 		File "meta.json"
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Req:
+Tag_FIN_Requisito:
 	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexAct
-	${If} $i >= ${MAX_ACTUALIZACIONES}
-	${OrIf} $i > $ActsTotal
+Function InstallByIndexActualizacion
+	${If} $Pos >= ${MAX_ACTUALIZACIONES}
+	${OrIf} $Pos > $ActualizacionesTotal
 		Return
 	${EndIf}
-	Call GetInfoAct
+	Call GetInfoActualizacion
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -622,7 +620,7 @@ Function InstallByIndexAct
 		${If} $ToolVersion == $VERSION
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndAct
+		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizacion
 	${EndIf}
 	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
 	Call DownloadSingleTool
@@ -630,7 +628,7 @@ Function InstallByIndexAct
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
 		DetailPrint "${TXT_MsgErrorActualizacion}"
-		Goto Tag_FIN_Act
+		Goto Tag_FIN_Actualizacion
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_LogInstalandoActualizacion} $ToolVersion"
@@ -641,22 +639,22 @@ Function InstallByIndexAct
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Act:
+Tag_FIN_Actualizacion:
 	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 	Return
-EndAct:
+EndActualizacion:
 	DetailPrint "${TXT_MsgActualizacionCancelada}"
 FunctionEnd
 
-Function InstallByIndexExt
-	${If} $i >= ${MAX_EXTENSIONES}
-	${OrIf} $i > $ExtsTotal
+Function InstallByIndexExtension
+	${If} $Pos >= ${MAX_EXTENSIONES}
+	${OrIf} $Pos > $ExtensionesTotal
 		Return
 	${EndIf}
-	Call GetInfoExt
+	Call GetInfoExtension
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -665,7 +663,7 @@ Function InstallByIndexExt
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Ext
+		Goto Tag_FIN_Extension
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -683,19 +681,19 @@ Function InstallByIndexExt
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Ext:
+Tag_FIN_Extension:
 	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
-Function InstallByIndexRec
-	${If} $i >= ${MAX_RECURSOS}
-	${OrIf} $i > $RecsTotal
+Function InstallByIndexRecurso
+	${If} $Pos >= ${MAX_RECURSOS}
+	${OrIf} $Pos > $RecursosTotal
 		Return
 	${EndIf}
-	Call GetInfoRec
+	Call GetInfoRecurso
 	${If} ${SectionIsSelected} $ToolIndex
 	${Else}
 		Return
@@ -704,7 +702,7 @@ Function InstallByIndexRec
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		Goto Tag_FIN_Rec
+		Goto Tag_FIN_Recurso
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
@@ -722,7 +720,7 @@ Function InstallByIndexRec
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Rec:
+Tag_FIN_Recurso:
 	DetailPrint "..."
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
@@ -732,199 +730,17 @@ FunctionEnd
 ;--------------------------------
 ; Funciones generales
 
-Function CheckAllTools
-	StrCpy $CompsVisibles "0"
-	StrCpy $ReqsVisibles "0"
-	StrCpy $ExtsVisibles "0"
-	StrCpy $RecsVisibles "0"
+Function CheckAllComponents
 	Call FetchToolsCatalog
-	Call JsonLoadComps
-	${For} $i 0 $CompsTotal
-		${If} $i < ${MAX_COMPLEMENTOS}
-			Call GetInfoComp
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				IntOp $0 0 | ${SF_RO}
-				SectionSetFlags $ToolIndex $0
-				SectionSetText $ToolIndex ""
-			${Else}
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $CompsVisibles $CompsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${EndIf}
-		${EndIf}
-	${Next}
-	Call JsonLoadReqs
-	${For} $i 0 $ReqsTotal
-		${If} $i < ${MAX_REQUISITOS}
-			Call GetInfoReq
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ReqsVisibles $ReqsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${Else}
-				SectionSetFlags $ToolIndex ${SF_SELECTED}
-				IntOp $ReqsVisibles $ReqsVisibles + 1
-			${EndIf}
-		${EndIf}
-	${Next}
-	Call JsonLoadExts
-	${For} $i 0 $ExtsTotal
-		${If} $i < ${MAX_EXTENSIONES}
-			Call GetInfoExt
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $ExtsVisibles $ExtsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $ExtsVisibles $ExtsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ExtsVisibles $ExtsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $ExtsVisibles $ExtsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${Else}
-				SectionSetFlags $ToolIndex ${SF_SELECTED}
-				IntOp $ExtsVisibles $ExtsVisibles + 1
-			${EndIf}
-		${EndIf}
-	${Next}
-	Call JsonLoadRecs
-	${For} $i 0 $RecsTotal
-		${If} $i < ${MAX_RECURSOS}
-			Call GetInfoRec
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
-				${If} "$ToolOpChk" == "0"
-					SectionSetFlags $ToolIndex 0
-					IntOp $RecsVisibles $RecsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "1"
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-					IntOp $RecsVisibles $RecsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $RecsVisibles $RecsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					IntOp $RecsVisibles $RecsVisibles + 1
-				${ElseIf} "$ToolOpChk" == "4"
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
-					SectionSetText $ToolIndex ""
-				${EndIf}
-			${Else}
-				SectionSetFlags $ToolIndex ${SF_SELECTED}
-				IntOp $RecsVisibles $RecsVisibles + 1
-			${EndIf}
-		${EndIf}
-	${Next}
-	Call JsonLoadActs
-	${For} $i 0 $ActsTotal
-		${If} $i < ${MAX_ACTUALIZACIONES}
-			Call GetInfoAct
-			${If} $IsUpdateInstall == "1"
-				SectionSetText $ToolIndex "$ToolName $ToolVersion"
-				SectionSetSize $ToolIndex $ToolSizeKb
-				${If} $ToolVersion == $VERSION
-				${AndIf} $ToolId == "release"
-					SectionSetText $ToolIndex ""
-					SectionSetSize $ToolIndex 0
-				${Else}
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
-				${EndIf}
-			${Else}
-				SectionSetText $ToolIndex ""
-			${EndIf}
-		${EndIf}
-	${Next}
-	${If} $CompsVisibles == "0"
-		SectionSetText ${GrpComplementos} ""
-	${EndIf}
-	${If} $ReqsVisibles == "0"
-		SectionSetText ${GrpRequisitos} ""
-	${EndIf}
-	${If} $ExtsVisibles == "0"
-		SectionSetText ${GrpExtensiones} ""
-	${EndIf}
-	${If} $RecsVisibles == "0"
-		SectionSetText ${GrpRecursos} ""
-	${EndIf}
-FunctionEnd
-
-Function CheckBaseComponents
-	${If} $IsUpdateInstall == "1"
-		SectionSetFlags ${SecPrograma} 0
-		SectionSetFlags ${SecLanzamiento} ${SF_SELECTED}
-		SectionSetText ${SecPrograma} "${NAME} ${TXT_EtiqReinstalar}"
-	${Else}
-		IntOp $Aux ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags ${SecPrograma} $Aux
-		IntOp $Aux 0 | ${SF_RO}
-		SectionSetFlags ${SecLanzamiento} $Aux
-		SectionSetText ${SecLanzamiento} ""
-	${EndIf}
+	Call CheckPrograma
+	Call CheckGrpActualizaciones
+	Call CheckGrpRequisitos
+	Call CheckGrpComplementos
+	Call CheckGrpExtensiones
+	Call CheckGrpRecursos
 FunctionEnd
 
 Function FetchToolsCatalog
-	SetOutPath "$INSTDRIVE$INSTDIR"
-	File "catalogo.json"
 	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\catalogo.json"
 	${If} ${FileExists} $ToolsCatalog
 		Delete $ToolsCatalog
@@ -952,6 +768,194 @@ LoadLocalTools:
 	SetOutPath "$INSTDRIVE$INSTDIR"
 	File "catalogo.json"
 ExitFetchTools:
+FunctionEnd
+
+Function CheckPrograma
+	${If} $IsUpdateInstall == "1"
+		SectionSetFlags ${SEC_PROGRAMA} 0
+		SectionSetText ${SEC_PROGRAMA} "${NAME} ${TXT_EtiqReinstalar}"
+	${Else}
+		IntOp $0 ${SF_SELECTED} | ${SF_RO}
+		SectionSetFlags ${SEC_PROGRAMA} $0
+	${EndIf}
+FunctionEnd
+
+Function CheckGrpActualizaciones
+	Call JsonLoadActualizaciones
+	${For} $Pos 0 $ActualizacionesTotal
+		${If} $Pos < ${MAX_ACTUALIZACIONES}
+			Call GetInfoActualizacion
+			${If} $IsUpdateInstall == "1"
+				SectionSetText $ToolIndex "$ToolName $ToolVersion"
+				SectionSetSize $ToolIndex $ToolSizeKb
+				${If} $ToolId == "release"
+					${If} $ToolVersion == $VERSION
+						SectionSetText $ToolIndex ""
+						SectionSetSize $ToolIndex 0
+						SectionSetFlags $ToolIndex 0
+					${Else}
+						SectionSetFlags $ToolIndex ${SF_SELECTED}
+					${EndIf}
+				${Else}
+					${If} "$ToolOpChk" == "0"
+						SectionSetFlags $ToolIndex 0
+					${ElseIf} "$ToolOpChk" == "1"
+						SectionSetFlags $ToolIndex ${SF_SELECTED}
+					${ElseIf} "$ToolOpChk" == "2"
+						IntOp $0 ${SF_SELECTED} | ${SF_RO}
+						SectionSetFlags $ToolIndex $0
+					${ElseIf} "$ToolOpChk" == "3"
+						IntOp $0 0 | ${SF_RO}
+						SectionSetFlags $ToolIndex $0
+					${EndIf}
+				${EndIf}
+			${Else}
+				SectionSetText $ToolIndex ""
+				SectionSetSize $ToolIndex 0
+				SectionSetFlags $ToolIndex 0
+			${EndIf}
+		${EndIf}
+	${Next}
+FunctionEnd
+
+Function CheckGrpRequisitos
+	StrCpy $RequisitosVisibles "0"
+	Call JsonLoadRequisitos
+	${For} $Pos 0 $RequisitosTotal
+		${If} $Pos < ${MAX_REQUISITOS}
+			Call GetInfoRequisito
+			SectionSetText $ToolIndex $ToolName
+			SectionSetSize $ToolIndex $ToolSizeKb
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+				IntOp $0 0 | ${SF_RO}
+				SectionSetFlags $ToolIndex $0
+				SectionSetText $ToolIndex ""
+			${Else}
+				IntOp $RequisitosVisibles $RequisitosVisibles + 1
+				${If} "$ToolOpChk" == "0"
+					SectionSetFlags $ToolIndex 0
+				${ElseIf} "$ToolOpChk" == "1"
+					SectionSetFlags $ToolIndex ${SF_SELECTED}
+				${ElseIf} "$ToolOpChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${ElseIf} "$ToolOpChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${EndIf}
+			${EndIf}
+		${EndIf}
+	${Next}
+	${If} $RequisitosVisibles == "0"
+		SectionSetText ${GRP_REQUISITOS} ""
+	${EndIf}
+FunctionEnd
+
+Function CheckGrpComplementos
+	StrCpy $ComplementosVisibles "0"
+	Call JsonLoadComplementos
+	${For} $Pos 0 $ComplementosTotal
+		${If} $Pos < ${MAX_COMPLEMENTOS}
+			Call GetInfoComplemento
+			SectionSetText $ToolIndex $ToolName
+			SectionSetSize $ToolIndex $ToolSizeKb
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+				IntOp $0 0 | ${SF_RO}
+				SectionSetFlags $ToolIndex $0
+				SectionSetText $ToolIndex ""
+			${Else}
+				IntOp $ComplementosVisibles $ComplementosVisibles + 1
+				${If} "$ToolOpChk" == "0"
+					SectionSetFlags $ToolIndex 0
+				${ElseIf} "$ToolOpChk" == "1"
+					SectionSetFlags $ToolIndex ${SF_SELECTED}
+				${ElseIf} "$ToolOpChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${ElseIf} "$ToolOpChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${EndIf}
+			${EndIf}
+		${EndIf}
+	${Next}
+	${If} $ComplementosVisibles == "0"
+		SectionSetText ${GRP_COMPLEMENTOS} ""
+	${EndIf}
+FunctionEnd
+
+Function CheckGrpExtensiones
+	StrCpy $ExtensionesVisibles "0"
+	Call JsonLoadExtensiones
+	${For} $Pos 0 $ExtensionesTotal
+		${If} $Pos < ${MAX_EXTENSIONES}
+			Call GetInfoExtension
+			SectionSetText $ToolIndex $ToolName
+			SectionSetSize $ToolIndex $ToolSizeKb
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+				IntOp $0 0 | ${SF_RO}
+				SectionSetFlags $ToolIndex $0
+				SectionSetText $ToolIndex ""
+			${Else}
+				IntOp $ExtensionesVisibles $ExtensionesVisibles + 1
+				${If} "$ToolOpChk" == "0"
+					SectionSetFlags $ToolIndex 0
+				${ElseIf} "$ToolOpChk" == "1"
+					SectionSetFlags $ToolIndex ${SF_SELECTED}
+				${ElseIf} "$ToolOpChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${ElseIf} "$ToolOpChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${EndIf}
+			${EndIf}
+		${EndIf}
+	${Next}
+	${If} $ExtensionesVisibles == "0"
+		SectionSetText ${GRP_EXTENSIONES} ""
+	${EndIf}
+FunctionEnd
+
+Function CheckGrpRecursos
+	StrCpy $RecursosVisibles "0"
+	Call JsonLoadRecursos
+	${For} $Pos 0 $RecursosTotal
+		${If} $Pos < ${MAX_RECURSOS}
+			Call GetInfoRecurso
+			SectionSetText $ToolIndex $ToolName
+			SectionSetSize $ToolIndex $ToolSizeKb
+			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+				IntOp $0 0 | ${SF_RO}
+				SectionSetFlags $ToolIndex $0
+				SectionSetText $ToolIndex ""
+			${Else}
+				IntOp $RecursosVisibles $RecursosVisibles + 1
+				${If} "$ToolOpChk" == "0"
+					SectionSetFlags $ToolIndex 0
+				${ElseIf} "$ToolOpChk" == "1"
+					SectionSetFlags $ToolIndex ${SF_SELECTED}
+				${ElseIf} "$ToolOpChk" == "2"
+					IntOp $0 ${SF_SELECTED} | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${ElseIf} "$ToolOpChk" == "3"
+					IntOp $0 0 | ${SF_RO}
+					SectionSetFlags $ToolIndex $0
+				${EndIf}
+			${EndIf}
+		${EndIf}
+	${Next}
+	${If} $RecursosVisibles == "0"
+		SectionSetText ${GRP_RECURSOS} ""
+	${EndIf}
 FunctionEnd
 
 Function DownloadSingleTool
@@ -1106,20 +1110,20 @@ FunctionEnd
 ;--------------------------------
 ; FUNCIONES DESINSTALACION
 
-Function un.JsonLoadComps
-	!insertmacro MJsonLoadComps
+Function un.JsonLoadComplementos
+	!insertmacro MJsonLoadComplementos
 FunctionEnd
 
-Function un.JsonLoadReqs
-	!insertmacro MJsonLoadReqs
+Function un.JsonLoadRequisitos
+	!insertmacro MJsonLoadRequisitos
 FunctionEnd
 
-Function un.GetInfoComp
-	!insertmacro MGetInfoComp
+Function un.GetInfoComplemento
+	!insertmacro MGetInfoComplemento
 FunctionEnd
 
-Function un.GetInfoReq
-	!insertmacro MGetInfoReq
+Function un.GetInfoRequisito
+	!insertmacro MGetInfoRequisito
 FunctionEnd
 
 Function un.RemoveFromEnvUserPath

@@ -27,8 +27,7 @@
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
-!define UPDATER "Instalar-MiAyudante.exe"
-!define INSTALL "..\dist\${UPDATER}"
+!define INSTALL "..\dist\Instalar-MiAyudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 
 ;--------------------------------
@@ -39,7 +38,14 @@ Var SERVER
 Var FTP_USER
 Var FTP_PASS
 Var PROTOCOL
-Var FullPath
+Var TIMESTAMP
+Var YEAR
+Var MONTH
+Var DAY
+Var HOUR
+Var MIN
+Var SEC
+
 Var IsUpdateInstall
 Var SkipPrereq
 Var RememberCreds
@@ -51,14 +57,6 @@ Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
 Var LogFile
-Var Timestamp
-Var UpdaterPath
-Var YEAR
-Var MONTH
-Var DAY
-Var HOUR
-Var MIN
-Var SEC
 Var ToolsCatalog
 
 ;--------------------------------
@@ -136,7 +134,7 @@ ${unStrStr}
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
 Page custom ShowOptionsForm SaveOptionsForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
-!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllTools
+!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllComponents
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -149,67 +147,53 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 ; FUNCIONES: INSTALACIÓN
 
 Function .onInit
-	GetFullPathName $FullPath $EXEPATH
-	StrCpy $INSTDRIVE $FullPath 2
-	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
-	ReadRegStr $1 HKCU "Software\${NAME}" "Install_Drive"
-	ReadRegStr $2 HKCU "Software\${NAME}" "SkipPrereq"
-	ReadRegStr $3 HKCU "Software\${NAME}" "Installer"
-	ReadRegStr $SERVER HKCU "Software\${NAME}" "Server"
-	ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
-	ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
-	ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-	ReadRegStr $VERSION HKCU "${HKCUNI}" "DisplayVersion"
-	${If} $0 != ""
-		StrCpy $INSTDIR $0
-		${If} $1 != ""
-			StrCpy $INSTDRIVE $1
-			StrCpy $UpdaterPath "$INSTDRIVE$INSTDIR\${UPDATER}"
-			${If} $3 != ""
-				${If} $UpdaterPath == $FullPath
-				${AndIf} $3 != $UpdaterPath
-					Delete $3
-					WriteRegStr HKCU "Software\${NAME}" "Installer" "$FullPath"
-				${EndIf}
-			${EndIf}
-		${EndIf}
-	${Else}
-		WriteRegStr HKCU "Software\${NAME}" "Installer" "$FullPath"
-	${EndIf}
-	StrCpy $SkipPrereq "0"
-	${If} $2 != ""
-		StrCpy $SkipPrereq $2
-	${EndIf}
-	${If} $VERSION == ""
-		StrCpy $VERSION ${RELEASE}
-	${EndIf}
-	${GetTime} "" "L" $DAY $MONTH $YEAR $R3 $HOUR $MIN $SEC
-	IntFmt $YEAR "%04d" $YEAR
-	IntFmt $MONTH "%02d" $MONTH
-	IntFmt $DAY "%02d" $DAY
-	IntFmt $HOUR "%02d" $HOUR
-	IntFmt $MIN "%02d" $MIN
-	StrCpy  $Timestamp "$YEAR$MONTH$DAY$HOUR$MIN"
-	StrCpy $IsUpdateInstall "0"
-	${If} $0 != ""
-		StrCpy $IsUpdateInstall "1"
-		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$Timestamp.log"
+	Call SetDateTimeStamp
+	Call GetEnvValues
+	${If} $IsUpdateInstall == "1"
+		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$TIMESTAMP.log"
 		StrCpy $TextCaption "${TXT_VentanaActualizador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeActualizador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
 	${Else}
-		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
+		StrCpy $LogFile "$INSTDIR\logs\instalacion_$TIMESTAMP.log"
 		StrCpy $TextCaption "${TXT_VentanaInstalador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeInstalador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeInstalador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishInstalador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishInstalador}"
 	${EndIf}
-	Call CheckBaseComponents
-	ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
-	${If} $RememberCreds != "1"
+FunctionEnd
+
+Function SetDateTimeStamp
+	${GetTime} "" "L" $DAY $MONTH $YEAR $R3 $HOUR $MIN $SEC
+	IntFmt $YEAR "%04d" $YEAR
+	IntFmt $MONTH "%02d" $MONTH
+	IntFmt $DAY "%02d" $DAY
+	IntFmt $HOUR "%02d" $HOUR
+	IntFmt $MIN "%02d" $MIN
+	StrCpy  $TIMESTAMP "$YEAR$MONTH$DAY$HOUR$MIN"
+FunctionEnd
+
+Function GetEnvValues
+	StrCpy $IsUpdateInstall "0"
+	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
+	${If} $0 != ""
+		StrCpy $INSTDIR $0
+		StrCpy $IsUpdateInstall "1"
+		ReadRegStr $INSTDRIVE HKCU "Software\${NAME}" "Install_Drive"
+		ReadRegStr $SkipPrereq HKCU "Software\${NAME}" "SkipPrereq"
+		ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
+		ReadRegStr $SERVER HKCU "Software\${NAME}" "Server"
+		ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
+		ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
+		ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
+		ReadRegStr $VERSION HKCU "${HKCUNI}" "DisplayVersion"
+	${Else}
+		StrCpy $INSTDRIVE $EXEPATH 2
+		StrCpy $VERSION ${RELEASE}
+		StrCpy $SkipPrereq "0"
 		StrCpy $RememberCreds "0"
 	${EndIf}
 FunctionEnd
@@ -316,16 +300,16 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
 		DetailPrint "============================================"
 	SectionEnd
-	!insertmacro SECTION_ACTUALIZACION 3
-	!insertmacro SECTION_ACTUALIZACION 4
-	!insertmacro SECTION_ACTUALIZACION 5
-	!insertmacro SECTION_ACTUALIZACION 6
-	!insertmacro SECTION_ACTUALIZACION 7
-	!insertmacro SECTION_ACTUALIZACION 8
-	!insertmacro SECTION_ACTUALIZACION 9
-	!insertmacro SECTION_ACTUALIZACION 10
-	!insertmacro SECTION_ACTUALIZACION 11
-	!insertmacro SECTION_ACTUALIZACION 12
+	!insertmacro CreateSectionActualizacion 3
+	!insertmacro CreateSectionActualizacion 4
+	!insertmacro CreateSectionActualizacion 5
+	!insertmacro CreateSectionActualizacion 6
+	!insertmacro CreateSectionActualizacion 7
+	!insertmacro CreateSectionActualizacion 8
+	!insertmacro CreateSectionActualizacion 9
+	!insertmacro CreateSectionActualizacion 10
+	!insertmacro CreateSectionActualizacion 11
+	!insertmacro CreateSectionActualizacion 12
 SectionGroupEnd
 
 Section "-WriteLog: Requisitos" 14
@@ -333,16 +317,16 @@ Section "-WriteLog: Requisitos" 14
 SectionEnd
 
 SectionGroup /e "${TXT_GrpRequisitos}" 15
-	!insertmacro SECTION_REQUISITO 16
-	!insertmacro SECTION_REQUISITO 17
-	!insertmacro SECTION_REQUISITO 18
-	!insertmacro SECTION_REQUISITO 19
-	!insertmacro SECTION_REQUISITO 20
-	!insertmacro SECTION_REQUISITO 21
-	!insertmacro SECTION_REQUISITO 22
-	!insertmacro SECTION_REQUISITO 23
-	!insertmacro SECTION_REQUISITO 24
-	!insertmacro SECTION_REQUISITO 25
+	!insertmacro CreateSectionRequisito 16
+	!insertmacro CreateSectionRequisito 17
+	!insertmacro CreateSectionRequisito 18
+	!insertmacro CreateSectionRequisito 19
+	!insertmacro CreateSectionRequisito 20
+	!insertmacro CreateSectionRequisito 21
+	!insertmacro CreateSectionRequisito 22
+	!insertmacro CreateSectionRequisito 23
+	!insertmacro CreateSectionRequisito 24
+	!insertmacro CreateSectionRequisito 25
 SectionGroupEnd
 
 Section "-WriteLog: Complementos" 27
@@ -350,36 +334,36 @@ Section "-WriteLog: Complementos" 27
 SectionEnd
 
 SectionGroup "${TXT_GrpComplementos}" 28
-	!insertmacro SECTION_COMPLEMENTO 29
-	!insertmacro SECTION_COMPLEMENTO 30
-	!insertmacro SECTION_COMPLEMENTO 31
-	!insertmacro SECTION_COMPLEMENTO 32
-	!insertmacro SECTION_COMPLEMENTO 33
-	!insertmacro SECTION_COMPLEMENTO 34
-	!insertmacro SECTION_COMPLEMENTO 35
-	!insertmacro SECTION_COMPLEMENTO 36
-	!insertmacro SECTION_COMPLEMENTO 37
-	!insertmacro SECTION_COMPLEMENTO 38
-	!insertmacro SECTION_COMPLEMENTO 39
-	!insertmacro SECTION_COMPLEMENTO 40
-	!insertmacro SECTION_COMPLEMENTO 41
-	!insertmacro SECTION_COMPLEMENTO 42
-	!insertmacro SECTION_COMPLEMENTO 43
-	!insertmacro SECTION_COMPLEMENTO 44
-	!insertmacro SECTION_COMPLEMENTO 45
-	!insertmacro SECTION_COMPLEMENTO 46
-	!insertmacro SECTION_COMPLEMENTO 47
-	!insertmacro SECTION_COMPLEMENTO 48
-	!insertmacro SECTION_COMPLEMENTO 49
-	!insertmacro SECTION_COMPLEMENTO 50
-	!insertmacro SECTION_COMPLEMENTO 51
-	!insertmacro SECTION_COMPLEMENTO 52
-	!insertmacro SECTION_COMPLEMENTO 53
-	!insertmacro SECTION_COMPLEMENTO 54
-	!insertmacro SECTION_COMPLEMENTO 55
-	!insertmacro SECTION_COMPLEMENTO 56
-	!insertmacro SECTION_COMPLEMENTO 57
-	!insertmacro SECTION_COMPLEMENTO 58
+	!insertmacro CreateSectionComplemento 29
+	!insertmacro CreateSectionComplemento 30
+	!insertmacro CreateSectionComplemento 31
+	!insertmacro CreateSectionComplemento 32
+	!insertmacro CreateSectionComplemento 33
+	!insertmacro CreateSectionComplemento 34
+	!insertmacro CreateSectionComplemento 35
+	!insertmacro CreateSectionComplemento 36
+	!insertmacro CreateSectionComplemento 37
+	!insertmacro CreateSectionComplemento 38
+	!insertmacro CreateSectionComplemento 39
+	!insertmacro CreateSectionComplemento 40
+	!insertmacro CreateSectionComplemento 41
+	!insertmacro CreateSectionComplemento 42
+	!insertmacro CreateSectionComplemento 43
+	!insertmacro CreateSectionComplemento 44
+	!insertmacro CreateSectionComplemento 45
+	!insertmacro CreateSectionComplemento 46
+	!insertmacro CreateSectionComplemento 47
+	!insertmacro CreateSectionComplemento 48
+	!insertmacro CreateSectionComplemento 49
+	!insertmacro CreateSectionComplemento 50
+	!insertmacro CreateSectionComplemento 51
+	!insertmacro CreateSectionComplemento 52
+	!insertmacro CreateSectionComplemento 53
+	!insertmacro CreateSectionComplemento 54
+	!insertmacro CreateSectionComplemento 55
+	!insertmacro CreateSectionComplemento 56
+	!insertmacro CreateSectionComplemento 57
+	!insertmacro CreateSectionComplemento 58
 SectionGroupEnd
 
 Section "-WriteLog: Extensiones" 60
@@ -387,26 +371,26 @@ Section "-WriteLog: Extensiones" 60
 SectionEnd
 
 SectionGroup "${TXT_GrpExtensiones}" 61
-	!insertmacro SECTION_EXTENSION 62
-	!insertmacro SECTION_EXTENSION 63
-	!insertmacro SECTION_EXTENSION 64
-	!insertmacro SECTION_EXTENSION 65
-	!insertmacro SECTION_EXTENSION 66
-	!insertmacro SECTION_EXTENSION 67
-	!insertmacro SECTION_EXTENSION 68
-	!insertmacro SECTION_EXTENSION 69
-	!insertmacro SECTION_EXTENSION 70
-	!insertmacro SECTION_EXTENSION 71
-	!insertmacro SECTION_EXTENSION 72
-	!insertmacro SECTION_EXTENSION 73
-	!insertmacro SECTION_EXTENSION 74
-	!insertmacro SECTION_EXTENSION 75
-	!insertmacro SECTION_EXTENSION 76
-	!insertmacro SECTION_EXTENSION 77
-	!insertmacro SECTION_EXTENSION 78
-	!insertmacro SECTION_EXTENSION 79
-	!insertmacro SECTION_EXTENSION 80
-	!insertmacro SECTION_EXTENSION 81
+	!insertmacro CreateSectionExtension 62
+	!insertmacro CreateSectionExtension 63
+	!insertmacro CreateSectionExtension 64
+	!insertmacro CreateSectionExtension 65
+	!insertmacro CreateSectionExtension 66
+	!insertmacro CreateSectionExtension 67
+	!insertmacro CreateSectionExtension 68
+	!insertmacro CreateSectionExtension 69
+	!insertmacro CreateSectionExtension 70
+	!insertmacro CreateSectionExtension 71
+	!insertmacro CreateSectionExtension 72
+	!insertmacro CreateSectionExtension 73
+	!insertmacro CreateSectionExtension 74
+	!insertmacro CreateSectionExtension 75
+	!insertmacro CreateSectionExtension 76
+	!insertmacro CreateSectionExtension 77
+	!insertmacro CreateSectionExtension 78
+	!insertmacro CreateSectionExtension 79
+	!insertmacro CreateSectionExtension 80
+	!insertmacro CreateSectionExtension 81
 SectionGroupEnd
 
 Section "-WriteLog: Recursos" 83
@@ -414,36 +398,36 @@ Section "-WriteLog: Recursos" 83
 SectionEnd
 
 SectionGroup "${TXT_GrpRecursos}" 84
-	!insertmacro SECTION_RECURSO 85
-	!insertmacro SECTION_RECURSO 86
-	!insertmacro SECTION_RECURSO 87
-	!insertmacro SECTION_RECURSO 88
-	!insertmacro SECTION_RECURSO 89
-	!insertmacro SECTION_RECURSO 90
-	!insertmacro SECTION_RECURSO 91
-	!insertmacro SECTION_RECURSO 92
-	!insertmacro SECTION_RECURSO 93
-	!insertmacro SECTION_RECURSO 94
-	!insertmacro SECTION_RECURSO 95
-	!insertmacro SECTION_RECURSO 96
-	!insertmacro SECTION_RECURSO 97
-	!insertmacro SECTION_RECURSO 98
-	!insertmacro SECTION_RECURSO 99
-	!insertmacro SECTION_RECURSO 100
-	!insertmacro SECTION_RECURSO 101
-	!insertmacro SECTION_RECURSO 102
-	!insertmacro SECTION_RECURSO 103
-	!insertmacro SECTION_RECURSO 104
-	!insertmacro SECTION_RECURSO 105
-	!insertmacro SECTION_RECURSO 106
-	!insertmacro SECTION_RECURSO 107
-	!insertmacro SECTION_RECURSO 108
-	!insertmacro SECTION_RECURSO 109
-	!insertmacro SECTION_RECURSO 110
-	!insertmacro SECTION_RECURSO 111
-	!insertmacro SECTION_RECURSO 112
-	!insertmacro SECTION_RECURSO 113
-	!insertmacro SECTION_RECURSO 114
+	!insertmacro CreateSectionRecurso 85
+	!insertmacro CreateSectionRecurso 86
+	!insertmacro CreateSectionRecurso 87
+	!insertmacro CreateSectionRecurso 88
+	!insertmacro CreateSectionRecurso 89
+	!insertmacro CreateSectionRecurso 90
+	!insertmacro CreateSectionRecurso 91
+	!insertmacro CreateSectionRecurso 92
+	!insertmacro CreateSectionRecurso 93
+	!insertmacro CreateSectionRecurso 94
+	!insertmacro CreateSectionRecurso 95
+	!insertmacro CreateSectionRecurso 96
+	!insertmacro CreateSectionRecurso 97
+	!insertmacro CreateSectionRecurso 98
+	!insertmacro CreateSectionRecurso 99
+	!insertmacro CreateSectionRecurso 100
+	!insertmacro CreateSectionRecurso 101
+	!insertmacro CreateSectionRecurso 102
+	!insertmacro CreateSectionRecurso 103
+	!insertmacro CreateSectionRecurso 104
+	!insertmacro CreateSectionRecurso 105
+	!insertmacro CreateSectionRecurso 106
+	!insertmacro CreateSectionRecurso 107
+	!insertmacro CreateSectionRecurso 108
+	!insertmacro CreateSectionRecurso 109
+	!insertmacro CreateSectionRecurso 110
+	!insertmacro CreateSectionRecurso 111
+	!insertmacro CreateSectionRecurso 112
+	!insertmacro CreateSectionRecurso 113
+	!insertmacro CreateSectionRecurso 114
 SectionGroupEnd
 
 Section "-WriteLog: Config" 116
@@ -463,6 +447,7 @@ Section "-Config" 117
 	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$INSTDRIVE${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$INSTDRIVE${TOOLS}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
+	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
 	${If} $RememberCreds == "1"
 		WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
 		WriteRegStr HKCU "Software\${NAME}" "FTP_Pass" "$FTP_PASS"
@@ -478,20 +463,12 @@ Section "-Config" 117
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	StrCpy $FTP_USER ""
 	StrCpy $FTP_PASS ""
-	${IfNot} ${FileExists} $UpdaterPath
-		CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
-	${Else}
-		${If} $UpdaterPath != $FullPath
-			Delete $UpdaterPath
-			CopyFiles /SILENT /FILESONLY $FullPath "$INSTDRIVE$INSTDIR"
-		${EndIf}
-	${EndIf}
 	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
 	DetailPrint "${TXT_LogCreateShortCut}"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\Actualizar.lnk" "$UpdaterPath" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$EXEPATH" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\Actualizar.lnk" "$EXEPATH" "" "$INSTDRIVE$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
 SectionEnd
 
@@ -501,7 +478,6 @@ SectionEnd
 
 Section "Uninstall"
 	Delete "$INSTDIR\*.*"
-	Delete "$INSTDIR\${UPDATER}"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\Actualizar.lnk"

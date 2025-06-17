@@ -76,7 +76,6 @@ Function SaveOptionsForm
 	${NSD_GetText} $FtpUserInput $FTP_USER
 	${NSD_GetText} $FtpPassInput $FTP_PASS
 	${NSD_GetText} $ProtocolDropList $PROTOCOL
-	StrCpy $UpdaterPath "$INSTDRIVE$INSTDIR\${UPDATER}"
 	${If} $SERVER == ""
 	${AndIf} $PROTOCOL != "---"
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
