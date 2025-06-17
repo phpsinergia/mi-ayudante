@@ -29,6 +29,7 @@
 !define UNINSTALL "Desinstalar.exe"
 !define INSTALL "..\dist\Instalar-MiAyudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+!define LINEA "============================================"
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -57,6 +58,7 @@ Var unToolsCheckboxState
 Var unToolsCheckbox
 Var LogFile
 Var ToolsCatalog
+Var CatalogFile
 
 ;--------------------------------
 ; TEXTOS DE LA INTERFAZ
@@ -174,6 +176,7 @@ FunctionEnd
 
 Function GetConfigValues
 	StrCpy $IsUpdateInstall "0"
+	StrCpy $CatalogFile "catalogo.json"
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	${If} $0 != ""
 		StrCpy $INSTDIR $0
@@ -229,6 +232,7 @@ FunctionEnd
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
+	StrCpy $CatalogFile "catalogo.json"
 	Call un.JsonLoadCatalog
 FunctionEnd
 
@@ -260,7 +264,7 @@ FunctionEnd
 
 Section "Uninstall"
 	Delete "$INSTDIR\*.*"
-	Delete "$INSTDIR\catalogo.json"
+	Delete "$INSTDIR\$CatalogFile"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\Actualizar.lnk"
@@ -277,6 +281,6 @@ Section "Uninstall"
 	Call un.RemoveDirIfEmpty
 	RMDir /r "$InstDrive${VENDOR}"
 Done:
-	Delete "$TEMP\catalogo.json"
+	Delete "$TEMP\$CatalogFile"
 	RMDir /r "$InstDrive${TARGET}"
 SectionEnd

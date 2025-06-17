@@ -523,7 +523,7 @@ FunctionEnd
 ;--------------------------------
 
 Function FetchCatalog
-	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\catalogo.json"
+	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\$CatalogFile"
 	CreateDirectory "$InstDrive$INSTDIR"
 	${If} ${FileExists} $ToolsCatalog
 		Delete $ToolsCatalog
@@ -534,12 +534,12 @@ Function FetchCatalog
 		Goto LoadLocalTools
 	${Endif}
 	${If} $Protocol == "FTP"
-		StrCpy $R0 "ftp://$Server/herramientas/catalogo.json"
+		StrCpy $R0 "ftp://$Server/herramientas/$CatalogFile"
 		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 	${ElseIf} $Protocol == "HTTP"
-		StrCpy $R0 "https://$Server/herramientas/catalogo.json"
+		StrCpy $R0 "https://$Server/herramientas/$CatalogFile"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
 		Pop $R1
 		Pop $R2
@@ -899,7 +899,7 @@ Function InstallByIndexRequisitos
 		Call AddToEnvUserPath
 	${EndIf}
 	${If} $ToolId == "vendor"
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolName v$ToolVersion"
 		RMDir /r "$InstDrive${VENDOR}"
 		Rename "$InstDrive${TOOLS}\$ToolId" "$InstDrive${VENDOR}"
@@ -1040,7 +1040,7 @@ Function DownloadSinglePack
 ;DownloadTool:
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "${TXT_MsgDescargando} $R0"
 		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
@@ -1053,7 +1053,7 @@ Function DownloadSinglePack
 		${EndIf}
 	${ElseIf} $Protocol == "HTTP"
 		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "${TXT_MsgDescargando} $R0"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
 		Pop $R1
@@ -1196,7 +1196,7 @@ EndRm:
 FunctionEnd
 
 Function un.JsonLoadCatalog
-	CopyFiles /SILENT /FILESONLY "$INSTDIR\catalogo.json" "$TEMP\"
-	StrCpy $ToolsCatalog "$TEMP\catalogo.json"
+	CopyFiles /SILENT /FILESONLY "$INSTDIR\$CatalogFile" "$TEMP\"
+	StrCpy $ToolsCatalog "$TEMP\$CatalogFile"
 	nsJSON::Set /file $ToolsCatalog
 FunctionEnd

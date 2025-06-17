@@ -1,6 +1,0 @@
-
-- Lograr que se cargue el Json aunque no tenga extensiones
-
-------------
-
-* Continuar refactorizando componentes.nsh...

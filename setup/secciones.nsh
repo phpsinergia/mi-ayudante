@@ -7,9 +7,7 @@ SectionEnd
 
 SectionGroup /e "${TXT_SecPrograma}" 1
 	Section "${NAME} (*)" 2
-		DetailPrint "============================================"
-		DetailPrint "*****${TXT_LogSecPrograma}*****"
-		DetailPrint "============================================"
+		Call WriteLogPrograma
 		CreateDirectory "$InstDrive$INSTDIR\compartidos"
 		CreateDirectory "$InstDrive$INSTDIR\datos"
 		CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
@@ -39,7 +37,6 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 			File "config.ini"
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-		DetailPrint "============================================"
 	SectionEnd
 	!insertmacro MCreateSectionActualizaciones 3
 	!insertmacro MCreateSectionActualizaciones 4

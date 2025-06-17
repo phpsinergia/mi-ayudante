@@ -8,9 +8,9 @@ Function WriteLogInicial
 	${Else}
 		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
 	${EndIf}
-	DetailPrint "============================================"
+	DetailPrint ${LINEA}
 	DetailPrint "${TXT_LogSecInicio}"
-	DetailPrint "============================================"
+	DetailPrint ${LINEA}
 	DetailPrint "${TXT_LogFechaHora} $Day-$Month-$Year  $Hour:$Min"
 	DetailPrint "${TXT_LogVersion} v$Version"
 	DetailPrint "${TXT_EtiqUnidadDestino} $InstDrive"
@@ -19,44 +19,51 @@ Function WriteLogInicial
 	DetailPrint "${TXT_LogProtocoloTransfer} $Protocol"
 FunctionEnd
 
+Function WriteLogPrograma
+	DetailPrint ${LINEA}
+	DetailPrint "*****${TXT_LogSecPrograma}*****"
+	DetailPrint ${LINEA}
+FunctionEnd
+
 Function WriteLogRequisitos
 	${If} $RequisitosVisibles > 0
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "*****${TXT_LogSecRequisitos}*****"
 	${EndIf}
 FunctionEnd
 
 Function WriteLogComplementos
 	${If} $ComplementosVisibles > 0
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "*****${TXT_LogSecComplementos}*****"
 	${EndIf}
 FunctionEnd
 
 Function WriteLogExtensiones
 	${If} $ExtensionesVisibles > 0
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "*****${TXT_LogSecExtensiones}*****"
 	${EndIf}
 FunctionEnd
 
 Function WriteLogRecursos
 	${If} $RecursosVisibles > 0
-		DetailPrint "============================================"
+		DetailPrint ${LINEA}
 		DetailPrint "*****${TXT_LogSecRecursos}*****"
 	${EndIf}
 FunctionEnd
 
 Function WriteLogConfig
-	DetailPrint "============================================"
+	DetailPrint ${LINEA}
 	DetailPrint "*****${TXT_LogSecConfig}*****"
+		DetailPrint ${LINEA}
 	DetailPrint "${TXT_LogWriteReg} HKCU Software\${NAME}"
 	DetailPrint "${TXT_LogWriteReg} HKCU ${HKCUNI}"
 	DetailPrint "${TXT_MsgCalculandoEspacio}"
 FunctionEnd
 
 Function WriteLogFinal
-	DetailPrint "============================================"
+	DetailPrint ${LINEA}
 	DetailPrint "*****FIN*****"
 	DumpLog::DumpLogUTF8 "$LogFile" .r0
 	Pop $0
