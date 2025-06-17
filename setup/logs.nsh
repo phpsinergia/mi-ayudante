@@ -4,12 +4,12 @@
 Function WriteLogInicial
 	DetailPrint "============================================"
 	DetailPrint "${TXT_LogTitulo}"
-	DetailPrint "${TXT_LogFechaHora} $DAY-$MONTH-$YEAR  $HOUR:$MIN"
-	DetailPrint "${TXT_LogVersion} v$VERSION"
-	DetailPrint "${TXT_EtiqUnidadDestino} $INSTDRIVE"
+	DetailPrint "${TXT_LogFechaHora} $Day-$Month-$Year  $Hour:$Min"
+	DetailPrint "${TXT_LogVersion} v$Version"
+	DetailPrint "${TXT_EtiqUnidadDestino} $InstDrive"
 	DetailPrint "${TXT_EtiqRutaInstalacion} $INSTDIR"
-	DetailPrint "${TXT_LogServidorDescargas} $SERVER"
-	DetailPrint "${TXT_LogProtocoloTransfer} $PROTOCOL"
+	DetailPrint "${TXT_LogServidorDescargas} $Server"
+	DetailPrint "${TXT_LogProtocoloTransfer} $Protocol"
 	;DetailPrint "============================================"
 FunctionEnd
 

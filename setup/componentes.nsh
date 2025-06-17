@@ -42,16 +42,16 @@ Var LogMsg
 	${For} $Pos 0 $ComplementosTotal
 		${If} $Pos < ${MAX_COMPLEMENTOS}
 			Call un.GetInfoComplemento
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			RMDir /r "$InstDrive${TOOLS}\$ToolId"
+			Push "$InstDrive${TOOLS}\$ToolId"
 			Call un.RemoveFromEnvUserPath
 		${EndIf}
 	${Next}
 	${For} $Pos 0 $RequisitosTotal
 		${If} $Pos < ${MAX_REQUISITOS}
 			Call un.GetInfoRequisito
-			RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
-			Push "$INSTDRIVE${TOOLS}\$ToolId"
+			RMDir /r "$InstDrive${TOOLS}\$ToolId"
+			Push "$InstDrive${TOOLS}\$ToolId"
 			Call un.RemoveFromEnvUserPath
 		${EndIf}
 	${Next}
@@ -416,7 +416,7 @@ Var LogMsg
 !macroend
 
 ;--------------------------------
-;SECTION_... (5)
+;CreateSection... (5)
 
 !macro CreateSectionActualizacion index
 Section /o "" ${index}
@@ -538,22 +538,22 @@ Function InstallByIndexComplemento
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $ToolTemp 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	StrCpy $R9 $InstDrive 2
+	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$INSTDRIVE${TOOLS}\$ToolId"
+		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Push "$InstDrive${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Complemento:
 	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
@@ -577,31 +577,31 @@ Function InstallByIndexRequisito
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $ToolTemp 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	StrCpy $R9 $InstDrive 2
+	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$INSTDRIVE${TOOLS}\$ToolId"
+		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Push "$InstDrive${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
 	${If} $ToolId == "vendor"
 		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolName v$ToolVersion"
-		RMDir /r "$INSTDRIVE${VENDOR}"
-		Rename "$INSTDRIVE${TOOLS}\$ToolId" "$INSTDRIVE${VENDOR}"
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		SetOutPath "$INSTDRIVE${TOOLS}\$ToolId"
+		RMDir /r "$InstDrive${VENDOR}"
+		Rename "$InstDrive${TOOLS}\$ToolId" "$InstDrive${VENDOR}"
+		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
+		SetOutPath "$InstDrive${TOOLS}\$ToolId"
 		File "meta.json"
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Requisito:
 	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
@@ -617,10 +617,10 @@ Function InstallByIndexActualizacion
 		Return
 	${EndIf}
 	${If} $ToolId == "release"
-		${If} $ToolVersion == $VERSION
+		${If} $ToolVersion == $Version
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $VERSION$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizacion
+		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $Version$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizacion
 	${EndIf}
 	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
 	Call DownloadSingleTool
@@ -632,16 +632,16 @@ Function InstallByIndexActualizacion
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "${TXT_LogInstalandoActualizacion} $ToolVersion"
-	CopyFiles /SILENT "$ToolTemp\*.*" "$INSTDRIVE$INSTDIR\"
+	CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive$INSTDIR\"
 	${If} $ToolId == "release"
-		StrCpy $VERSION $ToolVersion
-		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
+		StrCpy $Version $ToolVersion
+		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Actualizacion:
 	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 	Return
@@ -668,22 +668,22 @@ Function InstallByIndexExtension
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $ToolTemp 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	StrCpy $R9 $InstDrive 2
+	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$INSTDRIVE${TOOLS}\$ToolId"
+		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Push "$InstDrive${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Extension:
 	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
@@ -707,22 +707,22 @@ Function InstallByIndexRecurso
 	DetailPrint "..."
 	DetailPrint "${TXT_MsgInstalandoHerramienta} $ToolId"
 	StrCpy $R8 $ToolTemp 2
-	StrCpy $R9 $INSTDRIVE 2
-	RMDir /r "$INSTDRIVE${TOOLS}\$ToolId"
+	StrCpy $R9 $InstDrive 2
+	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$INSTDRIVE${TOOLS}\$ToolId"
+		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
-		CreateDirectory "$INSTDRIVE${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$INSTDRIVE${TOOLS}\$ToolId\"
+		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
+		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolAddPath == "1"
-		Push "$INSTDRIVE${TOOLS}\$ToolId"
+		Push "$InstDrive${TOOLS}\$ToolId"
 		Call AddToEnvUserPath
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Recurso:
 	DetailPrint "..."
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	Delete "$TEMP\$ToolId.zip"
 	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
@@ -741,22 +741,22 @@ Function CheckAllComponents
 FunctionEnd
 
 Function FetchToolsCatalog
-	StrCpy $ToolsCatalog "$INSTDRIVE$INSTDIR\catalogo.json"
+	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\catalogo.json"
 	${If} ${FileExists} $ToolsCatalog
 		Delete $ToolsCatalog
 	${EndIf}
-	${If} $SERVER == ""
-	${OrIf} $PROTOCOL == ""
-	${OrIf} $PROTOCOL == "---"
+	${If} $Server == ""
+	${OrIf} $Protocol == ""
+	${OrIf} $Protocol == "---"
 		Goto LoadLocalTools
 	${Endif}
-	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/catalogo.json"
-		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
+	${If} $Protocol == "FTP"
+		StrCpy $R0 "ftp://$Server/herramientas/catalogo.json"
+		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
-	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/catalogo.json"
+	${ElseIf} $Protocol == "HTTP"
+		StrCpy $R0 "https://$Server/herramientas/catalogo.json"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
 		Pop $R1
 		Pop $R2
@@ -765,7 +765,7 @@ Function FetchToolsCatalog
 		Goto ExitFetchTools
 	${EndIf}
 LoadLocalTools:
-	SetOutPath "$INSTDRIVE$INSTDIR"
+	SetOutPath "$InstDrive$INSTDIR"
 	File "catalogo.json"
 ExitFetchTools:
 FunctionEnd
@@ -789,7 +789,7 @@ Function CheckGrpActualizaciones
 				SectionSetText $ToolIndex "$ToolName $ToolVersion"
 				SectionSetSize $ToolIndex $ToolSizeKb
 				${If} $ToolId == "release"
-					${If} $ToolVersion == $VERSION
+					${If} $ToolVersion == $Version
 						SectionSetText $ToolIndex ""
 						SectionSetSize $ToolIndex 0
 						SectionSetFlags $ToolIndex 0
@@ -826,9 +826,9 @@ Function CheckGrpRequisitos
 			Call GetInfoRequisito
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 				IntOp $0 0 | ${SF_RO}
 				SectionSetFlags $ToolIndex $0
 				SectionSetText $ToolIndex ""
@@ -861,9 +861,9 @@ Function CheckGrpComplementos
 			Call GetInfoComplemento
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 				IntOp $0 0 | ${SF_RO}
 				SectionSetFlags $ToolIndex $0
 				SectionSetText $ToolIndex ""
@@ -896,9 +896,9 @@ Function CheckGrpExtensiones
 			Call GetInfoExtension
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 				IntOp $0 0 | ${SF_RO}
 				SectionSetFlags $ToolIndex $0
 				SectionSetText $ToolIndex ""
@@ -931,9 +931,9 @@ Function CheckGrpRecursos
 			Call GetInfoRecurso
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
-			${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
+			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 				IntOp $0 0 | ${SF_RO}
 				SectionSetFlags $ToolIndex $0
 				SectionSetText $ToolIndex ""
@@ -959,16 +959,16 @@ Function CheckGrpRecursos
 FunctionEnd
 
 Function DownloadSingleTool
-	${If} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\bin\*.exe"
-	${OrIf} ${FileExists} "$INSTDRIVE${TOOLS}\$ToolId\*.json"
+	${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
+	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
+	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 		Goto SkipTool
 	${EndIf}
-	${If} $PROTOCOL == "FTP"
-		StrCpy $R0 "ftp://$SERVER/herramientas/$ToolId.zip"
+	${If} $Protocol == "FTP"
+		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgDescargando} $R0"
-		nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
+		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
@@ -977,8 +977,8 @@ Function DownloadSingleTool
 			MessageBox MB_ICONEXCLAMATION "$LogMsg"
 			Goto SkipTool
 		${EndIf}
-	${ElseIf} $PROTOCOL == "HTTP"
-		StrCpy $R0 "https://$SERVER/herramientas/$ToolId.zip"
+	${ElseIf} $Protocol == "HTTP"
+		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
 		DetailPrint "============================================"
 		DetailPrint "${TXT_MsgDescargando} $R0"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --insecure --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'

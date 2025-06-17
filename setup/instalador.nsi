@@ -32,20 +32,19 @@
 
 ;--------------------------------
 ; VARIABLES GLOBALES
-Var VERSION
-Var INSTDRIVE
-Var SERVER
-Var FTP_USER
-Var FTP_PASS
-Var PROTOCOL
-Var TIMESTAMP
-Var YEAR
-Var MONTH
-Var DAY
-Var HOUR
-Var MIN
-Var SEC
-
+Var Version
+Var InstDrive
+Var Server
+Var FtpUser
+Var FtpPass
+Var Protocol
+Var Timestamp
+Var Year
+Var Month
+Var Day
+Var Hour
+Var Min
+Var Sec
 Var IsUpdateInstall
 Var SkipPrereq
 Var RememberCreds
@@ -150,14 +149,14 @@ Function .onInit
 	Call SetDateTimeStamp
 	Call GetEnvValues
 	${If} $IsUpdateInstall == "1"
-		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$TIMESTAMP.log"
+		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaActualizador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeActualizador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
 		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
 		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
 	${Else}
-		StrCpy $LogFile "$INSTDIR\logs\instalacion_$TIMESTAMP.log"
+		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
 		StrCpy $TextCaption "${TXT_VentanaInstalador}"
 		StrCpy $TitleWelcome "${TXT_TituloWelcomeInstalador}"
 		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeInstalador}"
@@ -167,13 +166,13 @@ Function .onInit
 FunctionEnd
 
 Function SetDateTimeStamp
-	${GetTime} "" "L" $DAY $MONTH $YEAR $R3 $HOUR $MIN $SEC
-	IntFmt $YEAR "%04d" $YEAR
-	IntFmt $MONTH "%02d" $MONTH
-	IntFmt $DAY "%02d" $DAY
-	IntFmt $HOUR "%02d" $HOUR
-	IntFmt $MIN "%02d" $MIN
-	StrCpy  $TIMESTAMP "$YEAR$MONTH$DAY$HOUR$MIN"
+	${GetTime} "" "L" $Day $Month $Year $R3 $Hour $Min $Sec
+	IntFmt $Year "%04d" $Year
+	IntFmt $Month "%02d" $Month
+	IntFmt $Day "%02d" $Day
+	IntFmt $Hour "%02d" $Hour
+	IntFmt $Min "%02d" $Min
+	StrCpy  $Timestamp "$Year$Month$Day$Hour$Min"
 FunctionEnd
 
 Function GetEnvValues
@@ -182,17 +181,17 @@ Function GetEnvValues
 	${If} $0 != ""
 		StrCpy $INSTDIR $0
 		StrCpy $IsUpdateInstall "1"
-		ReadRegStr $INSTDRIVE HKCU "Software\${NAME}" "Install_Drive"
+		ReadRegStr $InstDrive HKCU "Software\${NAME}" "Install_Drive"
 		ReadRegStr $SkipPrereq HKCU "Software\${NAME}" "SkipPrereq"
 		ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
-		ReadRegStr $SERVER HKCU "Software\${NAME}" "Server"
-		ReadRegStr $FTP_USER HKCU "Software\${NAME}" "FTP_User"
-		ReadRegStr $FTP_PASS HKCU "Software\${NAME}" "FTP_Pass"
-		ReadRegStr $PROTOCOL HKCU "Software\${NAME}" "Protocol"
-		ReadRegStr $VERSION HKCU "${HKCUNI}" "DisplayVersion"
+		ReadRegStr $Server HKCU "Software\${NAME}" "Server"
+		ReadRegStr $FtpUser HKCU "Software\${NAME}" "FtpUser"
+		ReadRegStr $FtpPass HKCU "Software\${NAME}" "FtpPass"
+		ReadRegStr $Protocol HKCU "Software\${NAME}" "Protocol"
+		ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
 	${Else}
-		StrCpy $INSTDRIVE $EXEPATH 2
-		StrCpy $VERSION ${RELEASE}
+		StrCpy $InstDrive $EXEPATH 2
+		StrCpy $Version ${RELEASE}
 		StrCpy $SkipPrereq "0"
 		StrCpy $RememberCreds "0"
 	${EndIf}
@@ -205,15 +204,15 @@ Function SkipIfUpdate
 FunctionEnd
 
 Function LaunchApp
-	IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" 0 +3
-		ExecShell "" '"$INSTDRIVE$INSTDIR\${APPFILE}"'
+	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" 0 +3
+		ExecShell "" '"$InstDrive$INSTDIR\${APPFILE}"'
 		Return
 	MessageBox MB_ICONSTOP "${TXT_MsgExeNoEncontrado}"
 FunctionEnd
 
 Function RunUninstaller
 	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "${TXT_MsgConfirmaDesinstalacion}" IDNO EndAsk
-		StrCpy $0 "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALL}"
 		IfFileExists "$0" 0 NoUninst
 		Exec '"$0"'
 		Quit
@@ -232,7 +231,7 @@ FunctionEnd
 
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
-	StrCpy $INSTDRIVE $0
+	StrCpy $InstDrive $0
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\catalogo.json" "$TEMP\catalogo.json"
 	StrCpy $ToolsCatalog "$TEMP\catalogo.json"
 FunctionEnd
@@ -269,35 +268,35 @@ SectionGroup /e "${TXT_SecPrograma}" 1
 	Section "${NAME} (*)" 2
 		DetailPrint "============================================"
 		DetailPrint "${TXT_LogSecPrograma}"
-		CreateDirectory "$INSTDRIVE$INSTDIR\compartidos"
-		CreateDirectory "$INSTDRIVE$INSTDIR\datos"
-		CreateDirectory "$INSTDRIVE$INSTDIR\entornos\basico"
-		CreateDirectory "$INSTDRIVE$INSTDIR\logs"
-		CreateDirectory "$INSTDRIVE$INSTDIR\respaldos"
-		CreateDirectory "$INSTDRIVE${TOOLS}"
-		SetOutPath "$INSTDRIVE$INSTDIR\base"
+		CreateDirectory "$InstDrive$INSTDIR\compartidos"
+		CreateDirectory "$InstDrive$INSTDIR\datos"
+		CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
+		CreateDirectory "$InstDrive$INSTDIR\logs"
+		CreateDirectory "$InstDrive$INSTDIR\respaldos"
+		CreateDirectory "$InstDrive${TOOLS}"
+		SetOutPath "$InstDrive$INSTDIR\base"
 		File /r "..\app\base\*.*"
-		SetOutPath "$INSTDRIVE$INSTDIR\img"
+		SetOutPath "$InstDrive$INSTDIR\img"
 		File /r "..\app\img\*.*"
-		SetOutPath "$INSTDRIVE$INSTDIR"
-		IfFileExists "$INSTDRIVE$INSTDIR\${APPFILE}" +2 0
+		SetOutPath "$InstDrive$INSTDIR"
+		IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
 			File "..\app\${APPFILE}"
-		IfFileExists "$INSTDRIVE$INSTDIR\${README}" +2 0
+		IfFileExists "$InstDrive$INSTDIR\${README}" +2 0
 			File "..\app\${README}"
-		IfFileExists "$INSTDRIVE$INSTDIR\${LICENSEFILE}" +2 0
+		IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
 			File /oname=LICENSE.txt "..\${LICENSEFILE}"
-		SetOutPath "$INSTDRIVE$INSTDIR\datos"
-		IfFileExists "$INSTDRIVE$INSTDIR\datos\basico_proyectos.txt" +2 0
+		SetOutPath "$InstDrive$INSTDIR\datos"
+		IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
 			File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
-		SetOutPath "$INSTDRIVE$INSTDIR\entornos\basico"
-		IfFileExists "$INSTDRIVE$INSTDIR\entornos\basico\config.ini" +2 0
+		SetOutPath "$InstDrive$INSTDIR\entornos\basico"
+		IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
 			File /r "..\app\base\entorno\*.*"
-		SetOutPath "$INSTDRIVE${TOOLS}"
-		SetOutPath "$INSTDRIVE$INSTDIR"
-		IfFileExists "$INSTDRIVE$INSTDIR\config.ini" +2 0
+		SetOutPath "$InstDrive${TOOLS}"
+		SetOutPath "$InstDrive$INSTDIR"
+		IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
 			File "config.ini"
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base RutaHerramientas $INSTDRIVE${TOOLS}
-		WriteINIStr $INSTDRIVE$INSTDIR\config.ini Base Lanzamiento $VERSION
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 		DetailPrint "============================================"
 	SectionEnd
 	!insertmacro CreateSectionActualizacion 3
@@ -435,41 +434,41 @@ Section "-WriteLog: Config" 116
 SectionEnd
 
 Section "-Config" 117
-	${GetSize} "$INSTDRIVE\home" "/S=0K" $1 $R7 $R8
+	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
 	DetailPrint "$1 KB"
 	IntFmt $1 "0x%08X" $1
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
-	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$INSTDRIVE"
-	WriteRegStr HKCU "Software\${NAME}" "Server" "$SERVER"
-	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$PROTOCOL"
+	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
+	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
+	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$Protocol"
 	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
-	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$INSTDRIVE${VENDOR}"
-	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$INSTDRIVE${TOOLS}"
+	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
+	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
 	${If} $RememberCreds == "1"
-		WriteRegStr HKCU "Software\${NAME}" "FTP_User" "$FTP_USER"
-		WriteRegStr HKCU "Software\${NAME}" "FTP_Pass" "$FTP_PASS"
+		WriteRegStr HKCU "Software\${NAME}" "FtpUser" "$FtpUser"
+		WriteRegStr HKCU "Software\${NAME}" "FtpPass" "$FtpPass"
 	${Else}
-		DeleteRegValue HKCU "Software\${NAME}" "FTP_User"
-		DeleteRegValue HKCU "Software\${NAME}" "FTP_Pass"
+		DeleteRegValue HKCU "Software\${NAME}" "FtpUser"
+		DeleteRegValue HKCU "Software\${NAME}" "FtpPass"
 	${EndIf}
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$INSTDRIVE$INSTDIR\${ICON}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$VERSION"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALL}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
-	StrCpy $FTP_USER ""
-	StrCpy $FTP_PASS ""
-	WriteUninstaller "$INSTDRIVE$INSTDIR\${UNINSTALL}"
+	StrCpy $FtpUser ""
+	StrCpy $FtpPass ""
+	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALL}"
 	DetailPrint "${TXT_LogCreateShortCut}"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$EXEPATH" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\Actualizar.lnk" "$EXEPATH" "" "$INSTDRIVE$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$INSTDRIVE$INSTDIR\${APPFILE}" "" "$INSTDRIVE$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\Actualizar.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 SectionEnd
 
 Section "-WriteLog: Final" 118
@@ -491,9 +490,9 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	!insertmacro MUninstallTools
-	Push "$INSTDRIVE${TOOLS}"
+	Push "$InstDrive${TOOLS}"
 	Call un.RemoveDirIfEmpty
-	RMDir /r "$INSTDRIVE${VENDOR}"
+	RMDir /r "$InstDrive${VENDOR}"
 Done:
-	RMDir /r "$INSTDRIVE${TARGET}"
+	RMDir /r "$InstDrive${TARGET}"
 SectionEnd

@@ -15,8 +15,8 @@ Var RememberCredsCheckbox
 Function ShowOptionsForm
 	nsDialogs::Create 1018
 	Pop $0
-	${If} $PROTOCOL == ""
-		StrCpy $PROTOCOL "---"
+	${If} $Protocol == ""
+		StrCpy $Protocol "---"
 	${EndIf}
 	!insertmacro MUI_HEADER_TEXT "${TXT_TituloComponentes}" "${TXT_SubtituloComponentes}"
 	; 1. Grupo: **Ruta de instalación**
@@ -28,7 +28,7 @@ Function ShowOptionsForm
 		Pop $DriveDropList
 		StrCpy $hDriveDropList $DriveDropList
 		Call FillDriveList
-		${NSD_CB_SelectString} $DriveDropList "$INSTDRIVE\"
+		${NSD_CB_SelectString} $DriveDropList "$InstDrive\"
 		${If} $IsUpdateInstall == "1"
 			System::Call 'user32::EnableWindow(p$DriveDropList,i0)'
 			${NSD_CreateButton} 215u 16u 60u 16u "${TXT_BotonDesinstalar}"
@@ -45,21 +45,21 @@ Function ShowOptionsForm
 			${NSD_CB_AddString} $ProtocolDropList "---"
 			${NSD_CB_AddString} $ProtocolDropList "HTTP"
 			${NSD_CB_AddString} $ProtocolDropList "FTP"
-			${NSD_CB_SelectString} $ProtocolDropList "$PROTOCOL"
+			${NSD_CB_SelectString} $ProtocolDropList "$Protocol"
 		${NSD_CreateLabel} 15u 77u 90u 10u "${TXT_EtiqDominioServidor}"
 		Pop $0
-		${NSD_CreateText} 110u 75u 90u 12u "$SERVER"
+		${NSD_CreateText} 110u 75u 90u 12u "$Server"
 		Pop $ServerInput
 		${NSD_CreateButton} 215u 59u 60u 16u "${TXT_BotonComprobar}"
 		Pop $btnTest
 		${NSD_OnClick} $btnTest TestConnection
 		${NSD_CreateLabel} 15u 93u 90u 10u "${TXT_EtiqUsuarioFtp}"
 		Pop $0
-		${NSD_CreateText} 110u 91u 90u 12u "$FTP_USER"
+		${NSD_CreateText} 110u 91u 90u 12u "$FtpUser"
 		Pop $FtpUserInput
 		${NSD_CreateLabel} 15u 109u 90u 10u "${TXT_EtiqPassFtp}"
 		Pop $0
-		${NSD_CreatePassword} 110u 107u 90u 12u "$FTP_PASS"
+		${NSD_CreatePassword} 110u 107u 90u 12u "$FtpPass"
 		Pop $FtpPassInput
 		${NSD_CreateCheckbox} 110u 124u 150u 10u "${TXT_EtiqRecordarCreds}"
 		Pop $RememberCredsCheckbox
@@ -71,20 +71,20 @@ FunctionEnd
 
 Function SaveOptionsForm
 	${NSD_GetText} $DriveDropList $0
-	StrCpy $INSTDRIVE $0 2
-	${NSD_GetText} $ServerInput $SERVER
-	${NSD_GetText} $FtpUserInput $FTP_USER
-	${NSD_GetText} $FtpPassInput $FTP_PASS
-	${NSD_GetText} $ProtocolDropList $PROTOCOL
-	${If} $SERVER == ""
-	${AndIf} $PROTOCOL != "---"
+	StrCpy $InstDrive $0 2
+	${NSD_GetText} $ServerInput $Server
+	${NSD_GetText} $FtpUserInput $FtpUser
+	${NSD_GetText} $FtpPassInput $FtpPass
+	${NSD_GetText} $ProtocolDropList $Protocol
+	${If} $Server == ""
+	${AndIf} $Protocol != "---"
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
 		Abort
 	${Endif}
 	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
-	${If} $PROTOCOL == "FTP"
-		${If} $FTP_USER == ""
-		${OrIf} $FTP_PASS == ""
+	${If} $Protocol == "FTP"
+		${If} $FtpUser == ""
+		${OrIf} $FtpPass == ""
 			MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltanCredencialesFtp}"
 			Abort
 		${EndIf}
@@ -92,16 +92,16 @@ Function SaveOptionsForm
 FunctionEnd
 
 Function TestConnection
-	${NSD_GetText} $ServerInput $SERVER
-	${If} $SERVER == ""
+	${NSD_GetText} $ServerInput $Server
+	${If} $Server == ""
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaDominio}"
 		Return
 	${EndIf}
 	System::Call 'user32::EnableWindow(p$btnTest,i0)'
-	${NSD_GetText} $ProtocolDropList $PROTOCOL
-	${If} $PROTOCOL == "FTP"
+	${NSD_GetText} $ProtocolDropList $Protocol
+	${If} $Protocol == "FTP"
 		Call TestFtpConnection
-	${ElseIf} $PROTOCOL == "HTTP"
+	${ElseIf} $Protocol == "HTTP"
 		Call TestHttpConnection
 	${Else}
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltaProtocolo}"
@@ -110,14 +110,14 @@ Function TestConnection
 FunctionEnd
 
 Function TestFtpConnection
-	${NSD_GetText} $FtpUserInput $FTP_USER
-	${NSD_GetText} $FtpPassInput $FTP_PASS
-	${If} $FTP_USER == ""
-	${OrIf} $FTP_PASS == ""
+	${NSD_GetText} $FtpUserInput $FtpUser
+	${NSD_GetText} $FtpPassInput $FtpPass
+	${If} $FtpUser == ""
+	${OrIf} $FtpPass == ""
 		MessageBox MB_ICONEXCLAMATION "${TXT_MsgFaltanCredencialesFtp}"
 		Return
 	${EndIf}
-	nsExec::ExecToStack '"curl.exe" -u $FTP_USER@$SERVER:$FTP_PASS "ftp://$SERVER" --silent --list-only --connect-timeout 5'
+	nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "ftp://$Server" --silent --list-only --connect-timeout 5'
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
@@ -128,7 +128,7 @@ Function TestFtpConnection
 FunctionEnd
 
 Function TestHttpConnection
-	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$SERVER/herramientas/catalogo.json"'
+	nsExec::ExecToStack '"curl.exe" -s -S -L -I --insecure --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$Server/herramientas/catalogo.json"'
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"
