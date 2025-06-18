@@ -22,6 +22,7 @@
 !define TARGET "\home\mi-ayudante"
 !define TOOLS "\home\herramientas"
 !define VENDOR "\home\vendor"
+!define RESOURCES "$DOCUMENTS\MiAyudante"
 !define APPFILE "ayudante.exe"
 !define LICENSEFILE "LICENSE"
 !define README "LEEME.txt"
