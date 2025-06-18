@@ -5,7 +5,7 @@ Section "-WriteLogInicial" 0
 	Call WriteLogInicial
 SectionEnd
 
-SectionGroup /e "${TXT_SecPrograma}" 1
+SectionGroup /e "$(TXT_SecPrograma)" 1
 	Section "${NAME} (*)" 2
 		Call WriteLogPrograma
 		CreateDirectory "$InstDrive$INSTDIR\compartidos"
@@ -54,7 +54,7 @@ Section "-WriteLogRequisitos" 14
 	Call WriteLogRequisitos
 SectionEnd
 
-SectionGroup /e "${TXT_GrpRequisitos}" 15
+SectionGroup /e "$(TXT_GrpRequisitos)" 15
 	!insertmacro MCreateSectionComponent "Requisitos" 16
 	!insertmacro MCreateSectionComponent "Requisitos" 17
 	!insertmacro MCreateSectionComponent "Requisitos" 18
@@ -71,7 +71,7 @@ Section "-WriteLogComplementos" 27
 	Call WriteLogComplementos
 SectionEnd
 
-SectionGroup "${TXT_GrpComplementos}" 28
+SectionGroup "$(TXT_GrpComplementos)" 28
 	!insertmacro MCreateSectionComponent "Complementos" 29
 	!insertmacro MCreateSectionComponent "Complementos" 30
 	!insertmacro MCreateSectionComponent "Complementos" 31
@@ -108,7 +108,7 @@ Section "-WriteLogExtensiones" 60
 	Call WriteLogExtensiones
 SectionEnd
 
-SectionGroup "${TXT_GrpExtensiones}" 61
+SectionGroup "$(TXT_GrpExtensiones)" 61
 	!insertmacro MCreateSectionComponent "Extensiones" 62
 	!insertmacro MCreateSectionComponent "Extensiones" 63
 	!insertmacro MCreateSectionComponent "Extensiones" 64
@@ -135,7 +135,7 @@ Section "-WriteLogRecursos" 83
 	Call WriteLogRecursos
 SectionEnd
 
-SectionGroup "${TXT_GrpRecursos}" 84
+SectionGroup "$(TXT_GrpRecursos)" 84
 	!insertmacro MCreateSectionComponent "Recursos" 85
 	!insertmacro MCreateSectionComponent "Recursos" 86
 	!insertmacro MCreateSectionComponent "Recursos" 87
@@ -202,7 +202,7 @@ Section "-Config" 117
 	StrCpy $FtpUser ""
 	StrCpy $FtpPass ""
 	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALL}"
-	DetailPrint "${TXT_LogCreateShortCut}"
+	DetailPrint "$(TXT_LogCreateShortCut)"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"

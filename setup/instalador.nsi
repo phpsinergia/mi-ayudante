@@ -30,7 +30,8 @@
 !define UNINSTALL "Desinstalar.exe"
 !define INSTALL "..\dist\Instalar-MiAyudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define LINEA "============================================"
+!define SEPARATOR "============================================"
+!define LANG_SPANISH 1034
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -50,6 +51,10 @@ Var Sec
 Var IsUpdateInstall
 Var SkipPrereq
 Var RememberCreds
+Var LogFile
+Var ToolsCatalog
+Var CatalogFile
+;--------------------------------
 Var TitleWelcome
 Var TextWelcome
 Var TitleFinish
@@ -57,13 +62,6 @@ Var TextFinish
 Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
-Var LogFile
-Var ToolsCatalog
-Var CatalogFile
-
-;--------------------------------
-; TEXTOS DE LA INTERFAZ
-!include "idioma_es.nsh"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -77,23 +75,23 @@ Var CatalogFile
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
-!define MUI_FINISHPAGE_RUN_TEXT "${TXT_EtiqEjecutarApp}"
+!define MUI_FINISHPAGE_RUN_TEXT "$(TXT_EtiqEjecutarApp)"
 !define MUI_FINISHPAGE_TITLE $TitleFinish
 !define MUI_FINISHPAGE_TEXT $TextFinish
 !define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
 !define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_COMPONENTSPAGE_NODESC
-!define MUI_COMPONENTSPAGE_TEXT_TOP "${TXT_InstruccionesComponentes}"
+!define MUI_COMPONENTSPAGE_TEXT_TOP "$(TXT_InstruccionesComponentes)"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_FINISHPAGE_TEXT_LARGE
-!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "${TXT_TituloInstFinalizada}"
-!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "${TXT_SubtituloInstCompletada}"
-!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "${TXT_TituloInstCancelada}"
-!define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "${TXT_SubtituloInstCancelada}"
-!define MUI_FINISHPAGE_LINK "${TXT_EtiqVerRegistro}"
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "$(TXT_TituloInstFinalizada)"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "$(TXT_SubtituloInstCompletada)"
+!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "$(TXT_TituloInstCancelada)"
+!define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "$(TXT_SubtituloInstCancelada)"
+!define MUI_FINISHPAGE_LINK "$(TXT_EtiqVerRegistro)"
 !define MUI_FINISHPAGE_LINK_LOCATION "$LogFile"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${README}"
-!define MUI_FINISHPAGE_SHOWREADME_TEXT "${TXT_EtiqRevisarNotas}"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "$(TXT_EtiqRevisarNotas)"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
@@ -111,12 +109,13 @@ ShowUninstDetails show
 AllowSkipFiles on
 SetCompressor lzma
 Caption $TextCaption
+XPStyle on
 VIProductVersion ${RELEASE}.0
-VIAddVersionKey /LANG=0 "ProductVersion" "${RELEASE}"
-VIAddVersionKey /LANG=0 "FileVersion" ${RELEASE}
-VIAddVersionKey /LANG=0 "ProductName" "${NAME}"
-VIAddVersionKey /LANG=0 "FileDescription" "${TXT_DescripcionArchivo}"
-VIAddVersionKey /LANG=0 "LegalCopyright" "${PUBLISHER}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${RELEASE}
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${NAME} v${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
 ; MACROS
@@ -143,7 +142,11 @@ Page custom CheckPreRequisites LeavePreRequisites " "
 !insertmacro MUI_UNPAGE_CONFIRM
 UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
+
+;--------------------------------
+; TEXTOS DE LA INTERFAZ
 !insertmacro MUI_LANGUAGE "Spanish"
+!include "idioma_es.nsh"
 
 ;--------------------------------
 ; FUNCIONES: INSTALACIÓN
@@ -151,17 +154,17 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 Function .onInit
 	Call GetConfigValues
 	${If} $IsUpdateInstall == "1"
-		StrCpy $TextCaption "${TXT_VentanaActualizador}"
-		StrCpy $TitleWelcome "${TXT_TituloWelcomeActualizador}"
-		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeActualizador}"
-		StrCpy $TitleFinish "${TXT_TituloFinishActualizador}"
-		StrCpy $TextFinish "${TXT_InstruccionesFinishActualizador}"
+		StrCpy $TextCaption "$(TXT_VentanaActualizador)"
+		StrCpy $TitleWelcome "$(TXT_TituloWelcomeActualizador)"
+		StrCpy $TextWelcome "$(TXT_InstruccionesWelcomeActualizador)"
+		StrCpy $TitleFinish "$(TXT_TituloFinishActualizador)"
+		StrCpy $TextFinish "$(TXT_InstruccionesFinishActualizador)"
 	${Else}
-		StrCpy $TextCaption "${TXT_VentanaInstalador}"
-		StrCpy $TitleWelcome "${TXT_TituloWelcomeInstalador}"
-		StrCpy $TextWelcome "${TXT_InstruccionesWelcomeInstalador}"
-		StrCpy $TitleFinish "${TXT_TituloFinishInstalador}"
-		StrCpy $TextFinish "${TXT_InstruccionesFinishInstalador}"
+		StrCpy $TextCaption "$(TXT_VentanaInstalador)"
+		StrCpy $TitleWelcome "$(TXT_TituloWelcomeInstalador)"
+		StrCpy $TextWelcome "$(TXT_InstruccionesWelcomeInstalador)"
+		StrCpy $TitleFinish "$(TXT_TituloFinishInstalador)"
+		StrCpy $TextFinish "$(TXT_InstruccionesFinishInstalador)"
 	${EndIf}
 FunctionEnd
 
@@ -208,17 +211,17 @@ Function LaunchApp
 	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" 0 +3
 		ExecShell "" '"$InstDrive$INSTDIR\${APPFILE}"'
 		Return
-	MessageBox MB_ICONSTOP "${TXT_MsgExeNoEncontrado}"
+	MessageBox MB_ICONSTOP "$(TXT_MsgExeNoEncontrado)"
 FunctionEnd
 
 Function RunUninstaller
-	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "${TXT_MsgConfirmaDesinstalacion}" IDNO EndAsk
+	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(TXT_MsgConfirmaDesinstalacion)" IDNO EndAsk
 		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALL}"
 		IfFileExists "$0" 0 NoUninst
 		Exec '"$0"'
 		Quit
 NoUninst:
-	MessageBox MB_ICONSTOP "${TXT_MsgUniNoEncontrado}$\n$0"
+	MessageBox MB_ICONSTOP "$(TXT_MsgUniNoEncontrado)$\n$0"
 EndAsk:
 FunctionEnd
 
@@ -240,9 +243,9 @@ FunctionEnd
 Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
-	${NSD_CreateLabel} 0 0 100% 12u "${TXT_EtiqDesinstalarHerramientas}"
+	${NSD_CreateLabel} 0 0 100% 12u "$(TXT_EtiqDesinstalarHerramientas)"
 	Pop $0
-	${NSD_CreateCheckbox} 0 16u 100% 12u "${TXT_EtiqRemoverTodas}"
+	${NSD_CreateCheckbox} 0 16u 100% 12u "$(TXT_EtiqRemoverTodas)"
 	Pop $unToolsCheckbox
 	nsDialogs::Show
 FunctionEnd

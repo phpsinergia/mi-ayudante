@@ -9,7 +9,7 @@ Function CheckPreRequisites
 	${EndIf}
 	nsDialogs::Create 1018
 	Pop $0
-	!insertmacro MUI_HEADER_TEXT "${TXT_TituloPrereq}" "${TXT_SubtituloPrereq}"
+	!insertmacro MUI_HEADER_TEXT "$(TXT_TituloPrereq)" "$(TXT_SubtituloPrereq)"
 
 	;TODO: Aquí falta añadir la Detección real de Pre-requisitos, la entrega de sus resultados y sugerencias
 	;1. PHP
@@ -21,7 +21,7 @@ Function CheckPreRequisites
 	;4. Notepad++ (o notepad.exe)
 	Call DetectNotepad
 
-	${NSD_CreateCheckbox} 100u 130u 150u 10u "${TXT_EtiqNomostrarDenuevo}"
+	${NSD_CreateCheckbox} 100u 130u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
 FunctionEnd

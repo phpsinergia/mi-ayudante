@@ -21,6 +21,7 @@ Var ToolOpChk
 Var ToolHash
 Var ToolIndex
 Var ToolTemp
+Var LogMsg
 Var ActualizacionesTotal
 Var ComplementosTotal
 Var RequisitosTotal
@@ -30,7 +31,6 @@ Var ComplementosVisibles
 Var RequisitosVisibles
 Var ExtensionesVisibles
 Var RecursosVisibles
-Var LogMsg
 
 ;--------------------------------
 ; MACROS
@@ -170,7 +170,7 @@ SectionEnd
 		Goto Tag_FIN_${TIPO}
 	${EndIf}
 	DetailPrint "..."
-	DetailPrint "${TXT_MsgInstalando${TIPO}} $ToolId"
+	DetailPrint "$(TXT_MsgInstalando${TIPO}) $ToolId"
 	Call ${TIPO}InstallSingle
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_${TIPO}:
@@ -298,25 +298,25 @@ Function InstallByIndexActualizaciones
 		${If} $ToolVersion == $Version
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "${TXT_MsgConfirmaActualizacion}$\n$\n${TXT_MsgActual}: $Version$\n${TXT_MsgNueva}: $ToolVersion" IDNO EndActualizaciones
+		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_MsgActual): $Version$\n$(TXT_MsgNueva): $ToolVersion" IDNO EndActualizaciones
 	${EndIf}
-	DetailPrint "${TXT_LogDescargandoActualizacion} $ToolName v$ToolVersion"
+	DetailPrint "$(TXT_LogDescargandoActualizacion) $ToolName v$ToolVersion"
 	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTemp == ""
-		DetailPrint "${TXT_MsgErrorActualizacion}"
+		DetailPrint "$(TXT_MsgErrorActualizacion)"
 		Goto Tag_FIN_Actualizaciones
 	${EndIf}
 	DetailPrint "..."
-	DetailPrint "${TXT_LogInstalandoActualizaciones} $ToolVersion"
+	DetailPrint "$(TXT_LogInstalandoActualizaciones) $ToolVersion"
 	Call ActualizacionesInstallSingle
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_Actualizaciones:
 	Call DeleteTempFiles
 	Return
 EndActualizaciones:
-	DetailPrint "${TXT_MsgActualizacionCancelada}"
+	DetailPrint "$(TXT_MsgActualizacionCancelada)"
 FunctionEnd
 
 ;--------------------------------
@@ -346,8 +346,8 @@ Function RequisitosInstallSingle
 		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolId == "vendor"
-		DetailPrint ${LINEA}
-		DetailPrint "${TXT_MsgInstalandoRequisitos} $ToolName v$ToolVersion"
+		DetailPrint ${SEPARATOR}
+		DetailPrint "$(TXT_MsgInstalandoRequisitos) $ToolName v$ToolVersion"
 		RMDir /r "$InstDrive${VENDOR}"
 		Rename "$InstDrive${TOOLS}\$ToolId" "$InstDrive${VENDOR}"
 		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
@@ -481,7 +481,7 @@ LoopClean:
 	${StrRep} $1 $1 ";;" ";"
 	Goto LoopClean
 WriteAndBroadcast:
-	DetailPrint "${TXT_LogAddPath} $0"
+	DetailPrint "$(TXT_LogAddPath) $0"
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndAdd:
@@ -504,7 +504,7 @@ FunctionEnd
 Function CheckPrograma
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
-		SectionSetText ${SEC_PROGRAMA} "${NAME} ${TXT_EtiqReinstalar}"
+		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
 	${Else}
 		IntOp $0 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags ${SEC_PROGRAMA} $0
@@ -572,26 +572,26 @@ Function DownloadSinglePack
 ;DownloadTool:
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
-		DetailPrint ${LINEA}
-		DetailPrint "${TXT_MsgDescargando} $R0"
+		DetailPrint ${SEPARATOR}
+		DetailPrint "$(TXT_MsgDescargando) $R0"
 		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
-			StrCpy $LogMsg "${TXT_MsgErrorDescargaFtp} $ToolId$\n$R2"
+			StrCpy $LogMsg "$(TXT_MsgErrorDescargaFtp) $ToolId$\n$R2"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONEXCLAMATION "$LogMsg"
 			Goto SkipTool
 		${EndIf}
 	${ElseIf} $Protocol == "HTTP"
 		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
-		DetailPrint ${LINEA}
-		DetailPrint "${TXT_MsgDescargando} $R0"
+		DetailPrint ${SEPARATOR}
+		DetailPrint "$(TXT_MsgDescargando) $R0"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
-			StrCpy $LogMsg "${TXT_MsgErrorDescargaHttp} $ToolId$\n${TXT_CodigoRespuesta} $R1"
+			StrCpy $LogMsg "$(TXT_MsgErrorDescargaHttp) $ToolId$\n$(TXT_CodigoRespuesta) $R1"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONEXCLAMATION "$LogMsg"
 			Goto SkipTool
@@ -602,12 +602,12 @@ Function DownloadSinglePack
 
 ;ValidateTool:
 	!insertmacro WordFind
-	DetailPrint "${TXT_MsgVerificando} $ToolName ($ToolId.zip)"
+	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$TEMP\$ToolId.zip" SHA256'
 	Pop $0
 	Pop $1
 	StrCmp $0 0 +5
-		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
@@ -615,16 +615,16 @@ Function DownloadSinglePack
 	${AndIf} $ToolHash != ""
 		${WordFind} "$1" "$ToolHash" "+1" $2
 		${If} $2 != ""
-			DetailPrint "${TXT_MsgHashValidado} $ToolHash"
+			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
 			Goto ExtractTool
 		${Else}
-			StrCpy $LogMsg "${TXT_MsgErrorHashNoCoincide} $ToolId.zip$\n$2 ≠ $ToolHash"
+			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip$\n$2 ≠ $ToolHash"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONSTOP "$LogMsg"
 			Goto SkipTool
 		${EndIf}
 	${Else}
-		StrCpy $LogMsg "${TXT_MsgErrorHashNoCalculado} $ToolId.zip"
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
@@ -639,7 +639,7 @@ ExtractTool:
 	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$ToolTemp"
 	Pop $R1
 	${If} $R1 != "success"
-		StrCpy $LogMsg "${TXT_MsgErrorDescomprimir} $ToolName: $R1"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
@@ -649,7 +649,7 @@ ExtractTool:
 	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
 	IntCmp $R0 1 0 0 +2
 		Goto SuccessTool
-	StrCpy $LogMsg "${TXT_MsgErrorTamano} $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
 	DetailPrint "$LogMsg"
 	MessageBox MB_ICONEXCLAMATION "$LogMsg"
 	Goto SkipTool
