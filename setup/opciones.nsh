@@ -128,7 +128,7 @@ Function TestFtpConnection
 FunctionEnd
 
 Function TestHttpConnection
-	nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$Server/herramientas/$CatalogFile"'
+	nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$Server/herramientas/${CATALOGFILE}"'
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"

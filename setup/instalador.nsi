@@ -26,6 +26,7 @@
 !define RESOURCES "$DOCUMENTS\MiAyudante"
 !define APPFILE "ayudante.exe"
 !define LICENSEFILE "LICENSE"
+!define CATALOGFILE "catalogo.json"
 !define README "LEEME.txt"
 !define ICON "img\favicon.ico"
 !define UNINSTALL "Desinstalar.exe"
@@ -36,12 +37,12 @@
 ;--------------------------------
 !define MAX_COMPONENTES 20
 !define SEC_PROGRAMA 2
-!define SEC_RELEASE 3
-!define GRP_Actualizaciones 5
-!define GRP_Requisitos 29
-!define GRP_Complementos 52
-!define GRP_Extensiones 75
-!define GRP_Recursos 98
+!define SEC_RELEASE 4
+!define GRP_Actualizaciones 3
+!define GRP_Requisitos 26
+!define GRP_Complementos 49
+!define GRP_Extensiones 72
+!define GRP_Recursos 95
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -63,8 +64,6 @@ Var SkipPrereq
 Var RememberCreds
 Var LogFile
 Var ToolsCatalog
-Var CatalogFile
-;--------------------------------
 Var TitleWelcome
 Var TextWelcome
 Var TitleFinish
@@ -118,7 +117,6 @@ ShowInstDetails show
 ShowUninstDetails show
 AllowSkipFiles on
 SetCompressor lzma
-XPStyle on
 Caption $TextCaption
 ;--------------------------------
 VIProductVersion ${INSTALLER_VERSION}
@@ -191,7 +189,6 @@ FunctionEnd
 
 Function GetConfigValues
 	StrCpy $IsUpdateInstall "0"
-	StrCpy $CatalogFile "catalogo.json"
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	${If} $0 != ""
 		StrCpy $INSTDIR $0
@@ -210,6 +207,12 @@ Function GetConfigValues
 		StrCpy $SkipPrereq "0"
 		StrCpy $RememberCreds "0"
 	${EndIf}
+	;TODO: Temporal
+	StrCpy $Server "masexperto.cl"
+	StrCpy $Protocol "HTTP"
+	StrCpy $SkipPrereq "1"
+	StrCpy $InstDrive "D:"
+
 FunctionEnd
 
 Function SkipIfUpdate
@@ -247,7 +250,6 @@ FunctionEnd
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
-	StrCpy $CatalogFile "catalogo.json"
 	Call un.JsonLoadCatalog
 FunctionEnd
 
@@ -279,7 +281,7 @@ FunctionEnd
 
 Section "Uninstall"
 	Delete "$INSTDIR\*.*"
-	Delete "$INSTDIR\$CatalogFile"
+	Delete "$INSTDIR\${CATALOGFILE}"
 	Delete "$INSTDIR\${UNINSTALL}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\Actualizar.lnk"

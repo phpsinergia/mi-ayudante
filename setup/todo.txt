@@ -1,3 +1,5 @@
+* Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
+
 
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
 
@@ -12,4 +14,3 @@
 * Determinar el flujo de trabajo requerido para agregar nuevos tipos, por ejemplo: Entornos, Proyectos, Documentos
 
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
-

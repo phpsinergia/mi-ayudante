@@ -5,49 +5,48 @@ Section "-WriteLogInicial" 0
 	Call WriteLogInicial
 SectionEnd
 
-SectionGroup /e "$(TXT_SecPrograma)" 1
-	Section "${NAME} (*)" 2
-		Call WriteLogPrograma
-		CreateDirectory "$InstDrive$INSTDIR\compartidos"
-		CreateDirectory "$InstDrive$INSTDIR\datos"
-		CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
-		CreateDirectory "$InstDrive$INSTDIR\logs"
-		CreateDirectory "$InstDrive$INSTDIR\respaldos"
-		CreateDirectory "$InstDrive${TOOLS}"
-		SetOutPath "$InstDrive$INSTDIR\base"
-		File /r "..\app\base\*.*"
-		SetOutPath "$InstDrive$INSTDIR\img"
-		File /r "..\app\img\*.*"
-		SetOutPath "$InstDrive$INSTDIR"
-		IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
-			File "..\app\${APPFILE}"
-		IfFileExists "$InstDrive$INSTDIR\${README}" +2 0
-			File "..\app\${README}"
-		IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
-			File /oname=LICENSE.txt "..\${LICENSEFILE}"
-		SetOutPath "$InstDrive$INSTDIR\datos"
-		IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
-			File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
-		SetOutPath "$InstDrive$INSTDIR\entornos\basico"
-		IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
-			File /r "..\app\base\entorno\*.*"
-		SetOutPath "$InstDrive${TOOLS}"
-		SetOutPath "$InstDrive$INSTDIR"
-		IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
-			File "config.ini"
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-	SectionEnd
-	Section "" 3
-		;TODO: Falta completar
-	SectionEnd
-SectionGroupEnd ;4
+Section "${NAME} (*)" 1
+	Call WriteLogPrograma
+	CreateDirectory "$InstDrive$INSTDIR\compartidos"
+	CreateDirectory "$InstDrive$INSTDIR\datos"
+	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
+	CreateDirectory "$InstDrive$INSTDIR\logs"
+	CreateDirectory "$InstDrive$INSTDIR\respaldos"
+	CreateDirectory "$InstDrive${TOOLS}"
+	SetOutPath "$InstDrive$INSTDIR\base"
+	File /r "..\app\base\*.*"
+	SetOutPath "$InstDrive$INSTDIR\img"
+	File /r "..\app\img\*.*"
+	SetOutPath "$InstDrive$INSTDIR"
+	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
+		File "..\app\${APPFILE}"
+	IfFileExists "$InstDrive$INSTDIR\${README}" +2 0
+		File "..\app\${README}"
+	IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
+		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	SetOutPath "$InstDrive$INSTDIR\datos"
+	IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
+		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+	SetOutPath "$InstDrive$INSTDIR\entornos\basico"
+	IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
+		File /r "..\app\base\entorno\*.*"
+	SetOutPath "$InstDrive${TOOLS}"
+	SetOutPath "$InstDrive$INSTDIR"
+	IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
+		File "config.ini"
+		File "componentes.ini"
+	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
+	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
+SectionEnd
 
-Section "-WriteLogActualizaciones" 5
+Section "-WriteLogActualizaciones" 2
 	Call WriteLogActualizaciones
 SectionEnd
 
-SectionGroup /e "$(TXT_GrpActualizaciones)" 6
+SectionGroup /e "$(TXT_GrpActualizaciones)" 3
+	!insertmacro MCreateSectionComponent "Actualizaciones" 4
+	!insertmacro MCreateSectionComponent "Actualizaciones" 5
+	!insertmacro MCreateSectionComponent "Actualizaciones" 6
 	!insertmacro MCreateSectionComponent "Actualizaciones" 7
 	!insertmacro MCreateSectionComponent "Actualizaciones" 8
 	!insertmacro MCreateSectionComponent "Actualizaciones" 9
@@ -65,16 +64,16 @@ SectionGroup /e "$(TXT_GrpActualizaciones)" 6
 	!insertmacro MCreateSectionComponent "Actualizaciones" 21
 	!insertmacro MCreateSectionComponent "Actualizaciones" 22
 	!insertmacro MCreateSectionComponent "Actualizaciones" 23
-	!insertmacro MCreateSectionComponent "Actualizaciones" 24
-	!insertmacro MCreateSectionComponent "Actualizaciones" 25
-	!insertmacro MCreateSectionComponent "Actualizaciones" 26
-SectionGroupEnd ;27
+SectionGroupEnd ;24
 
-Section "-WriteLogRequisitos" 28
+Section "-WriteLogRequisitos" 25
 	Call WriteLogRequisitos
 SectionEnd
 
-SectionGroup /e "$(TXT_GrpRequisitos)" 29
+SectionGroup /e "$(TXT_GrpRequisitos)" 26
+	!insertmacro MCreateSectionComponent "Requisitos" 27
+	!insertmacro MCreateSectionComponent "Requisitos" 28
+	!insertmacro MCreateSectionComponent "Requisitos" 29
 	!insertmacro MCreateSectionComponent "Requisitos" 30
 	!insertmacro MCreateSectionComponent "Requisitos" 31
 	!insertmacro MCreateSectionComponent "Requisitos" 32
@@ -92,16 +91,16 @@ SectionGroup /e "$(TXT_GrpRequisitos)" 29
 	!insertmacro MCreateSectionComponent "Requisitos" 44
 	!insertmacro MCreateSectionComponent "Requisitos" 45
 	!insertmacro MCreateSectionComponent "Requisitos" 46
-	!insertmacro MCreateSectionComponent "Requisitos" 47
-	!insertmacro MCreateSectionComponent "Requisitos" 48
-	!insertmacro MCreateSectionComponent "Requisitos" 49
-SectionGroupEnd ;50
+SectionGroupEnd ;47
 
-Section "-WriteLogComplementos" 51
+Section "-WriteLogComplementos" 48
 	Call WriteLogComplementos
 SectionEnd
 
-SectionGroup "$(TXT_GrpComplementos)" 52
+SectionGroup "$(TXT_GrpComplementos)" 49
+	!insertmacro MCreateSectionComponent "Complementos" 50
+	!insertmacro MCreateSectionComponent "Complementos" 51
+	!insertmacro MCreateSectionComponent "Complementos" 52
 	!insertmacro MCreateSectionComponent "Complementos" 53
 	!insertmacro MCreateSectionComponent "Complementos" 54
 	!insertmacro MCreateSectionComponent "Complementos" 55
@@ -119,16 +118,16 @@ SectionGroup "$(TXT_GrpComplementos)" 52
 	!insertmacro MCreateSectionComponent "Complementos" 67
 	!insertmacro MCreateSectionComponent "Complementos" 68
 	!insertmacro MCreateSectionComponent "Complementos" 69
-	!insertmacro MCreateSectionComponent "Complementos" 70
-	!insertmacro MCreateSectionComponent "Complementos" 71
-	!insertmacro MCreateSectionComponent "Complementos" 72
-SectionGroupEnd ;73
+SectionGroupEnd ;70
 
-Section "-WriteLogExtensiones" 74
+Section "-WriteLogExtensiones" 71
 	Call WriteLogExtensiones
 SectionEnd
 
-SectionGroup "$(TXT_GrpExtensiones)" 75
+SectionGroup "$(TXT_GrpExtensiones)" 72
+	!insertmacro MCreateSectionComponent "Extensiones" 73
+	!insertmacro MCreateSectionComponent "Extensiones" 74
+	!insertmacro MCreateSectionComponent "Extensiones" 75
 	!insertmacro MCreateSectionComponent "Extensiones" 76
 	!insertmacro MCreateSectionComponent "Extensiones" 77
 	!insertmacro MCreateSectionComponent "Extensiones" 78
@@ -146,16 +145,16 @@ SectionGroup "$(TXT_GrpExtensiones)" 75
 	!insertmacro MCreateSectionComponent "Extensiones" 90
 	!insertmacro MCreateSectionComponent "Extensiones" 91
 	!insertmacro MCreateSectionComponent "Extensiones" 92
-	!insertmacro MCreateSectionComponent "Extensiones" 93
-	!insertmacro MCreateSectionComponent "Extensiones" 94
-	!insertmacro MCreateSectionComponent "Extensiones" 95
-SectionGroupEnd ;96
+SectionGroupEnd ;93
 
-Section "-WriteLogRecursos" 97
+Section "-WriteLogRecursos" 94
 	Call WriteLogRecursos
 SectionEnd
 
-SectionGroup "$(TXT_GrpRecursos)" 98
+SectionGroup "$(TXT_GrpRecursos)" 95
+	!insertmacro MCreateSectionComponent "Recursos" 96
+	!insertmacro MCreateSectionComponent "Recursos" 97
+	!insertmacro MCreateSectionComponent "Recursos" 98
 	!insertmacro MCreateSectionComponent "Recursos" 99
 	!insertmacro MCreateSectionComponent "Recursos" 100
 	!insertmacro MCreateSectionComponent "Recursos" 101
@@ -173,16 +172,13 @@ SectionGroup "$(TXT_GrpRecursos)" 98
 	!insertmacro MCreateSectionComponent "Recursos" 113
 	!insertmacro MCreateSectionComponent "Recursos" 114
 	!insertmacro MCreateSectionComponent "Recursos" 115
-	!insertmacro MCreateSectionComponent "Recursos" 116
-	!insertmacro MCreateSectionComponent "Recursos" 117
-	!insertmacro MCreateSectionComponent "Recursos" 118
-SectionGroupEnd ;119
+SectionGroupEnd ;116
 
-Section "-WriteLogConfig" 120
+Section "-WriteLogConfig" 117
 	Call WriteLogConfig
 SectionEnd
 
-Section "-Config" 121
+Section "-Config" 118
 	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
 	DetailPrint "$1 KB"
 	IntFmt $1 "0x%08X" $1
@@ -220,6 +216,6 @@ Section "-Config" 121
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 SectionEnd
 
-Section "-WriteLogFinal" 122
+Section "-WriteLogFinal" 119
 	Call WriteLogFinal
 SectionEnd
