@@ -34,10 +34,10 @@
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define LANG_SPANISH 1034
 !define SEPARATOR "============================================"
-;--------------------------------
 !define MAX_COMPONENTES 20
-!define SEC_PROGRAMA 2
+!define SEC_PROGRAMA 1
 !define SEC_RELEASE 4
+;--------------------------------
 !define GRP_Actualizaciones 3
 !define GRP_Requisitos 26
 !define GRP_Complementos 49

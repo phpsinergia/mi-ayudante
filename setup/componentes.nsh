@@ -2,6 +2,7 @@
 Var ComponentesVisibles
 Var Ajuste
 Var Pos
+Var GroupIndex
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -10,7 +11,7 @@ Var ToolAddPath
 Var ToolOpChk
 Var ToolHash
 Var ToolIndex
-Var ToolTemp
+Var ToolTempDir
 Var LogMsg
 
 ;--------------------------------
@@ -92,8 +93,9 @@ Var LogMsg
 	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
-!macro MCreateSectionComponent TIPO INDEX
+!macro MCreateSectionComponent TIPO GRUPO INDEX
 Section /o "" ${INDEX}
+	StrCpy $GroupIndex ${GRUPO}
 	IntOp $Ajuste ${GRP_${TIPO}} + 1
 	IntOp $Pos ${INDEX} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
@@ -157,7 +159,7 @@ SectionEnd
 	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
-	${OrIf} $ToolTemp == ""
+	${OrIf} $ToolTempDir == ""
 		Return
 	${EndIf}
 	DetailPrint "..."
@@ -294,26 +296,26 @@ FunctionEnd
 
 Function RecursosInstallSingle
 	CreateDirectory "${RESOURCES}"
-	StrCpy $R8 $ToolTemp 2
+	StrCpy $R8 $ToolTempDir 2
 	StrCpy $R9 $InstDrive 2
 	RMDir /r "${RESOURCES}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "${RESOURCES}\$ToolId"
+		Rename "$ToolTempDir" "${RESOURCES}\$ToolId"
 	${Else}
 		CreateDirectory "${RESOURCES}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "${RESOURCES}\$ToolId\"
+		CopyFiles /SILENT "$ToolTempDir\*.*" "${RESOURCES}\$ToolId\"
 	${EndIf}
 FunctionEnd
 
 Function RequisitosInstallSingle
-	StrCpy $R8 $ToolTemp 2
+	StrCpy $R8 $ToolTempDir 2
 	StrCpy $R9 $InstDrive 2
 	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
+		Rename "$ToolTempDir" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
 		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
+		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolId == "vendor"
 		DetailPrint ${SEPARATOR}
@@ -331,14 +333,14 @@ Function RequisitosInstallSingle
 FunctionEnd
 
 Function ComplementosInstallSingle
-	StrCpy $R8 $ToolTemp 2
+	StrCpy $R8 $ToolTempDir 2
 	StrCpy $R9 $InstDrive 2
 	RMDir /r "$InstDrive${TOOLS}\$ToolId"
 	${If} "$R8" == "$R9"
-		Rename "$ToolTemp" "$InstDrive${TOOLS}\$ToolId"
+		Rename "$ToolTempDir" "$InstDrive${TOOLS}\$ToolId"
 	${Else}
 		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive${TOOLS}\$ToolId\"
+		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive${TOOLS}\$ToolId\"
 	${EndIf}
 	${If} $ToolAddPath == "1"
 		Push "$InstDrive${TOOLS}\$ToolId"
@@ -347,11 +349,11 @@ Function ComplementosInstallSingle
 FunctionEnd
 
 Function ExtensionesInstallSingle
-	CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive$INSTDIR\"
+	CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
 FunctionEnd
 
 Function ActualizacionesInstallSingle
-	CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive$INSTDIR\"
+	CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
 	${If} $ToolId == "release"
 		StrCpy $Version $ToolVersion
 		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
@@ -456,12 +458,12 @@ FunctionEnd
 
 Function CheckAllComponents
 	Call FetchCatalog
-	Call CheckGrpPrograma
 	Call CheckGrpActualizaciones
 	Call CheckGrpRequisitos
 	Call CheckGrpComplementos
 	Call CheckGrpExtensiones
 	Call CheckGrpRecursos
+	Call CheckGrpPrograma
 FunctionEnd
 
 Function CheckGrpPrograma
@@ -473,7 +475,7 @@ Function CheckGrpPrograma
 		SectionSetFlags ${SEC_PROGRAMA} $0
 		IntOp $0 0 | ${SF_RO}
 		SectionSetFlags ${SEC_RELEASE} $0
-		;SectionSetText ${SEC_RELEASE} ""
+		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
 FunctionEnd
 
@@ -559,11 +561,11 @@ Function DownloadSinglePack
 
 ExtractTool:
 	DetailPrint "..."
-	StrCpy $ToolTemp "$PluginsDir\$ToolId_tmp"
-	RMDir /r "$ToolTemp"
-	CreateDirectory "$ToolTemp"
-	SetOutPath "$ToolTemp"
-	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTemp"
+	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
+	RMDir /r "$ToolTempDir"
+	CreateDirectory "$ToolTempDir"
+	SetOutPath "$ToolTempDir"
+	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
 	Pop $R1
 	${If} $R1 != "success"
 		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
@@ -571,7 +573,7 @@ ExtractTool:
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipTool
 	${EndIf}
-	${GetSize} "$ToolTemp" "/S=0K" $R4 $R5 $R6
+	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
 	IntOp $R0 $R4 - $ToolSizeKb
 	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
 	IntCmp $R0 1 0 0 +2

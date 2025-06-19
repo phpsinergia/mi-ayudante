@@ -1,5 +1,9 @@
-* Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
+- Eliminar variables globales GRP_Xxx (o ponerlas genéricas)
+- ¿Tomar el nombre del grupo del json? (Igual que las secciones)
 
+
+
+* Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
 
