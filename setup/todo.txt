@@ -1,0 +1,15 @@
+
+- Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
+
+- Refactorizar DownloadSinglePack en: DownloadFile + VerifySHA256 + ExtractZip
+
+- Añadir Encrypt / Decrypt al guardar y recuperar contraseñas cifrándolas con XOR
+
+- Agregar Protocolos FTPS y HTTPA en DownloadFile, FetchCatalog + ShowOptionsForm, SaveOptionsForm, TestConnection, TestFtpConnection y TestHttpConnection
+
+- En Uninstall, reemplazar JsonLoadCatalog, JsonLoadComplementos, JsonLoadRequisitos, GetInfoComplementos, GetInfoRequisitos, y en MUninstallTools usar los datos de components.ini
+
+* Determinar el flujo de trabajo requerido para agregar nuevos tipos, por ejemplo: Entornos, Proyectos, Documentos
+
++ Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
+

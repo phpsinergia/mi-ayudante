@@ -1,16 +1,4 @@
-﻿!define MAX_Actualizaciones 10
-!define MAX_Requisitos 10
-!define MAX_Complementos 30
-!define MAX_Extensiones 20
-!define MAX_Recursos 30
-!define SEC_PROGRAMA 2
-!define GRP_Actualizaciones 3
-!define GRP_Requisitos 15
-!define GRP_Complementos 28
-!define GRP_Extensiones 61
-!define GRP_Recursos 84
-
-Var Ajuste
+﻿Var Ajuste
 Var Pos
 Var ToolId
 Var ToolName
@@ -22,25 +10,18 @@ Var ToolHash
 Var ToolIndex
 Var ToolTemp
 Var LogMsg
-Var ActualizacionesTotal
-Var ComplementosTotal
-Var RequisitosTotal
-Var ExtensionesTotal
-Var RecursosTotal
-Var ComplementosVisibles
-Var RequisitosVisibles
-Var ExtensionesVisibles
-Var RecursosVisibles
+Var ComponentesTotal
+Var ComponentesVisibles
 
 ;--------------------------------
 ; MACROS
 
 !macro MJsonLoadComponents TIPO
 	nsJSON::Get /count `${TIPO}` /end
-	Pop $${TIPO}Total
-	${If} $${TIPO}Total > 0
-		IntOp $${TIPO}Total $${TIPO}Total - 1
-		${For} $Pos 0 $${TIPO}Total
+	Pop $ComponentesTotal
+	${If} $ComponentesTotal > 0
+		IntOp $ComponentesTotal $ComponentesTotal - 1
+		${For} $Pos 0 $ComponentesTotal
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end 
 			Pop $ToolId
 			nsJSON::Get `${TIPO}` /index $Pos "name" /end
@@ -65,8 +46,8 @@ Var RecursosVisibles
 			nsArray::Set List${TIPO}OpChk /key=$ToolIndex $ToolOpChk
 			nsArray::Set List${TIPO}Hash /key=$ToolIndex $ToolHash
 		${Next}
-		${For} $Pos $${TIPO}Total ${MAX_${TIPO}}
-			${If} $Pos > $${TIPO}Total
+		${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
+			${If} $Pos > $ComponentesTotal
 				IntOp $Ajuste ${GRP_${TIPO}} + 1
 				IntOp $ToolIndex $Pos + $Ajuste
 				nsArray::Set List${TIPO}Id /key=$ToolIndex ""
@@ -111,18 +92,18 @@ Var RecursosVisibles
 Section /o "" ${INDEX}
 	IntOp $Ajuste ${GRP_${TIPO}} + 1
 	IntOp $Pos ${INDEX} - $Ajuste
-	${If} $Pos < ${MAX_${TIPO}}
+	${If} $Pos < ${MAX_COMPONENTES}
 		Call InstallByIndex${TIPO}
 	${EndIf}
 SectionEnd
 !macroend
 
 !macro MCheckGrpComponents TIPO
-	StrCpy $${TIPO}Visibles "0"
-	StrCpy $${TIPO}Total "0"
+	StrCpy $ComponentesVisibles "0"
+	StrCpy $ComponentesTotal "0"
 	Call JsonLoad${TIPO}
-	${For} $Pos 0 $${TIPO}Total
-		${If} $Pos < ${MAX_${TIPO}}
+	${For} $Pos 0 $ComponentesTotal
+		${If} $Pos < ${MAX_COMPONENTES}
 			Call GetInfo${TIPO}
 			SectionSetText $ToolIndex $ToolName
 			SectionSetSize $ToolIndex $ToolSizeKb
@@ -133,7 +114,7 @@ SectionEnd
 				SectionSetFlags $ToolIndex $0
 				SectionSetText $ToolIndex ""
 			${Else}
-				IntOp $${TIPO}Visibles $${TIPO}Visibles + 1
+				IntOp $ComponentesVisibles $ComponentesVisibles + 1
 				${If} "$ToolOpChk" == "0"
 					SectionSetFlags $ToolIndex 0
 				${ElseIf} "$ToolOpChk" == "1"
@@ -148,14 +129,13 @@ SectionEnd
 			${EndIf}
 		${EndIf}
 	${Next}
-	${If} $${TIPO}Visibles == "0"
+	${If} $ComponentesVisibles == "0"
 		SectionSetText ${GRP_${TIPO}} ""
 	${EndIf}
 !macroend
 
 !macro MInstallComponentsByIndex TIPO
-	${If} $Pos >= ${MAX_${TIPO}}
-	${OrIf} $Pos > $${TIPO}Total
+	${If} $Pos >= ${MAX_COMPONENTES}
 		Return
 	${EndIf}
 	Call GetInfo${TIPO}
@@ -174,13 +154,13 @@ SectionEnd
 	Call ${TIPO}InstallSingle
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 Tag_FIN_${TIPO}:
-	Call DeleteTempFiles
 !macroend
 
 !macro MUninstallTools
+	;TODO: Cambiar para que elimine usando componentes.ini
 	Call un.JsonLoadComplementos
-	${For} $Pos 0 $ComplementosTotal
-		${If} $Pos < ${MAX_Complementos}
+	${For} $Pos 0 ${MAX_COMPONENTES}
+		${If} $Pos < ${MAX_COMPONENTES}
 			Call un.GetInfoComplementos
 			RMDir /r "$InstDrive${TOOLS}\$ToolId"
 			Push "$InstDrive${TOOLS}\$ToolId"
@@ -188,8 +168,8 @@ Tag_FIN_${TIPO}:
 		${EndIf}
 	${Next}
 	Call un.JsonLoadRequisitos
-	${For} $Pos 0 $RequisitosTotal
-		${If} $Pos < ${MAX_Requisitos}
+	${For} $Pos 0 ${MAX_COMPONENTES}
+		${If} $Pos < ${MAX_COMPONENTES}
 			Call un.GetInfoRequisitos
 			RMDir /r "$InstDrive${TOOLS}\$ToolId"
 			Push "$InstDrive${TOOLS}\$ToolId"
@@ -265,6 +245,10 @@ Function CheckGrpRecursos
 	!insertmacro MCheckGrpComponents "Recursos"
 FunctionEnd
 
+Function CheckGrpActualizaciones
+	!insertmacro MCheckGrpComponents "Actualizaciones"
+FunctionEnd
+
 ;--------------------------------
 ;InstallByIndex...
 
@@ -285,38 +269,7 @@ Function InstallByIndexRecursos
 FunctionEnd
 
 Function InstallByIndexActualizaciones
-	${If} $Pos >= ${MAX_Actualizaciones}
-	${OrIf} $Pos > $ActualizacionesTotal
-		Return
-	${EndIf}
-	Call GetInfoActualizaciones
-	${If} ${SectionIsSelected} $ToolIndex
-	${Else}
-		Return
-	${EndIf}
-	${If} $ToolId == "release"
-		${If} $ToolVersion == $Version
-			Return
-		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_MsgActual): $Version$\n$(TXT_MsgNueva): $ToolVersion" IDNO EndActualizaciones
-	${EndIf}
-	DetailPrint "$(TXT_LogDescargandoActualizacion) $ToolName v$ToolVersion"
-	Call DownloadSinglePack
-	Pop $0
-	${If} $0 == "NO"
-	${OrIf} $ToolTemp == ""
-		DetailPrint "$(TXT_MsgErrorActualizacion)"
-		Goto Tag_FIN_Actualizaciones
-	${EndIf}
-	DetailPrint "..."
-	DetailPrint "$(TXT_LogInstalandoActualizaciones) $ToolVersion"
-	Call ActualizacionesInstallSingle
-	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-Tag_FIN_Actualizaciones:
-	Call DeleteTempFiles
-	Return
-EndActualizaciones:
-	DetailPrint "$(TXT_MsgActualizacionCancelada)"
+	!insertmacro MInstallComponentsByIndex "Actualizaciones"
 FunctionEnd
 
 ;--------------------------------
@@ -382,11 +335,6 @@ FunctionEnd
 
 Function ActualizacionesInstallSingle
 	CopyFiles /SILENT "$ToolTemp\*.*" "$InstDrive$INSTDIR\"
-	${If} $ToolId == "release"
-		StrCpy $Version $ToolVersion
-		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-	${EndIf}
 FunctionEnd
 
 ;--------------------------------
@@ -430,13 +378,6 @@ LoadLocalTools:
 		Goto ExitFetchTools
 	${EndIf}
 ExitFetchTools:
-FunctionEnd
-
-Function DeleteTempFiles
-	DetailPrint "..."
-	SetOutPath "$InstDrive$INSTDIR"
-	Delete "$TEMP\$ToolId.zip"
-	RMDir /r "$TEMP\$ToolId_tmp"
 FunctionEnd
 
 Function AddToEnvUserPath
@@ -493,15 +434,15 @@ FunctionEnd
 
 Function CheckAllComponents
 	Call FetchCatalog
-	Call CheckPrograma
-	Call CheckActualizaciones
+	Call CheckGrpPrograma
+	Call CheckGrpActualizaciones
 	Call CheckGrpRequisitos
 	Call CheckGrpComplementos
 	Call CheckGrpExtensiones
 	Call CheckGrpRecursos
 FunctionEnd
 
-Function CheckPrograma
+Function CheckGrpPrograma
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
 		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
@@ -509,45 +450,22 @@ Function CheckPrograma
 		IntOp $0 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags ${SEC_PROGRAMA} $0
 	${EndIf}
-FunctionEnd
-
-Function CheckActualizaciones
-	StrCpy $ActualizacionesTotal "0"
-	Call JsonLoadActualizaciones
-	${For} $Pos 0 $ActualizacionesTotal
-		${If} $Pos < ${MAX_Actualizaciones}
-			Call GetInfoActualizaciones
-			${If} $IsUpdateInstall == "1"
-				SectionSetText $ToolIndex "$ToolName $ToolVersion"
-				SectionSetSize $ToolIndex $ToolSizeKb
-				${If} $ToolId == "release"
-					${If} $ToolVersion == $Version
-						SectionSetText $ToolIndex ""
-						SectionSetSize $ToolIndex 0
-						SectionSetFlags $ToolIndex 0
-					${Else}
-						SectionSetFlags $ToolIndex ${SF_SELECTED}
-					${EndIf}
-				${Else}
-					${If} "$ToolOpChk" == "0"
-						SectionSetFlags $ToolIndex 0
-					${ElseIf} "$ToolOpChk" == "1"
-						SectionSetFlags $ToolIndex ${SF_SELECTED}
-					${ElseIf} "$ToolOpChk" == "2"
-						IntOp $0 ${SF_SELECTED} | ${SF_RO}
-						SectionSetFlags $ToolIndex $0
-					${ElseIf} "$ToolOpChk" == "3"
-						IntOp $0 0 | ${SF_RO}
-						SectionSetFlags $ToolIndex $0
-					${EndIf}
-				${EndIf}
-			${Else}
-				SectionSetText $ToolIndex ""
-				SectionSetSize $ToolIndex 0
-				SectionSetFlags $ToolIndex 0
-			${EndIf}
-		${EndIf}
-	${Next}
+	;TODO: Agregar Release
+;InstallByIndex
+	;TODO: Mover aparte
+	;${If} $ToolId == "release"
+	;	${If} $ToolVersion == $Version
+	;		Return
+	;	${EndIf}
+	;	MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_MsgActual): $Version$\n$(TXT_MsgNueva): $ToolVersion" IDNO EndActualizaciones
+	;${EndIf}
+;InstallSingle
+	;TODO: Mover aparte
+	;${If} $ToolId == "release"
+	;	StrCpy $Version $ToolVersion
+	;	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
+	;	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
+	;${EndIf}
 FunctionEnd
 
 ;--------------------------------
@@ -574,7 +492,7 @@ Function DownloadSinglePack
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint ${SEPARATOR}
 		DetailPrint "$(TXT_MsgDescargando) $R0"
-		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$TEMP\$ToolId.zip" --silent --show-error --fail'
+		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
@@ -587,7 +505,7 @@ Function DownloadSinglePack
 		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
 		DetailPrint ${SEPARATOR}
 		DetailPrint "$(TXT_MsgDescargando) $R0"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$TEMP\$ToolId.zip" "$R0"'
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
@@ -603,7 +521,7 @@ Function DownloadSinglePack
 ;ValidateTool:
 	!insertmacro WordFind
 	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
-	nsExec::ExecToStack 'CertUtil -hashfile "$TEMP\$ToolId.zip" SHA256'
+	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
 	Pop $0
 	Pop $1
 	StrCmp $0 0 +5
@@ -632,11 +550,11 @@ Function DownloadSinglePack
 
 ExtractTool:
 	DetailPrint "..."
-	StrCpy $ToolTemp "$TEMP\$ToolId_tmp"
+	StrCpy $ToolTemp "$PluginsDir\$ToolId_tmp"
 	RMDir /r "$ToolTemp"
 	CreateDirectory "$ToolTemp"
 	SetOutPath "$ToolTemp"
-	Nsisunz::UnzipToLog "$TEMP\$ToolId.zip" "$ToolTemp"
+	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTemp"
 	Pop $R1
 	${If} $R1 != "success"
 		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
@@ -710,8 +628,8 @@ EndRm:
 FunctionEnd
 
 Function un.JsonLoadCatalog
-	CopyFiles /SILENT /FILESONLY "$INSTDIR\$CatalogFile" "$TEMP\"
-	StrCpy $ToolsCatalog "$TEMP\$CatalogFile"
+	CopyFiles /SILENT /FILESONLY "$INSTDIR\$CatalogFile" "$PluginsDir\"
+	StrCpy $ToolsCatalog "$PluginsDir\$CatalogFile"
 	nsJSON::Set /file $ToolsCatalog
 FunctionEnd
 

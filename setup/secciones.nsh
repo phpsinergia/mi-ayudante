@@ -38,118 +38,124 @@ SectionGroup /e "$(TXT_SecPrograma)" 1
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	SectionEnd
-	!insertmacro MCreateSectionComponent "Actualizaciones" 3
-	!insertmacro MCreateSectionComponent "Actualizaciones" 4
-	!insertmacro MCreateSectionComponent "Actualizaciones" 5
-	!insertmacro MCreateSectionComponent "Actualizaciones" 6
+	Section "" 3
+		;TODO: Falta completar
+	SectionEnd
+SectionGroupEnd ;4
+
+Section "-WriteLogActualizaciones" 5
+	Call WriteLogActualizaciones
+SectionEnd
+
+SectionGroup /e "$(TXT_GrpActualizaciones)" 6
 	!insertmacro MCreateSectionComponent "Actualizaciones" 7
 	!insertmacro MCreateSectionComponent "Actualizaciones" 8
 	!insertmacro MCreateSectionComponent "Actualizaciones" 9
 	!insertmacro MCreateSectionComponent "Actualizaciones" 10
 	!insertmacro MCreateSectionComponent "Actualizaciones" 11
 	!insertmacro MCreateSectionComponent "Actualizaciones" 12
-SectionGroupEnd
+	!insertmacro MCreateSectionComponent "Actualizaciones" 13
+	!insertmacro MCreateSectionComponent "Actualizaciones" 14
+	!insertmacro MCreateSectionComponent "Actualizaciones" 15
+	!insertmacro MCreateSectionComponent "Actualizaciones" 16
+	!insertmacro MCreateSectionComponent "Actualizaciones" 17
+	!insertmacro MCreateSectionComponent "Actualizaciones" 18
+	!insertmacro MCreateSectionComponent "Actualizaciones" 19
+	!insertmacro MCreateSectionComponent "Actualizaciones" 20
+	!insertmacro MCreateSectionComponent "Actualizaciones" 21
+	!insertmacro MCreateSectionComponent "Actualizaciones" 22
+	!insertmacro MCreateSectionComponent "Actualizaciones" 23
+	!insertmacro MCreateSectionComponent "Actualizaciones" 24
+	!insertmacro MCreateSectionComponent "Actualizaciones" 25
+	!insertmacro MCreateSectionComponent "Actualizaciones" 26
+SectionGroupEnd ;27
 
-Section "-WriteLogRequisitos" 14
+Section "-WriteLogRequisitos" 28
 	Call WriteLogRequisitos
 SectionEnd
 
-SectionGroup /e "$(TXT_GrpRequisitos)" 15
-	!insertmacro MCreateSectionComponent "Requisitos" 16
-	!insertmacro MCreateSectionComponent "Requisitos" 17
-	!insertmacro MCreateSectionComponent "Requisitos" 18
-	!insertmacro MCreateSectionComponent "Requisitos" 19
-	!insertmacro MCreateSectionComponent "Requisitos" 20
-	!insertmacro MCreateSectionComponent "Requisitos" 21
-	!insertmacro MCreateSectionComponent "Requisitos" 22
-	!insertmacro MCreateSectionComponent "Requisitos" 23
-	!insertmacro MCreateSectionComponent "Requisitos" 24
-	!insertmacro MCreateSectionComponent "Requisitos" 25
-SectionGroupEnd
+SectionGroup /e "$(TXT_GrpRequisitos)" 29
+	!insertmacro MCreateSectionComponent "Requisitos" 30
+	!insertmacro MCreateSectionComponent "Requisitos" 31
+	!insertmacro MCreateSectionComponent "Requisitos" 32
+	!insertmacro MCreateSectionComponent "Requisitos" 33
+	!insertmacro MCreateSectionComponent "Requisitos" 34
+	!insertmacro MCreateSectionComponent "Requisitos" 35
+	!insertmacro MCreateSectionComponent "Requisitos" 36
+	!insertmacro MCreateSectionComponent "Requisitos" 37
+	!insertmacro MCreateSectionComponent "Requisitos" 38
+	!insertmacro MCreateSectionComponent "Requisitos" 39
+	!insertmacro MCreateSectionComponent "Requisitos" 40
+	!insertmacro MCreateSectionComponent "Requisitos" 41
+	!insertmacro MCreateSectionComponent "Requisitos" 42
+	!insertmacro MCreateSectionComponent "Requisitos" 43
+	!insertmacro MCreateSectionComponent "Requisitos" 44
+	!insertmacro MCreateSectionComponent "Requisitos" 45
+	!insertmacro MCreateSectionComponent "Requisitos" 46
+	!insertmacro MCreateSectionComponent "Requisitos" 47
+	!insertmacro MCreateSectionComponent "Requisitos" 48
+	!insertmacro MCreateSectionComponent "Requisitos" 49
+SectionGroupEnd ;50
 
-Section "-WriteLogComplementos" 27
+Section "-WriteLogComplementos" 51
 	Call WriteLogComplementos
 SectionEnd
 
-SectionGroup "$(TXT_GrpComplementos)" 28
-	!insertmacro MCreateSectionComponent "Complementos" 29
-	!insertmacro MCreateSectionComponent "Complementos" 30
-	!insertmacro MCreateSectionComponent "Complementos" 31
-	!insertmacro MCreateSectionComponent "Complementos" 32
-	!insertmacro MCreateSectionComponent "Complementos" 33
-	!insertmacro MCreateSectionComponent "Complementos" 34
-	!insertmacro MCreateSectionComponent "Complementos" 35
-	!insertmacro MCreateSectionComponent "Complementos" 36
-	!insertmacro MCreateSectionComponent "Complementos" 37
-	!insertmacro MCreateSectionComponent "Complementos" 38
-	!insertmacro MCreateSectionComponent "Complementos" 39
-	!insertmacro MCreateSectionComponent "Complementos" 40
-	!insertmacro MCreateSectionComponent "Complementos" 41
-	!insertmacro MCreateSectionComponent "Complementos" 42
-	!insertmacro MCreateSectionComponent "Complementos" 43
-	!insertmacro MCreateSectionComponent "Complementos" 44
-	!insertmacro MCreateSectionComponent "Complementos" 45
-	!insertmacro MCreateSectionComponent "Complementos" 46
-	!insertmacro MCreateSectionComponent "Complementos" 47
-	!insertmacro MCreateSectionComponent "Complementos" 48
-	!insertmacro MCreateSectionComponent "Complementos" 49
-	!insertmacro MCreateSectionComponent "Complementos" 50
-	!insertmacro MCreateSectionComponent "Complementos" 51
-	!insertmacro MCreateSectionComponent "Complementos" 52
+SectionGroup "$(TXT_GrpComplementos)" 52
 	!insertmacro MCreateSectionComponent "Complementos" 53
 	!insertmacro MCreateSectionComponent "Complementos" 54
 	!insertmacro MCreateSectionComponent "Complementos" 55
 	!insertmacro MCreateSectionComponent "Complementos" 56
 	!insertmacro MCreateSectionComponent "Complementos" 57
 	!insertmacro MCreateSectionComponent "Complementos" 58
-SectionGroupEnd
+	!insertmacro MCreateSectionComponent "Complementos" 59
+	!insertmacro MCreateSectionComponent "Complementos" 60
+	!insertmacro MCreateSectionComponent "Complementos" 61
+	!insertmacro MCreateSectionComponent "Complementos" 62
+	!insertmacro MCreateSectionComponent "Complementos" 63
+	!insertmacro MCreateSectionComponent "Complementos" 64
+	!insertmacro MCreateSectionComponent "Complementos" 65
+	!insertmacro MCreateSectionComponent "Complementos" 66
+	!insertmacro MCreateSectionComponent "Complementos" 67
+	!insertmacro MCreateSectionComponent "Complementos" 68
+	!insertmacro MCreateSectionComponent "Complementos" 69
+	!insertmacro MCreateSectionComponent "Complementos" 70
+	!insertmacro MCreateSectionComponent "Complementos" 71
+	!insertmacro MCreateSectionComponent "Complementos" 72
+SectionGroupEnd ;73
 
-Section "-WriteLogExtensiones" 60
+Section "-WriteLogExtensiones" 74
 	Call WriteLogExtensiones
 SectionEnd
 
-SectionGroup "$(TXT_GrpExtensiones)" 61
-	!insertmacro MCreateSectionComponent "Extensiones" 62
-	!insertmacro MCreateSectionComponent "Extensiones" 63
-	!insertmacro MCreateSectionComponent "Extensiones" 64
-	!insertmacro MCreateSectionComponent "Extensiones" 65
-	!insertmacro MCreateSectionComponent "Extensiones" 66
-	!insertmacro MCreateSectionComponent "Extensiones" 67
-	!insertmacro MCreateSectionComponent "Extensiones" 68
-	!insertmacro MCreateSectionComponent "Extensiones" 69
-	!insertmacro MCreateSectionComponent "Extensiones" 70
-	!insertmacro MCreateSectionComponent "Extensiones" 71
-	!insertmacro MCreateSectionComponent "Extensiones" 72
-	!insertmacro MCreateSectionComponent "Extensiones" 73
-	!insertmacro MCreateSectionComponent "Extensiones" 74
-	!insertmacro MCreateSectionComponent "Extensiones" 75
+SectionGroup "$(TXT_GrpExtensiones)" 75
 	!insertmacro MCreateSectionComponent "Extensiones" 76
 	!insertmacro MCreateSectionComponent "Extensiones" 77
 	!insertmacro MCreateSectionComponent "Extensiones" 78
 	!insertmacro MCreateSectionComponent "Extensiones" 79
 	!insertmacro MCreateSectionComponent "Extensiones" 80
 	!insertmacro MCreateSectionComponent "Extensiones" 81
-SectionGroupEnd
+	!insertmacro MCreateSectionComponent "Extensiones" 82
+	!insertmacro MCreateSectionComponent "Extensiones" 83
+	!insertmacro MCreateSectionComponent "Extensiones" 84
+	!insertmacro MCreateSectionComponent "Extensiones" 85
+	!insertmacro MCreateSectionComponent "Extensiones" 86
+	!insertmacro MCreateSectionComponent "Extensiones" 87
+	!insertmacro MCreateSectionComponent "Extensiones" 88
+	!insertmacro MCreateSectionComponent "Extensiones" 89
+	!insertmacro MCreateSectionComponent "Extensiones" 90
+	!insertmacro MCreateSectionComponent "Extensiones" 91
+	!insertmacro MCreateSectionComponent "Extensiones" 92
+	!insertmacro MCreateSectionComponent "Extensiones" 93
+	!insertmacro MCreateSectionComponent "Extensiones" 94
+	!insertmacro MCreateSectionComponent "Extensiones" 95
+SectionGroupEnd ;96
 
-Section "-WriteLogRecursos" 83
+Section "-WriteLogRecursos" 97
 	Call WriteLogRecursos
 SectionEnd
 
-SectionGroup "$(TXT_GrpRecursos)" 84
-	!insertmacro MCreateSectionComponent "Recursos" 85
-	!insertmacro MCreateSectionComponent "Recursos" 86
-	!insertmacro MCreateSectionComponent "Recursos" 87
-	!insertmacro MCreateSectionComponent "Recursos" 88
-	!insertmacro MCreateSectionComponent "Recursos" 89
-	!insertmacro MCreateSectionComponent "Recursos" 90
-	!insertmacro MCreateSectionComponent "Recursos" 91
-	!insertmacro MCreateSectionComponent "Recursos" 92
-	!insertmacro MCreateSectionComponent "Recursos" 93
-	!insertmacro MCreateSectionComponent "Recursos" 94
-	!insertmacro MCreateSectionComponent "Recursos" 95
-	!insertmacro MCreateSectionComponent "Recursos" 96
-	!insertmacro MCreateSectionComponent "Recursos" 97
-	!insertmacro MCreateSectionComponent "Recursos" 98
+SectionGroup "$(TXT_GrpRecursos)" 98
 	!insertmacro MCreateSectionComponent "Recursos" 99
 	!insertmacro MCreateSectionComponent "Recursos" 100
 	!insertmacro MCreateSectionComponent "Recursos" 101
@@ -166,13 +172,17 @@ SectionGroup "$(TXT_GrpRecursos)" 84
 	!insertmacro MCreateSectionComponent "Recursos" 112
 	!insertmacro MCreateSectionComponent "Recursos" 113
 	!insertmacro MCreateSectionComponent "Recursos" 114
-SectionGroupEnd
+	!insertmacro MCreateSectionComponent "Recursos" 115
+	!insertmacro MCreateSectionComponent "Recursos" 116
+	!insertmacro MCreateSectionComponent "Recursos" 117
+	!insertmacro MCreateSectionComponent "Recursos" 118
+SectionGroupEnd ;119
 
-Section "-WriteLogConfig" 116
+Section "-WriteLogConfig" 120
 	Call WriteLogConfig
 SectionEnd
 
-Section "-Config" 117
+Section "-Config" 121
 	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
 	DetailPrint "$1 KB"
 	IntFmt $1 "0x%08X" $1
@@ -210,6 +220,6 @@ Section "-Config" 117
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 SectionEnd
 
-Section "-WriteLogFinal" 118
+Section "-WriteLogFinal" 122
 	Call WriteLogFinal
 SectionEnd

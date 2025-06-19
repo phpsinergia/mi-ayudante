@@ -17,6 +17,7 @@
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
 !define RELEASE "1.0.0"
+!define INSTALLER_VERSION "0.0.0.1"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
 !define TARGET "\home\mi-ayudante"
@@ -30,8 +31,17 @@
 !define UNINSTALL "Desinstalar.exe"
 !define INSTALL "..\dist\Instalar-MiAyudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define SEPARATOR "============================================"
 !define LANG_SPANISH 1034
+!define SEPARATOR "============================================"
+;--------------------------------
+!define MAX_COMPONENTES 20
+!define SEC_PROGRAMA 2
+!define SEC_RELEASE 3
+!define GRP_Actualizaciones 5
+!define GRP_Requisitos 29
+!define GRP_Complementos 52
+!define GRP_Extensiones 75
+!define GRP_Recursos 98
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -70,29 +80,29 @@ Var unToolsCheckbox
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE $TitleWelcome
 !define MUI_WELCOMEPAGE_TEXT $TextWelcome
+!define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
+!define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
+!define MUI_COMPONENTSPAGE_NODESC
+!define MUI_COMPONENTSPAGE_TEXT_TOP "$(TXT_InstruccionesComponentes)"
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "$(TXT_TituloInstFinalizada)"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "$(TXT_SubtituloInstCompletada)"
+!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "$(TXT_TituloInstCancelada)"
+!define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "$(TXT_SubtituloInstCancelada)"
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
 !define MUI_FINISHPAGE_RUN_TEXT "$(TXT_EtiqEjecutarApp)"
 !define MUI_FINISHPAGE_TITLE $TitleFinish
 !define MUI_FINISHPAGE_TEXT $TextFinish
-!define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
-!define MUI_HEADERIMAGE_BITMAP "head.bmp"
-!define MUI_COMPONENTSPAGE_NODESC
-!define MUI_COMPONENTSPAGE_TEXT_TOP "$(TXT_InstruccionesComponentes)"
-!define MUI_FINISHPAGE_NOAUTOCLOSE
-!define MUI_FINISHPAGE_TEXT_LARGE
-!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "$(TXT_TituloInstFinalizada)"
-!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "$(TXT_SubtituloInstCompletada)"
-!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "$(TXT_TituloInstCancelada)"
-!define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "$(TXT_SubtituloInstCancelada)"
 !define MUI_FINISHPAGE_LINK "$(TXT_EtiqVerRegistro)"
 !define MUI_FINISHPAGE_LINK_LOCATION "$LogFile"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${README}"
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "$(TXT_EtiqRevisarNotas)"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_FINISHPAGE_TEXT_LARGE
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
 ;--------------------------------
@@ -108,13 +118,14 @@ ShowInstDetails show
 ShowUninstDetails show
 AllowSkipFiles on
 SetCompressor lzma
-Caption $TextCaption
 XPStyle on
-VIProductVersion ${RELEASE}.0
-VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
-VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${RELEASE}
-VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
+Caption $TextCaption
+;--------------------------------
+VIProductVersion ${INSTALLER_VERSION}
 VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${NAME} v${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${INSTALLER_VERSION}
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
 VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
@@ -277,7 +288,7 @@ Section "Uninstall"
 	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
-	SetOutPath "$TEMP"
+	SetOutPath "$PluginsDir"
 	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	!insertmacro MUninstallTools
@@ -285,6 +296,5 @@ Section "Uninstall"
 	Call un.RemoveDirIfEmpty
 	RMDir /r "$InstDrive${VENDOR}"
 Done:
-	Delete "$TEMP\$CatalogFile"
 	RMDir /r "$InstDrive${TARGET}"
 SectionEnd

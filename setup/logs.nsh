@@ -29,38 +29,35 @@ Function WriteLogPrograma
 	DetailPrint ${SEPARATOR}
 FunctionEnd
 
+Function WriteLogActualizaciones
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecActualizaciones)*****"
+FunctionEnd
+
 Function WriteLogRequisitos
-	${If} $RequisitosVisibles > 0
-		DetailPrint ${SEPARATOR}
-		DetailPrint "*****$(TXT_LogSecRequisitos)*****"
-	${EndIf}
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecRequisitos)*****"
 FunctionEnd
 
 Function WriteLogComplementos
-	${If} $ComplementosVisibles > 0
-		DetailPrint ${SEPARATOR}
-		DetailPrint "*****$(TXT_LogSecComplementos)*****"
-	${EndIf}
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecComplementos)*****"
 FunctionEnd
 
 Function WriteLogExtensiones
-	${If} $ExtensionesVisibles > 0
-		DetailPrint ${SEPARATOR}
-		DetailPrint "*****$(TXT_LogSecExtensiones)*****"
-	${EndIf}
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecExtensiones)*****"
 FunctionEnd
 
 Function WriteLogRecursos
-	${If} $RecursosVisibles > 0
-		DetailPrint ${SEPARATOR}
-		DetailPrint "*****$(TXT_LogSecRecursos)*****"
-	${EndIf}
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecRecursos)*****"
 FunctionEnd
 
 Function WriteLogConfig
 	DetailPrint ${SEPARATOR}
 	DetailPrint "*****$(TXT_LogSecConfig)*****"
-		DetailPrint ${SEPARATOR}
+	DetailPrint ${SEPARATOR}
 	DetailPrint "$(TXT_LogWriteReg) HKCU Software\${NAME}"
 	DetailPrint "$(TXT_LogWriteReg) HKCU ${HKCUNI}"
 	DetailPrint "$(TXT_MsgCalculandoEspacio)"
