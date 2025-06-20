@@ -1,3 +1,7 @@
+PENDIENTES:
+
+- Poner las etiquetas de secciones según catalogo.json
+
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
@@ -27,61 +31,12 @@ Instalaciones por tipo: Default y Custom.
 
 -----------------------
 
-;--------------------------------
-;InstallByIndexXxx
-
-Function InstallByIndexComplementos
-	!insertmacro MInstallComponentsByIndex "Complementos"
-FunctionEnd
-
-Function InstallByIndexRequisitos
-	!insertmacro MInstallComponentsByIndex "Requisitos"
-FunctionEnd
-
-Function InstallByIndexExtensiones
-	!insertmacro MInstallComponentsByIndex "Extensiones"
-FunctionEnd
-
-Function InstallByIndexRecursos
-	!insertmacro MInstallComponentsByIndex "Recursos"
-FunctionEnd
-
-Function InstallByIndexActualizaciones
 	${If} $ToolId == "release"
 		${If} $ToolVersion == $Version
 			Return
 		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_MsgActual): $Version$\n$(TXT_MsgNueva): $ToolVersion" IDNO EndActualizaciones
+		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_Actual): $Version$\n$(TXT_Nueva): $ToolVersion" IDNO EndActualizaciones
 	${EndIf}
-	!insertmacro MInstallComponentsByIndex "Actualizaciones"
-EndActualizaciones:
-FunctionEnd
 
 ;--------------------------------
-
-Function WriteLogActualizaciones
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecActualizaciones)*****"
-FunctionEnd
-
-Function WriteLogRequisitos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecRequisitos)*****"
-FunctionEnd
-
-Function WriteLogComplementos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecComplementos)*****"
-FunctionEnd
-
-Function WriteLogExtensiones
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecExtensiones)*****"
-FunctionEnd
-
-Function WriteLogRecursos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecRecursos)*****"
-FunctionEnd
-
 

@@ -16,33 +16,29 @@
 
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
+!define NAME "Mi Ayudante"
 !define RELEASE "1.0.0"
 !define INSTALLER_VERSION "0.0.0.1"
-!define NAME "Mi Ayudante"
+!define INSTALLER_NAME "Actualizador"
+!define INSTALLER "..\dist\Instalar-MiAyudante.exe"
+!define UNINSTALLER "Desinstalar.exe"
+!define DESCRIPTION "${INSTALLER_NAME} ${NAME}"
+!define RESOURCES "$DOCUMENTS\MiAyudante"
 !define PUBLISHER "Rubén Araya Tagle"
-!define APPDIR "\home\mi-ayudante"
 !define TOOLS "\home\herramientas"
 !define VENDOR "\home\vendor"
-!define RESOURCES "$DOCUMENTS\MiAyudante"
+!define APPDIR "\home\mi-ayudante"
 !define APPFILE "ayudante.exe"
 !define LICENSEFILE "LICENSE"
 !define CATALOGFILE "catalogo.json"
-!define README "LEEME.txt"
+!define READMEFILE "LEEME.txt"
 !define ICON "img\favicon.ico"
-!define UNINSTALL "Desinstalar.exe"
-!define INSTALL "..\dist\Instalar-MiAyudante.exe"
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define LANG_SPANISH 1034
 !define SEPARATOR "============================================"
 !define MAX_COMPONENTES 20
 !define SEC_PROGRAMA 1
-;--------------------------------
-;TODO: Quitar
-!define GRP_Actualizaciones 3
-!define GRP_Requisitos 26
-!define GRP_Complementos 49
-!define GRP_Extensiones 72
-!define GRP_Recursos 95
+!define SEC_RELEASE 4
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -97,7 +93,7 @@ Var unToolsCheckbox
 !define MUI_FINISHPAGE_TEXT $TextFinish
 !define MUI_FINISHPAGE_LINK "$(TXT_EtiqVerRegistro)"
 !define MUI_FINISHPAGE_LINK_LOCATION "$LogFile"
-!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${README}"
+!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\${READMEFILE}"
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "$(TXT_EtiqRevisarNotas)"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !define MUI_FINISHPAGE_NOAUTOCLOSE
@@ -108,7 +104,7 @@ Var unToolsCheckbox
 ; CONFIGURACION GENERAL
 Unicode true
 Name "${NAME}"
-OutFile "${INSTALL}"
+OutFile "${INSTALLER}"
 InstallDir "${APPDIR}"
 InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
 BrandingText " "
@@ -120,7 +116,7 @@ SetCompressor lzma
 Caption $TextCaption
 ;--------------------------------
 VIProductVersion ${INSTALLER_VERSION}
-VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${NAME} v${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${DESCRIPTION}"
 VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${INSTALLER_VERSION}
 VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
 VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
@@ -231,7 +227,7 @@ FunctionEnd
 
 Function RunUninstaller
 	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(TXT_MsgConfirmaDesinstalacion)" IDNO EndAsk
-		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALL}"
+		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALLER}"
 		IfFileExists "$0" 0 NoUninst
 		Exec '"$0"'
 		Quit
@@ -283,7 +279,7 @@ FunctionEnd
 Section "Uninstall"
 	Delete "$INSTDIR\*.*"
 	Delete "$INSTDIR\${CATALOGFILE}"
-	Delete "$INSTDIR\${UNINSTALL}"
+	Delete "$INSTDIR\${UNINSTALLER}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\Actualizar.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"

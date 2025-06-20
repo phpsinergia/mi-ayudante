@@ -4,12 +4,12 @@
 Function WriteLogInicial
 	Call SetDateTimeStamp
 	${If} $IsUpdateInstall == "1"
-		StrCpy $LogFile "$INSTDIR\logs\actualizacion_$Timestamp.log"
+		StrCpy $LogFile "$InstDrive$INSTDIR\logs\actualizacion_$Timestamp.log"
 	${Else}
-		StrCpy $LogFile "$INSTDIR\logs\instalacion_$Timestamp.log"
+		StrCpy $LogFile "$InstDrive$INSTDIR\logs\instalacion_$Timestamp.log"
 	${EndIf}
 	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_LogSecInicio)"
+	DetailPrint "$(TXT_LogSection) ${NAME}"
 	DetailPrint ${SEPARATOR}
 	DetailPrint "$(TXT_LogFechaHora) $Day-$Month-$Year  $Hour:$Min"
 	DetailPrint "$(TXT_LogVersion) v$Version"
@@ -29,10 +29,10 @@ Function WriteLogPrograma
 	DetailPrint ${SEPARATOR}
 FunctionEnd
 
-Function WriteLog
+Function WriteLogSection
 	Pop $0
 	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSec) $0*****"
+	DetailPrint "*****$(TXT_LogSection) $0*****"
 FunctionEnd
 
 Function WriteLogConfig
@@ -53,5 +53,6 @@ Function WriteLogFinal
 		DetailPrint "$(TXT_LogGuardado) $LogFile"
 	${Else}
 		DetailPrint "$(TXT_LogNoGuardado)"
+		DetailPrint "$0"
 	${EndIf}
 FunctionEnd

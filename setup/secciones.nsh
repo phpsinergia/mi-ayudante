@@ -23,8 +23,8 @@ Section "!${NAME} (*)" 1
 	SetOutPath "$InstDrive$INSTDIR"
 	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
 		File "..\app\${APPFILE}"
-	IfFileExists "$InstDrive$INSTDIR\${README}" +2 0
-		File "..\app\${README}"
+	IfFileExists "$InstDrive$INSTDIR\${READMEFILE}" +2 0
+		File "..\app\${READMEFILE}"
 	IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
 		File /oname=LICENSE.txt "..\${LICENSEFILE}"
 	SetOutPath "$InstDrive$INSTDIR\datos"
@@ -42,7 +42,7 @@ SectionEnd
 
 Section "-" 2
 	Push "ACTUALIZACIONES"
-	Call WriteLog
+	Call WriteLogSection
 SectionEnd
 
 SectionGroup /e "Actualizaciones" 3
@@ -71,7 +71,7 @@ SectionGroupEnd ;24
 
 Section "-" 25
 	Push "REQUISITOS"
-	Call WriteLog
+	Call WriteLogSection
 SectionEnd
 
 SectionGroup /e "Requisitos" 26
@@ -100,7 +100,7 @@ SectionGroupEnd ;47
 
 Section "-" 48
 	Push "COMPLEMENTOS"
-	Call WriteLog
+	Call WriteLogSection
 SectionEnd
 
 SectionGroup "Complementos" 49
@@ -129,7 +129,7 @@ SectionGroupEnd ;70
 
 Section "-" 71
 	Push "EXTENSIONES"
-	Call WriteLog
+	Call WriteLogSection
 SectionEnd
 
 SectionGroup "Extensiones" 72
@@ -158,7 +158,7 @@ SectionGroupEnd ;93
 
 Section "-" 94
 	Push "RECURSOS"
-	Call WriteLog
+	Call WriteLogSection
 SectionEnd
 
 SectionGroup "Recursos" 95
@@ -214,18 +214,18 @@ Section "-Config" 118
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALL}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALLER}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
 	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	StrCpy $FtpUser ""
 	StrCpy $FtpPass ""
-	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALL}"
+	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
 	DetailPrint "$(TXT_LogCreateShortCut)"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\Actualizar.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\Actualizar.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 SectionEnd
 

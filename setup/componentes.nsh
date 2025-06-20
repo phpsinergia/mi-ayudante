@@ -2,7 +2,7 @@
 Var ComponentesVisibles
 Var Ajuste
 Var Pos
-Var GroupIndex
+Var SectionIndex
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -22,14 +22,14 @@ Var LogMsg
 !macro MJsonLoadComponents TIPO
 	StrCpy $ComponentesTotal "0"
 	StrCpy $ComponentesVisibles "0"
-
 	StrCpy $Pos "0"
 	StrCpy $Ajuste "0"
-
 	nsJSON::Get /count `${TIPO}` /end
 	Pop $ComponentesTotal
 	${If} $ComponentesTotal > 0
 		IntOp $ComponentesTotal $ComponentesTotal - 1
+		nsArray::Get MapSection ${TIPO}
+		Pop $SectionIndex
 		${For} $Pos 0 $ComponentesTotal
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end 
 			Pop $ToolId
@@ -49,19 +49,8 @@ Var LogMsg
 			Pop $ToolTarget
 			nsJSON::Get `${TIPO}` /index $Pos "uninstall" /end
 			Pop $ToolUninstall
-
-;GRP_Actualizaciones 3
-;GRP_Requisitos 26
-;GRP_Complementos 49
-;GRP_Extensiones 72
-;GRP_Recursos 95
-
-;IntOp $R3 $Pos * 23
-;IntOp $R3 $R3 + 3
-
-			IntOp $Ajuste ${GRP_${TIPO}} + 1
+			IntOp $Ajuste $SectionIndex + 1
 			IntOp $ToolIndex $Pos + $Ajuste
-
 			nsArray::Set List${TIPO}Id /key=$ToolIndex $ToolId
 			nsArray::Set List${TIPO}Name /key=$ToolIndex $ToolName
 			nsArray::Set List${TIPO}Version /key=$ToolIndex $ToolVersion
@@ -72,23 +61,21 @@ Var LogMsg
 			nsArray::Set List${TIPO}Target /key=$ToolIndex $ToolTarget
 			nsArray::Set List${TIPO}Uninstall /key=$ToolIndex $ToolUninstall
 		${Next}
-		${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
-			${If} $Pos > $ComponentesTotal
-
-				IntOp $Ajuste ${GRP_${TIPO}} + 1
-				IntOp $ToolIndex $Pos + $Ajuste
-
-				nsArray::Set List${TIPO}Id /key=$ToolIndex ""
-				nsArray::Set List${TIPO}Name /key=$ToolIndex ""
-				nsArray::Set List${TIPO}Version /key=$ToolIndex ""
-				nsArray::Set List${TIPO}SizeKb /key=$ToolIndex 0
-				nsArray::Set List${TIPO}AddPath /key=$ToolIndex 0
-				nsArray::Set List${TIPO}OpChk /key=$ToolIndex 0
-				nsArray::Set List${TIPO}Hash /key=$ToolIndex ""
-				nsArray::Set List${TIPO}Target /key=$ToolIndex ""
-				nsArray::Set List${TIPO}Uninstall /key=$ToolIndex 0
-			${EndIf}
-		${Next}
+		;${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
+		;	${If} $Pos > $ComponentesTotal
+		;		IntOp $Ajuste $SectionIndex + 1
+		;		IntOp $ToolIndex $Pos + $Ajuste
+		;		nsArray::Set List${TIPO}Id /key=$ToolIndex ""
+		;		nsArray::Set List${TIPO}Name /key=$ToolIndex ""
+		;		nsArray::Set List${TIPO}Version /key=$ToolIndex ""
+		;		nsArray::Set List${TIPO}SizeKb /key=$ToolIndex 0
+		;		nsArray::Set List${TIPO}AddPath /key=$ToolIndex 0
+		;		nsArray::Set List${TIPO}OpChk /key=$ToolIndex 0
+		;		nsArray::Set List${TIPO}Hash /key=$ToolIndex ""
+		;		nsArray::Set List${TIPO}Target /key=$ToolIndex ""
+		;		nsArray::Set List${TIPO}Uninstall /key=$ToolIndex 0
+		;	${EndIf}
+		;${Next}
 	${EndIf}
 !macroend
 
@@ -120,10 +107,8 @@ Var LogMsg
 	nsArray::Get List${TIPO}Uninstall /at=$Pos
 	Pop $1
 	Pop $ToolUninstall
-
-	IntOp $Ajuste ${GRP_${TIPO}} + 1
+	IntOp $Ajuste $SectionIndex + 1
 	IntOp $ToolIndex $Pos + $Ajuste
-
 !macroend
 
 !macro MCreateFunctionsComponent TIPO
@@ -143,10 +128,8 @@ FunctionEnd
 
 !macro MCreateSectionComponent TIPO GRUPO INDEX
 Section /o "" ${INDEX}
-	
-	StrCpy $GroupIndex ${GRUPO}
-	IntOp $Ajuste ${GRP_${TIPO}} + 1
-
+	StrCpy $SectionIndex ${GRUPO}
+	IntOp $Ajuste $SectionIndex + 1
 	IntOp $Pos ${INDEX} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
 		Call InstallByIndex${TIPO}
@@ -193,7 +176,7 @@ SectionEnd
 		${EndIf}
 	${Next}
 	${If} $ComponentesVisibles == "0"
-		SectionSetText ${GRP_${TIPO}} ""
+		SectionSetText $SectionIndex ""
 	${EndIf}
 !macroend
 
@@ -257,6 +240,8 @@ SectionEnd
 	${Next}
 !macroend
 
+!insertmacro WordFind
+
 ;--------------------------------
 ; FUNCIONES INSTALACION
 ;--------------------------------
@@ -306,9 +291,8 @@ MapCatalog:
 		nsJSON::Get /key /index $Pos /end
 		Pop $R2 ;Nombre
 		IntOp $R3 $Pos * 23
-		IntOp $R3 $R3 + 3
-		MessageBox MB_OK "Pos Json (Index): $Pos $\nR3 (Section): $R3 $\nR2(Nombre): $R2"
-	
+		IntOp $R4 $R3 + 3
+		nsArray::Set MapSection /key=$R2 $R4
 	${Next}
 FunctionEnd
 
@@ -411,11 +395,14 @@ Function CheckGrpPrograma
 	${Else}
 		IntOp $0 ${SF_SELECTED} | ${SF_RO}
 		SectionSetFlags ${SEC_PROGRAMA} $0
+		SectionSetFlags ${SEC_RELEASE} 0
+		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
 FunctionEnd
 
 Function CheckAllComponents
 	Call FetchCatalog
+	;TODO: Hacer dinámico y sin nombres
 	Call CheckGrpActualizaciones
 	Call CheckGrpRequisitos
 	Call CheckGrpComplementos
@@ -440,6 +427,7 @@ Function DownloadSinglePack
 	${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
 	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
 	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
+	${OrIf} $ToolId == ""
 		Goto SkipTool
 	${EndIf}
 
@@ -475,7 +463,6 @@ Function DownloadSinglePack
 	${EndIf}
 
 ;ValidateTool:
-	!insertmacro WordFind
 	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
 	Pop $0
