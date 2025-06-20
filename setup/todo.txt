@@ -1,8 +1,3 @@
-- Eliminar variables globales GRP_Xxx (o ponerlas genéricas)
-- ¿Tomar el nombre del grupo del json? (Igual que las secciones)
-
-
-
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
@@ -18,3 +13,75 @@
 * Determinar el flujo de trabajo requerido para agregar nuevos tipos, por ejemplo: Entornos, Proyectos, Documentos
 
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
+
+-----------------------
+
+Instalaciones por tipo: Default y Custom.
+
+- Crear página de componentes en desinstalador, para elegir qué desinstalar.
+- En desinstalador, no destruir la carpeta $INSTDIR ni borrar el Registro a menos que se elija desinstalar el programa
+
++ Probar mover el instalador y que actualice la ruta de su acceso directo
+
++ Evaluar si se puede establecer que Mi Ayudante se ejecute automáticamente al iniciar windows, ojalá minimizado (elegible)
+
+-----------------------
+
+;--------------------------------
+;InstallByIndexXxx
+
+Function InstallByIndexComplementos
+	!insertmacro MInstallComponentsByIndex "Complementos"
+FunctionEnd
+
+Function InstallByIndexRequisitos
+	!insertmacro MInstallComponentsByIndex "Requisitos"
+FunctionEnd
+
+Function InstallByIndexExtensiones
+	!insertmacro MInstallComponentsByIndex "Extensiones"
+FunctionEnd
+
+Function InstallByIndexRecursos
+	!insertmacro MInstallComponentsByIndex "Recursos"
+FunctionEnd
+
+Function InstallByIndexActualizaciones
+	${If} $ToolId == "release"
+		${If} $ToolVersion == $Version
+			Return
+		${EndIf}
+		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_MsgActual): $Version$\n$(TXT_MsgNueva): $ToolVersion" IDNO EndActualizaciones
+	${EndIf}
+	!insertmacro MInstallComponentsByIndex "Actualizaciones"
+EndActualizaciones:
+FunctionEnd
+
+;--------------------------------
+
+Function WriteLogActualizaciones
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecActualizaciones)*****"
+FunctionEnd
+
+Function WriteLogRequisitos
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecRequisitos)*****"
+FunctionEnd
+
+Function WriteLogComplementos
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecComplementos)*****"
+FunctionEnd
+
+Function WriteLogExtensiones
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecExtensiones)*****"
+FunctionEnd
+
+Function WriteLogRecursos
+	DetailPrint ${SEPARATOR}
+	DetailPrint "*****$(TXT_LogSecRecursos)*****"
+FunctionEnd
+
+

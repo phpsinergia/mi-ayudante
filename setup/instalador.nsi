@@ -20,7 +20,7 @@
 !define INSTALLER_VERSION "0.0.0.1"
 !define NAME "Mi Ayudante"
 !define PUBLISHER "Rubén Araya Tagle"
-!define TARGET "\home\mi-ayudante"
+!define APPDIR "\home\mi-ayudante"
 !define TOOLS "\home\herramientas"
 !define VENDOR "\home\vendor"
 !define RESOURCES "$DOCUMENTS\MiAyudante"
@@ -36,8 +36,8 @@
 !define SEPARATOR "============================================"
 !define MAX_COMPONENTES 20
 !define SEC_PROGRAMA 1
-!define SEC_RELEASE 4
 ;--------------------------------
+;TODO: Quitar
 !define GRP_Actualizaciones 3
 !define GRP_Requisitos 26
 !define GRP_Complementos 49
@@ -109,7 +109,7 @@ Var unToolsCheckbox
 Unicode true
 Name "${NAME}"
 OutFile "${INSTALL}"
-InstallDir "${TARGET}"
+InstallDir "${APPDIR}"
 InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
 BrandingText " "
 RequestExecutionLevel user
@@ -161,6 +161,7 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 ; FUNCIONES: INSTALACIÓN
 
 Function .onInit
+	InitPluginsDir
 	Call GetConfigValues
 	${If} $IsUpdateInstall == "1"
 		StrCpy $TextCaption "$(TXT_VentanaActualizador)"
@@ -298,5 +299,5 @@ Section "Uninstall"
 	Call un.RemoveDirIfEmpty
 	RMDir /r "$InstDrive${VENDOR}"
 Done:
-	RMDir /r "$InstDrive${TARGET}"
+	RMDir /r "$InstDrive${APPDIR}"
 SectionEnd

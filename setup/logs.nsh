@@ -29,29 +29,10 @@ Function WriteLogPrograma
 	DetailPrint ${SEPARATOR}
 FunctionEnd
 
-Function WriteLogActualizaciones
+Function WriteLog
+	Pop $0
 	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecActualizaciones)*****"
-FunctionEnd
-
-Function WriteLogRequisitos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecRequisitos)*****"
-FunctionEnd
-
-Function WriteLogComplementos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecComplementos)*****"
-FunctionEnd
-
-Function WriteLogExtensiones
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecExtensiones)*****"
-FunctionEnd
-
-Function WriteLogRecursos
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecRecursos)*****"
+	DetailPrint "*****$(TXT_LogSec) $0*****"
 FunctionEnd
 
 Function WriteLogConfig
