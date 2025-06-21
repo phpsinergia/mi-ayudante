@@ -4,6 +4,7 @@ PENDIENTES:
 
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
+
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
 
 - Refactorizar DownloadSinglePack en: DownloadFile + VerifySHA256 + ExtractZip
@@ -25,18 +26,7 @@ Instalaciones por tipo: Default y Custom.
 - Crear página de componentes en desinstalador, para elegir qué desinstalar.
 - En desinstalador, no destruir la carpeta $INSTDIR ni borrar el Registro a menos que se elija desinstalar el programa
 
-+ Probar mover el instalador y que actualice la ruta de su acceso directo
-
 + Evaluar si se puede establecer que Mi Ayudante se ejecute automáticamente al iniciar windows, ojalá minimizado (elegible)
 
 -----------------------
-
-	${If} $ToolId == "release"
-		${If} $ToolVersion == $Version
-			Return
-		${EndIf}
-		MessageBox MB_YESNO|MB_ICONQUESTION "$(TXT_MsgConfirmaActualizacion)$\n$\n$(TXT_Actual): $Version$\n$(TXT_Nueva): $ToolVersion" IDNO EndActualizaciones
-	${EndIf}
-
-;--------------------------------
 

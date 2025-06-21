@@ -2,7 +2,8 @@
 Var ComponentesVisibles
 Var Ajuste
 Var Pos
-Var SectionIndex
+Var GroupIndex
+Var GroupName
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -22,16 +23,16 @@ Var LogMsg
 !macro MJsonLoadComponents TIPO
 	StrCpy $ComponentesTotal "0"
 	StrCpy $ComponentesVisibles "0"
-	StrCpy $Pos "0"
-	StrCpy $Ajuste "0"
+	StrCpy $GroupIndex "0"
+	StrCpy $GroupName ""
 	nsJSON::Get /count `${TIPO}` /end
 	Pop $ComponentesTotal
 	${If} $ComponentesTotal > 0
 		IntOp $ComponentesTotal $ComponentesTotal - 1
-		nsArray::Get MapSection ${TIPO}
-		Pop $SectionIndex
+		nsArray::Get MapCatalog ${TIPO}
+		Pop $GroupIndex
 		${For} $Pos 0 $ComponentesTotal
-			nsJSON::Get `${TIPO}` /index $Pos "id" /end 
+			nsJSON::Get `${TIPO}` /index $Pos "id" /end
 			Pop $ToolId
 			nsJSON::Get `${TIPO}` /index $Pos "name" /end
 			Pop $ToolName
@@ -49,7 +50,7 @@ Var LogMsg
 			Pop $ToolTarget
 			nsJSON::Get `${TIPO}` /index $Pos "uninstall" /end
 			Pop $ToolUninstall
-			IntOp $Ajuste $SectionIndex + 1
+			IntOp $Ajuste $GroupIndex + 1
 			IntOp $ToolIndex $Pos + $Ajuste
 			nsArray::Set List${TIPO}Id /key=$ToolIndex $ToolId
 			nsArray::Set List${TIPO}Name /key=$ToolIndex $ToolName
@@ -61,21 +62,6 @@ Var LogMsg
 			nsArray::Set List${TIPO}Target /key=$ToolIndex $ToolTarget
 			nsArray::Set List${TIPO}Uninstall /key=$ToolIndex $ToolUninstall
 		${Next}
-		;${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
-		;	${If} $Pos > $ComponentesTotal
-		;		IntOp $Ajuste $SectionIndex + 1
-		;		IntOp $ToolIndex $Pos + $Ajuste
-		;		nsArray::Set List${TIPO}Id /key=$ToolIndex ""
-		;		nsArray::Set List${TIPO}Name /key=$ToolIndex ""
-		;		nsArray::Set List${TIPO}Version /key=$ToolIndex ""
-		;		nsArray::Set List${TIPO}SizeKb /key=$ToolIndex 0
-		;		nsArray::Set List${TIPO}AddPath /key=$ToolIndex 0
-		;		nsArray::Set List${TIPO}OpChk /key=$ToolIndex 0
-		;		nsArray::Set List${TIPO}Hash /key=$ToolIndex ""
-		;		nsArray::Set List${TIPO}Target /key=$ToolIndex ""
-		;		nsArray::Set List${TIPO}Uninstall /key=$ToolIndex 0
-		;	${EndIf}
-		;${Next}
 	${EndIf}
 !macroend
 
@@ -107,7 +93,7 @@ Var LogMsg
 	nsArray::Get List${TIPO}Uninstall /at=$Pos
 	Pop $1
 	Pop $ToolUninstall
-	IntOp $Ajuste $SectionIndex + 1
+	IntOp $Ajuste $GroupIndex + 1
 	IntOp $ToolIndex $Pos + $Ajuste
 !macroend
 
@@ -121,15 +107,15 @@ FunctionEnd
 Function GetInfo${TIPO}
 	!insertmacro MGetInfoComponent "${TIPO}"
 FunctionEnd
-Function CheckGrp${TIPO}
-	!insertmacro MCheckGrpComponents "${TIPO}"
+Function CheckGroup${TIPO}
+	!insertmacro MCheckGroupComponents "${TIPO}"
 FunctionEnd
 !macroend
 
 !macro MCreateSectionComponent TIPO GRUPO INDEX
 Section /o "" ${INDEX}
-	StrCpy $SectionIndex ${GRUPO}
-	IntOp $Ajuste $SectionIndex + 1
+	StrCpy $GroupIndex ${GRUPO}
+	IntOp $Ajuste $GroupIndex + 1
 	IntOp $Pos ${INDEX} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
 		Call InstallByIndex${TIPO}
@@ -137,7 +123,7 @@ Section /o "" ${INDEX}
 SectionEnd
 !macroend
 
-!macro MCheckGrpComponents TIPO
+!macro MCheckGroupComponents TIPO
 	Call JsonLoad${TIPO}
 	${For} $Pos 0 $ComponentesTotal
 		${If} $Pos < ${MAX_COMPONENTES}
@@ -176,7 +162,7 @@ SectionEnd
 		${EndIf}
 	${Next}
 	${If} $ComponentesVisibles == "0"
-		SectionSetText $SectionIndex ""
+		SectionSetText $GroupIndex ""
 	${EndIf}
 !macroend
 
@@ -246,6 +232,31 @@ SectionEnd
 ; FUNCIONES INSTALACION
 ;--------------------------------
 
+Function CreateMapCatalog
+	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Get /count /end
+	Pop $0 ;Total
+	IntOp $R1 $0 - 1
+	${For} $Pos 0 $R1
+		nsJSON::Get /key /index $Pos /end
+		Pop $R2 ;Nombre
+		IntOp $R3 $Pos * 23
+		IntOp $R4 $R3 + 3
+		nsArray::Set MapCatalog /key=$R2 $R4
+	${Next}
+FunctionEnd
+
+Function CheckAllComponents
+	Call FetchCatalog
+	;TODO: Hacer dinámico y sin nombres
+	Call CheckGroupActualizaciones
+	Call CheckGroupRequisitos
+	Call CheckGroupComplementos
+	Call CheckGroupExtensiones
+	Call CheckGroupRecursos
+	Call CheckSectionPrograma
+FunctionEnd
+
 Function FetchCatalog
 	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
@@ -270,7 +281,6 @@ Function FetchCatalog
 	${EndIf}
 	${If} $R1 == "0"
 		${If} ${FileExists} "$ToolsCatalog"
-			nsJSON::Set /file $ToolsCatalog
 			Goto MapCatalog
 		${Else}
 			Goto LoadLocalCatalog
@@ -280,20 +290,10 @@ LoadLocalCatalog:
 	SetOutPath "$InstDrive$INSTDIR"
 	File /oname=${CATALOGFILE} "catalogo.json"
 	${If} ${FileExists} "$ToolsCatalog"
-		nsJSON::Set /file $ToolsCatalog
 		Goto MapCatalog
 	${EndIf}
 MapCatalog:
-	nsJSON::Get /count /end
-	Pop $0 ;Total
-	IntOp $R1 $0 - 1
-	${For} $Pos 0 $R1
-		nsJSON::Get /key /index $Pos /end
-		Pop $R2 ;Nombre
-		IntOp $R3 $Pos * 23
-		IntOp $R4 $R3 + 3
-		nsArray::Set MapSection /key=$R2 $R4
-	${Next}
+	Call CreateMapCatalog
 FunctionEnd
 
 Function AddToEnvUserPath
@@ -388,7 +388,7 @@ Function InstallOnVendor
 	${EndIf}
 FunctionEnd
 
-Function CheckGrpPrograma
+Function CheckSectionPrograma
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
 		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
@@ -398,17 +398,6 @@ Function CheckGrpPrograma
 		SectionSetFlags ${SEC_RELEASE} 0
 		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
-FunctionEnd
-
-Function CheckAllComponents
-	Call FetchCatalog
-	;TODO: Hacer dinámico y sin nombres
-	Call CheckGrpActualizaciones
-	Call CheckGrpRequisitos
-	Call CheckGrpComplementos
-	Call CheckGrpExtensiones
-	Call CheckGrpRecursos
-	Call CheckGrpPrograma
 FunctionEnd
 
 ;--------------------------------

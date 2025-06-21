@@ -181,7 +181,7 @@ Function SetDateTimeStamp
 	IntFmt $Day "%02d" $Day
 	IntFmt $Hour "%02d" $Hour
 	IntFmt $Min "%02d" $Min
-	StrCpy  $Timestamp "$Year$Month$Day$Hour$Min"
+	StrCpy  $Timestamp "$Year$Month$Day-$Hour$Min"
 FunctionEnd
 
 Function GetConfigValues
@@ -281,9 +281,9 @@ Section "Uninstall"
 	Delete "$INSTDIR\${CATALOGFILE}"
 	Delete "$INSTDIR\${UNINSTALLER}"
 	Delete "$DESKTOP\${NAME}.lnk"
-	Delete "$DESKTOP\Actualizar.lnk"
+	Delete "$DESKTOP\${INSTALLER_NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
-	Delete "$SMPROGRAMS\${NAME}\Actualizar.lnk"
+	Delete "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk"
 	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"

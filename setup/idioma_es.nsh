@@ -9,7 +9,7 @@ LangString TXT_InstruccionesFinishActualizador ${LANG_SPANISH} "${NAME} ha sido 
 ;--------------------------------
 LangString TXT_VentanaInstalador ${LANG_SPANISH} "Instalar ${NAME}"
 LangString TXT_TituloWelcomeInstalador ${LANG_SPANISH} "Asistente para Instalar$\n${NAME} v$Version"
-LangString TXT_InstruccionesWelcomeInstalador ${LANG_SPANISH} "Este programa INSTALARÁ el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
+LangString TXT_InstruccionesWelcomeInstalador ${LANG_SPANISH} "Este programa instalará el software ${NAME} en su computadora.$\n$\nSe recomienda que cierre todas las demás aplicaciones antes de iniciar la instalación. Esto hará posible actualizar archivos relacionados con el sistema sin tener que reiniciar el equipo.$\n$\n$\nPresione Siguiente para continuar."
 LangString TXT_TituloFinishInstalador ${LANG_SPANISH} "Finalizando el Asistente para$\nInstalar ${NAME}"
 LangString TXT_InstruccionesFinishInstalador ${LANG_SPANISH} "${NAME} ha sido instalado en su computadora.$\n$\nPresione Terminar para cerrar este asistente."
 ;--------------------------------
@@ -35,7 +35,6 @@ LangString TXT_MsgErrorHashNoCoincide ${LANG_SPANISH} "No coincide el Hash del a
 LangString TXT_MsgInstalando ${LANG_SPANISH} "Instalando:"
 LangString TXT_MsgHashValidado ${LANG_SPANISH} "Hash validado:"
 LangString TXT_MsgConfirmaDesinstalacion ${LANG_SPANISH} "¿Desea desinstalar la versión actualmente instalada?"
-LangString TXT_MsgConfirmaActualizacion ${LANG_SPANISH} "¿Confirma que desea actualizar ${NAME}...?"
 LangString TXT_MsgActualizacionCancelada ${LANG_SPANISH} "Actualización cancelada por el usuario"
 ;--------------------------------
 LangString TXT_EtiqEjecutarApp ${LANG_SPANISH} "Ejecutar ${NAME} ahora"
