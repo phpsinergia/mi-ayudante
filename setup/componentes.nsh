@@ -13,7 +13,7 @@ Var ToolOpChk
 Var ToolHash
 Var ToolTarget
 Var ToolUninstall
-Var ToolIndex
+Var SectionIndex
 Var ToolTempDir
 Var LogMsg
 
@@ -51,16 +51,16 @@ Var LogMsg
 			nsJSON::Get `${TIPO}` /index $Pos "uninstall" /end
 			Pop $ToolUninstall
 			IntOp $Ajuste $GroupIndex + 1
-			IntOp $ToolIndex $Pos + $Ajuste
-			nsArray::Set List${TIPO}Id /key=$ToolIndex $ToolId
-			nsArray::Set List${TIPO}Name /key=$ToolIndex $ToolName
-			nsArray::Set List${TIPO}Version /key=$ToolIndex $ToolVersion
-			nsArray::Set List${TIPO}SizeKb /key=$ToolIndex $ToolSizeKb
-			nsArray::Set List${TIPO}AddPath /key=$ToolIndex $ToolAddPath
-			nsArray::Set List${TIPO}OpChk /key=$ToolIndex $ToolOpChk
-			nsArray::Set List${TIPO}Hash /key=$ToolIndex $ToolHash
-			nsArray::Set List${TIPO}Target /key=$ToolIndex $ToolTarget
-			nsArray::Set List${TIPO}Uninstall /key=$ToolIndex $ToolUninstall
+			IntOp $SectionIndex $Pos + $Ajuste
+			nsArray::Set List${TIPO}Id /key=$SectionIndex $ToolId
+			nsArray::Set List${TIPO}Name /key=$SectionIndex $ToolName
+			nsArray::Set List${TIPO}Version /key=$SectionIndex $ToolVersion
+			nsArray::Set List${TIPO}SizeKb /key=$SectionIndex $ToolSizeKb
+			nsArray::Set List${TIPO}AddPath /key=$SectionIndex $ToolAddPath
+			nsArray::Set List${TIPO}OpChk /key=$SectionIndex $ToolOpChk
+			nsArray::Set List${TIPO}Hash /key=$SectionIndex $ToolHash
+			nsArray::Set List${TIPO}Target /key=$SectionIndex $ToolTarget
+			nsArray::Set List${TIPO}Uninstall /key=$SectionIndex $ToolUninstall
 		${Next}
 	${EndIf}
 !macroend
@@ -94,7 +94,7 @@ Var LogMsg
 	Pop $1
 	Pop $ToolUninstall
 	IntOp $Ajuste $GroupIndex + 1
-	IntOp $ToolIndex $Pos + $Ajuste
+	IntOp $SectionIndex $Pos + $Ajuste
 !macroend
 
 !macro MCreateFunctionsComponent TIPO
@@ -128,8 +128,8 @@ SectionEnd
 	${For} $Pos 0 $ComponentesTotal
 		${If} $Pos < ${MAX_COMPONENTES}
 			Call GetInfo${TIPO}
-			SectionSetText $ToolIndex $ToolName
-			SectionSetSize $ToolIndex $ToolSizeKb
+			SectionSetText $SectionIndex $ToolName
+			SectionSetSize $SectionIndex $ToolSizeKb
 
 			;TODO: Cambiar por verificación en componentes.ini
 			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -137,26 +137,26 @@ SectionEnd
 			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
 
 				IntOp $0 0 | ${SF_RO}
-				SectionSetFlags $ToolIndex $0
-				SectionSetText $ToolIndex ""
+				SectionSetFlags $SectionIndex $0
+				SectionSetText $SectionIndex ""
 			${Else}
 				${If} "$ToolOpChk" == "0"
 					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					SectionSetFlags $ToolIndex 0
+					SectionSetFlags $SectionIndex 0
 				${ElseIf} "$ToolOpChk" == "1"
 					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					SectionSetFlags $ToolIndex ${SF_SELECTED}
+					SectionSetFlags $SectionIndex ${SF_SELECTED}
 				${ElseIf} "$ToolOpChk" == "2"
 					IntOp $ComponentesVisibles $ComponentesVisibles + 1
 					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
+					SectionSetFlags $SectionIndex $0
 				${ElseIf} "$ToolOpChk" == "3"
 					IntOp $ComponentesVisibles $ComponentesVisibles + 1
 					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $ToolIndex $0
+					SectionSetFlags $SectionIndex $0
 				${ElseIf} "$ToolOpChk" == "4"
-					SectionSetFlags $ToolIndex 0
-					SectionSetText $ToolIndex ""
+					SectionSetFlags $SectionIndex 0
+					SectionSetText $SectionIndex ""
 				${EndIf}
 			${EndIf}
 		${EndIf}
@@ -171,7 +171,7 @@ SectionEnd
 		Return
 	${EndIf}
 	Call GetInfo${TIPO}
-	${If} ${SectionIsSelected} $ToolIndex
+	${If} ${SectionIsSelected} $SectionIndex
 	${Else}
 		Return
 	${EndIf}
@@ -232,31 +232,6 @@ SectionEnd
 ; FUNCIONES INSTALACION
 ;--------------------------------
 
-Function CreateMapCatalog
-	nsJSON::Set /file $ToolsCatalog
-	nsJSON::Get /count /end
-	Pop $0 ;Total
-	IntOp $R1 $0 - 1
-	${For} $Pos 0 $R1
-		nsJSON::Get /key /index $Pos /end
-		Pop $R2 ;Nombre
-		IntOp $R3 $Pos * 23
-		IntOp $R4 $R3 + 3
-		nsArray::Set MapCatalog /key=$R2 $R4
-	${Next}
-FunctionEnd
-
-Function CheckAllComponents
-	Call FetchCatalog
-	;TODO: Hacer dinámico y sin nombres
-	Call CheckGroupActualizaciones
-	Call CheckGroupRequisitos
-	Call CheckGroupComplementos
-	Call CheckGroupExtensiones
-	Call CheckGroupRecursos
-	Call CheckSectionPrograma
-FunctionEnd
-
 Function FetchCatalog
 	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
@@ -294,6 +269,43 @@ LoadLocalCatalog:
 	${EndIf}
 MapCatalog:
 	Call CreateMapCatalog
+FunctionEnd
+
+Function CreateMapCatalog
+	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Get /count /end
+	Pop $0 ;Total
+	IntOp $R1 $0 - 1
+	${For} $Pos 0 $R1
+		nsJSON::Get /key /index $Pos /end
+		Pop $R2 ;Nombre
+		IntOp $R3 $Pos * 23
+		IntOp $R4 $R3 + 3
+		nsArray::Set MapCatalog /key=$R2 $R4
+	${Next}
+FunctionEnd
+
+Function CheckAllComponents
+	Call FetchCatalog
+	;TODO: Hacer dinámico y sin nombres
+	Call CheckGroupActualizaciones
+	Call CheckGroupRequisitos
+	Call CheckGroupComplementos
+	Call CheckGroupExtensiones
+	Call CheckGroupRecursos
+	Call CheckSectionPrograma
+FunctionEnd
+
+Function CheckSectionPrograma
+	${If} $IsUpdateInstall == "1"
+		SectionSetFlags ${SEC_PROGRAMA} 0
+		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
+	${Else}
+		IntOp $0 ${SF_SELECTED} | ${SF_RO}
+		SectionSetFlags ${SEC_PROGRAMA} $0
+		SectionSetFlags ${SEC_RELEASE} 0
+		SectionSetText ${SEC_RELEASE} ""
+	${EndIf}
 FunctionEnd
 
 Function AddToEnvUserPath
@@ -348,6 +360,8 @@ EndAdd:
 	Pop $0
 FunctionEnd
 
+;--------------------------------
+
 Function InstallOnAppDir
 	CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
 FunctionEnd
@@ -388,29 +402,7 @@ Function InstallOnVendor
 	${EndIf}
 FunctionEnd
 
-Function CheckSectionPrograma
-	${If} $IsUpdateInstall == "1"
-		SectionSetFlags ${SEC_PROGRAMA} 0
-		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
-	${Else}
-		IntOp $0 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags ${SEC_PROGRAMA} $0
-		SectionSetFlags ${SEC_RELEASE} 0
-		SectionSetText ${SEC_RELEASE} ""
-	${EndIf}
-FunctionEnd
-
 ;--------------------------------
-;TODO: Refactorizar DownloadSinglePack en: DownloadFile + VerifySHA256 + ExtractZip
-
-;Function DownloadFile
-;FunctionEnd
-
-;Function VerifySHA256
-;FunctionEnd
-
-;Function ExtractZip
-;FunctionEnd
 
 Function DownloadSinglePack
 	${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
@@ -419,8 +411,28 @@ Function DownloadSinglePack
 	${OrIf} $ToolId == ""
 		Goto SkipTool
 	${EndIf}
+	Call DownloadFile
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call VerifySHA256
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call ExtractZip
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Push "OK"
+	Return
+SkipTool:
+	Push "NO"
+FunctionEnd
 
-;DownloadTool:
+Function DownloadFile
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint ${SEPARATOR}
@@ -432,7 +444,7 @@ Function DownloadSinglePack
 			StrCpy $LogMsg "$(TXT_MsgErrorDescargaFtp) $ToolId$\n$R2"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipTool
+			Goto SkipDownload
 		${EndIf}
 	${ElseIf} $Protocol == "HTTP"
 		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
@@ -441,17 +453,25 @@ Function DownloadSinglePack
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
 		Pop $R1
 		Pop $R2
-		${If} $R1 != "0"
+		${If} $R1 == "0"
+			Goto SuccessDownload
+		${Else}
 			StrCpy $LogMsg "$(TXT_MsgErrorDescargaHttp) $ToolId$\n$(TXT_CodigoRespuesta) $R1"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipTool
+			Goto SkipDownload
 		${EndIf}
 	${Else}
-		Goto SkipTool
+		Goto SkipDownload
 	${EndIf}
+SuccessDownload:
+	Push "OK"
+	Return
+SkipDownload:
+	Push "NO"
+FunctionEnd
 
-;ValidateTool:
+Function VerifySHA256
 	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
 	Pop $0
@@ -460,27 +480,33 @@ Function DownloadSinglePack
 		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
+		Goto SkipVerify
 	${If} $1 != ""
 	${AndIf} $ToolHash != ""
 		${WordFind} "$1" "$ToolHash" "+1" $2
 		${If} $2 != ""
 			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
-			Goto ExtractTool
+			Goto SuccessVerify
 		${Else}
 			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip$\n$2 ≠ $ToolHash"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONSTOP "$LogMsg"
-			Goto SkipTool
+			Goto SkipVerify
 		${EndIf}
 	${Else}
 		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
+		Goto SkipVerify
 	${EndIf}
+SuccessVerify:
+	Push "OK"
+	Return
+SkipVerify:
+	Push "NO"
+FunctionEnd
 
-ExtractTool:
+Function ExtractZip
 	DetailPrint "..."
 	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
 	RMDir /r "$ToolTempDir"
@@ -492,22 +518,21 @@ ExtractTool:
 		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipTool
+		Goto SkipExtract
 	${EndIf}
 	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
 	IntOp $R0 $R4 - $ToolSizeKb
 	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
 	IntCmp $R0 1 0 0 +2
-		Goto SuccessTool
+		Goto SuccessExtract
 	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
 	DetailPrint "$LogMsg"
 	MessageBox MB_ICONEXCLAMATION "$LogMsg"
-	Goto SkipTool
-
-SuccessTool:
+	Goto SkipExtract
+SuccessExtract:
 	Push "OK"
 	Return
-SkipTool:
+SkipExtract:
 	Push "NO"
 FunctionEnd
 

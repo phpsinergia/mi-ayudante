@@ -2,18 +2,23 @@ PENDIENTES:
 
 - Poner las etiquetas de secciones según catalogo.json
 
++ Evaluar si se puede establecer que Mi Ayudante se ejecute automáticamente al iniciar windows, ojalá minimizado (elegible)
+
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
+-----------------------
 
 - Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
-
-- Refactorizar DownloadSinglePack en: DownloadFile + VerifySHA256 + ExtractZip
 
 - Añadir Encrypt / Decrypt al guardar y recuperar contraseñas cifrándolas con XOR
 
 - Agregar Protocolos FTPS y HTTPA en DownloadFile, FetchCatalog + ShowOptionsForm, SaveOptionsForm, TestConnection, TestFtpConnection y TestHttpConnection
 
+-----------------------
+
 - En Uninstall, reemplazar JsonLoadCatalog, JsonLoadComplementos, JsonLoadRequisitos, GetInfoComplementos, GetInfoRequisitos, y en MUninstallTools usar los datos de components.ini
+
+-----------------------
 
 * Determinar el flujo de trabajo requerido para agregar nuevos tipos, por ejemplo: Entornos, Proyectos, Documentos
 
@@ -25,8 +30,6 @@ Instalaciones por tipo: Default y Custom.
 
 - Crear página de componentes en desinstalador, para elegir qué desinstalar.
 - En desinstalador, no destruir la carpeta $INSTDIR ni borrar el Registro a menos que se elija desinstalar el programa
-
-+ Evaluar si se puede establecer que Mi Ayudante se ejecute automáticamente al iniciar windows, ojalá minimizado (elegible)
 
 -----------------------
 
