@@ -204,11 +204,11 @@ Section "-Config" 118
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
 	${If} $RememberCreds == "1"
-		WriteRegStr HKCU "Software\${NAME}" "FtpUser" "$FtpUser"
-		WriteRegStr HKCU "Software\${NAME}" "FtpPass" "$FtpPass"
+		WriteRegStr HKCU "Software\${NAME}" "User" "$User"
+		WriteRegStr HKCU "Software\${NAME}" "Pass" "$Pass"
 	${Else}
-		DeleteRegValue HKCU "Software\${NAME}" "FtpUser"
-		DeleteRegValue HKCU "Software\${NAME}" "FtpPass"
+		DeleteRegValue HKCU "Software\${NAME}" "User"
+		DeleteRegValue HKCU "Software\${NAME}" "Pass"
 	${EndIf}
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
@@ -218,8 +218,8 @@ Section "-Config" 118
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
 	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-	StrCpy $FtpUser ""
-	StrCpy $FtpPass ""
+	StrCpy $User ""
+	StrCpy $Pass ""
 	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
 	DetailPrint "$(TXT_LogCreateShortCut)"
 	CreateDirectory "$SMPROGRAMS\${NAME}"

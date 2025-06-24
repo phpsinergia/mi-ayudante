@@ -29,7 +29,7 @@ Var LogMsg
 	Pop $ComponentesTotal
 	${If} $ComponentesTotal > 0
 		IntOp $ComponentesTotal $ComponentesTotal - 1
-		nsArray::Get MapCatalog ${TIPO}
+		nsArray::Get MapGroupsByName ${TIPO}
 		Pop $GroupIndex
 		${For} $Pos 0 $ComponentesTotal
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end
@@ -233,10 +233,10 @@ SectionEnd
 ;--------------------------------
 
 Function FetchCatalog
-	StrCpy $ToolsCatalog "$InstDrive$INSTDIR\${CATALOGFILE}"
+	StrCpy $CatalogPath "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
-	${If} ${FileExists} $ToolsCatalog
-		Delete $ToolsCatalog
+	${If} ${FileExists} $CatalogPath
+		Delete $CatalogPath
 	${EndIf}
 	${If} $Server == ""
 	${OrIf} $Protocol == ""
@@ -245,18 +245,18 @@ Function FetchCatalog
 	${Endif}
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/${CATALOGFILE}"
-		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$ToolsCatalog" --silent --show-error --fail'
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$CatalogPath" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 	${ElseIf} $Protocol == "HTTP"
 		StrCpy $R0 "https://$Server/herramientas/${CATALOGFILE}"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$ToolsCatalog" "$R0"'
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$CatalogPath" "$R0"'
 		Pop $R1
 		Pop $R2
 	${EndIf}
 	${If} $R1 == "0"
-		${If} ${FileExists} "$ToolsCatalog"
-			Goto MapCatalog
+		${If} ${FileExists} "$CatalogPath"
+			Goto CatalogMap
 		${Else}
 			Goto LoadLocalCatalog
 		${EndIf}
@@ -264,15 +264,15 @@ Function FetchCatalog
 LoadLocalCatalog:
 	SetOutPath "$InstDrive$INSTDIR"
 	File /oname=${CATALOGFILE} "catalogo.json"
-	${If} ${FileExists} "$ToolsCatalog"
-		Goto MapCatalog
+	${If} ${FileExists} "$CatalogPath"
+		Goto CatalogMap
 	${EndIf}
-MapCatalog:
+CatalogMap:
 	Call CreateMapCatalog
 FunctionEnd
 
 Function CreateMapCatalog
-	nsJSON::Set /file $ToolsCatalog
+	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
 	IntOp $R1 $0 - 1
@@ -281,7 +281,8 @@ Function CreateMapCatalog
 		Pop $R2 ;Nombre
 		IntOp $R3 $Pos * 23
 		IntOp $R4 $R3 + 3
-		nsArray::Set MapCatalog /key=$R2 $R4
+		nsArray::Set MapGroupsByName /key=$R2 $R4
+		nsArray::Set MapGroupsByIndex /key=$R4 $R2
 	${Next}
 FunctionEnd
 
@@ -437,7 +438,7 @@ Function DownloadFile
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint ${SEPARATOR}
 		DetailPrint "$(TXT_MsgDescargando) $R0"
-		nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
 		Pop $R1
 		Pop $R2
 		${If} $R1 != "0"
@@ -586,8 +587,8 @@ FunctionEnd
 
 Function un.JsonLoadCatalog
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\${CATALOGFILE}" "$PluginsDir\"
-	StrCpy $ToolsCatalog "$PluginsDir\${CATALOGFILE}"
-	nsJSON::Set /file $ToolsCatalog
+	StrCpy $CatalogPath "$PluginsDir\${CATALOGFILE}"
+	nsJSON::Set /file $CatalogPath
 FunctionEnd
 
 Function un.JsonLoadComplementos

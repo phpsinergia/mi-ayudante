@@ -45,8 +45,8 @@
 Var Version
 Var InstDrive
 Var Server
-Var FtpUser
-Var FtpPass
+Var User
+Var Pass
 Var Protocol
 Var Timestamp
 Var Year
@@ -59,7 +59,7 @@ Var IsUpdateInstall
 Var SkipPrereq
 Var RememberCreds
 Var LogFile
-Var ToolsCatalog
+Var CatalogPath
 Var TitleWelcome
 Var TextWelcome
 Var TitleFinish
@@ -194,8 +194,8 @@ Function GetConfigValues
 		ReadRegStr $SkipPrereq HKCU "Software\${NAME}" "SkipPrereq"
 		ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 		ReadRegStr $Server HKCU "Software\${NAME}" "Server"
-		ReadRegStr $FtpUser HKCU "Software\${NAME}" "FtpUser"
-		ReadRegStr $FtpPass HKCU "Software\${NAME}" "FtpPass"
+		ReadRegStr $User HKCU "Software\${NAME}" "User"
+		ReadRegStr $Pass HKCU "Software\${NAME}" "Pass"
 		ReadRegStr $Protocol HKCU "Software\${NAME}" "Protocol"
 		ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
 	${Else}
@@ -204,7 +204,8 @@ Function GetConfigValues
 		StrCpy $SkipPrereq "0"
 		StrCpy $RememberCreds "0"
 	${EndIf}
-	;TODO: Temporal
+
+	;TODO: Sólo para pruebas, quitar al terminar
 	StrCpy $Server "masexperto.cl"
 	StrCpy $Protocol "HTTP"
 	StrCpy $SkipPrereq "1"
@@ -277,9 +278,9 @@ FunctionEnd
 !include "secciones.nsh"
 
 Section "Uninstall"
-	Delete "$INSTDIR\*.*"
-	Delete "$INSTDIR\${CATALOGFILE}"
-	Delete "$INSTDIR\${UNINSTALLER}"
+	Delete "$InstDrive$INSTDIR\*.*"
+	Delete "$InstDrive$INSTDIR\${CATALOGFILE}"
+	Delete "$InstDrive$INSTDIR\${UNINSTALLER}"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\${INSTALLER_NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
@@ -288,7 +289,7 @@ Section "Uninstall"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	SetOutPath "$PluginsDir"
-	RMDir /r "$INSTDIR"
+	RMDir /r "$InstDrive$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
 	!insertmacro MUninstallTools
 	Push "$InstDrive${TOOLS}"

@@ -4,8 +4,8 @@ Var hDriveDropList
 Var btnUninstall
 Var DriveDropList
 Var ServerInput
-Var FtpUserInput
-Var FtpPassInput
+Var UserInput
+Var PassInput
 Var ProtocolDropList
 Var RememberCredsCheckbox
 
@@ -55,12 +55,12 @@ Function ShowOptionsForm
 		${NSD_OnClick} $btnTest TestConnection
 		${NSD_CreateLabel} 15u 93u 90u 10u "$(TXT_EtiqUsuarioFtp)"
 		Pop $0
-		${NSD_CreateText} 110u 91u 90u 12u "$FtpUser"
-		Pop $FtpUserInput
+		${NSD_CreateText} 110u 91u 90u 12u "$User"
+		Pop $UserInput
 		${NSD_CreateLabel} 15u 109u 90u 10u "$(TXT_EtiqPassFtp)"
 		Pop $0
-		${NSD_CreatePassword} 110u 107u 90u 12u "$FtpPass"
-		Pop $FtpPassInput
+		${NSD_CreatePassword} 110u 107u 90u 12u "$Pass"
+		Pop $PassInput
 		${NSD_CreateCheckbox} 110u 124u 150u 10u "$(TXT_EtiqRecordarCreds)"
 		Pop $RememberCredsCheckbox
 		${If} $RememberCreds == "1"
@@ -73,8 +73,8 @@ Function SaveOptionsForm
 	${NSD_GetText} $DriveDropList $0
 	StrCpy $InstDrive $0 2
 	${NSD_GetText} $ServerInput $Server
-	${NSD_GetText} $FtpUserInput $FtpUser
-	${NSD_GetText} $FtpPassInput $FtpPass
+	${NSD_GetText} $UserInput $User
+	${NSD_GetText} $PassInput $Pass
 	${NSD_GetText} $ProtocolDropList $Protocol
 	${If} $Server == ""
 	${AndIf} $Protocol != "---"
@@ -83,8 +83,8 @@ Function SaveOptionsForm
 	${Endif}
 	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
 	${If} $Protocol == "FTP"
-		${If} $FtpUser == ""
-		${OrIf} $FtpPass == ""
+		${If} $User == ""
+		${OrIf} $Pass == ""
 			MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
 			Abort
 		${EndIf}
@@ -110,14 +110,14 @@ Function TestConnection
 FunctionEnd
 
 Function TestFtpConnection
-	${NSD_GetText} $FtpUserInput $FtpUser
-	${NSD_GetText} $FtpPassInput $FtpPass
-	${If} $FtpUser == ""
-	${OrIf} $FtpPass == ""
+	${NSD_GetText} $UserInput $User
+	${NSD_GetText} $PassInput $Pass
+	${If} $User == ""
+	${OrIf} $Pass == ""
 		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
 		Return
 	${EndIf}
-	nsExec::ExecToStack '"curl.exe" -u $FtpUser@$Server:$FtpPass "ftp://$Server" --silent --list-only --connect-timeout 5'
+	nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server" --silent --list-only --connect-timeout 5'
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
