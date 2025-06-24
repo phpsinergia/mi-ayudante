@@ -3,7 +3,6 @@ Var ComponentesVisibles
 Var Ajuste
 Var Pos
 Var GroupIndex
-Var GroupName
 Var ToolId
 Var ToolName
 Var ToolVersion
@@ -15,6 +14,7 @@ Var ToolTarget
 Var ToolUninstall
 Var SectionIndex
 Var ToolTempDir
+Var ToolFinalPath
 Var LogMsg
 
 ;--------------------------------
@@ -22,16 +22,15 @@ Var LogMsg
 
 !macro MJsonLoadComponents TIPO
 	StrCpy $ComponentesTotal "0"
-	StrCpy $ComponentesVisibles "0"
-	StrCpy $GroupIndex "0"
-	StrCpy $GroupName ""
 	nsJSON::Get /count `${TIPO}` /end
 	Pop $ComponentesTotal
+	nsArray::Get MapGroupsByName ${TIPO}
+	Pop $GroupIndex
 	${If} $ComponentesTotal > 0
-		IntOp $ComponentesTotal $ComponentesTotal - 1
-		nsArray::Get MapGroupsByName ${TIPO}
-		Pop $GroupIndex
-		${For} $Pos 0 $ComponentesTotal
+	${AndIf} $GroupIndex > 0
+		IntOp $Ajuste $GroupIndex + 1
+		IntOp $R0 $ComponentesTotal - 1
+		${For} $Pos 0 $R0
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end
 			Pop $ToolId
 			nsJSON::Get `${TIPO}` /index $Pos "name" /end
@@ -50,7 +49,6 @@ Var LogMsg
 			Pop $ToolTarget
 			nsJSON::Get `${TIPO}` /index $Pos "uninstall" /end
 			Pop $ToolUninstall
-			IntOp $Ajuste $GroupIndex + 1
 			IntOp $SectionIndex $Pos + $Ajuste
 			nsArray::Set List${TIPO}Id /key=$SectionIndex $ToolId
 			nsArray::Set List${TIPO}Name /key=$SectionIndex $ToolName
@@ -61,6 +59,18 @@ Var LogMsg
 			nsArray::Set List${TIPO}Hash /key=$SectionIndex $ToolHash
 			nsArray::Set List${TIPO}Target /key=$SectionIndex $ToolTarget
 			nsArray::Set List${TIPO}Uninstall /key=$SectionIndex $ToolUninstall
+		${Next}
+		${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
+			IntOp $SectionIndex $Pos + $Ajuste
+			nsArray::Set List${TIPO}Id /key=$SectionIndex ""
+			nsArray::Set List${TIPO}Name /key=$SectionIndex ""
+			nsArray::Set List${TIPO}Version /key=$SectionIndex ""
+			nsArray::Set List${TIPO}SizeKb /key=$SectionIndex ""
+			nsArray::Set List${TIPO}AddPath /key=$SectionIndex ""
+			nsArray::Set List${TIPO}OpChk /key=$SectionIndex ""
+			nsArray::Set List${TIPO}Hash /key=$SectionIndex ""
+			nsArray::Set List${TIPO}Target /key=$SectionIndex ""
+			nsArray::Set List${TIPO}Uninstall /key=$SectionIndex ""
 		${Next}
 	${EndIf}
 !macroend
@@ -125,54 +135,58 @@ SectionEnd
 
 !macro MCheckGroupComponents TIPO
 	Call JsonLoad${TIPO}
-	${For} $Pos 0 $ComponentesTotal
-		${If} $Pos < ${MAX_COMPONENTES}
-			Call GetInfo${TIPO}
-			SectionSetText $SectionIndex $ToolName
-			SectionSetSize $SectionIndex $ToolSizeKb
-
-			;TODO: Cambiar por verificación en componentes.ini
-			${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
-			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
-			${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
-
-				IntOp $0 0 | ${SF_RO}
-				SectionSetFlags $SectionIndex $0
-				SectionSetText $SectionIndex ""
-			${Else}
-				${If} "$ToolOpChk" == "0"
-					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					SectionSetFlags $SectionIndex 0
-				${ElseIf} "$ToolOpChk" == "1"
-					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					SectionSetFlags $SectionIndex ${SF_SELECTED}
-				${ElseIf} "$ToolOpChk" == "2"
-					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					IntOp $0 ${SF_SELECTED} | ${SF_RO}
-					SectionSetFlags $SectionIndex $0
-				${ElseIf} "$ToolOpChk" == "3"
-					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					IntOp $0 0 | ${SF_RO}
-					SectionSetFlags $SectionIndex $0
-				${ElseIf} "$ToolOpChk" == "4"
-					SectionSetFlags $SectionIndex 0
+	StrCpy $ComponentesVisibles "0"
+	${If} $ComponentesTotal > 0
+		IntOp $R0 $ComponentesTotal - 1
+		${For} $Pos 0 $R0
+			${If} $Pos < ${MAX_COMPONENTES}
+				Call GetInfo${TIPO}
+				Call CheckComponentInRegistry
+				Pop $1
+				${If} $1 == 2 ; misma versión
+				${OrIf} $1 == 3 ; versión más reciente
+					IntOp $R1 0 | ${SF_RO}
+					SectionSetFlags $SectionIndex $R1
 					SectionSetText $SectionIndex ""
+				${ElseIf} $1 == 1 ; versión antigua
+					IntOp $ComponentesVisibles $ComponentesVisibles + 1
+					SectionSetText $SectionIndex $ToolName
+					SectionSetFlags $SectionIndex ${SF_SELECTED}
+					SectionSetSize $SectionIndex $ToolSizeKb
+				${Else}
+					${If} "$ToolOpChk" == "3"
+						IntOp $R1 0 | ${SF_RO}
+						SectionSetFlags $SectionIndex $R1
+						SectionSetText $SectionIndex ""
+					${Else}
+						IntOp $ComponentesVisibles $ComponentesVisibles + 1
+						SectionSetText $SectionIndex $ToolName
+						SectionSetSize $SectionIndex $ToolSizeKb
+						${If} "$ToolOpChk" == "0"
+							SectionSetFlags $SectionIndex 0
+						${ElseIf} "$ToolOpChk" == "1"
+							SectionSetFlags $SectionIndex ${SF_SELECTED}
+						${ElseIf} "$ToolOpChk" == "2"
+							IntOp $R1 ${SF_SELECTED} | ${SF_RO}
+							SectionSetFlags $SectionIndex $R1
+						${EndIf}
+					${EndIf}
 				${EndIf}
 			${EndIf}
-		${EndIf}
-	${Next}
+		${Next}
+	${EndIf}
 	${If} $ComponentesVisibles == "0"
 		SectionSetText $GroupIndex ""
 	${EndIf}
 !macroend
 
 !macro MInstallComponentsByIndex TIPO
-	${If} $Pos >= ${MAX_COMPONENTES}
+	Call GetInfo${TIPO}
+	${If} $ToolId == ""
+	${OrIf} $Pos >= ${MAX_COMPONENTES}
 		Return
 	${EndIf}
-	Call GetInfo${TIPO}
-	${If} ${SectionIsSelected} $SectionIndex
-	${Else}
+	${IfNot} ${SectionIsSelected} $SectionIndex
 		Return
 	${EndIf}
 	Call DownloadSinglePack
@@ -183,47 +197,43 @@ SectionEnd
 	${EndIf}
 	DetailPrint "..."
 	DetailPrint "$(TXT_MsgInstalando) $ToolId"
+	StrCpy $ToolFinalPath ""
 	${If} $ToolTarget == "appdir"
-		Call InstallOnAppDir
-	${ElseIf} $ToolTarget == "vendor"
-		Call InstallOnVendor
-	${ElseIf} $ToolTarget == "tools"
-		Call InstallOnTools
-	${ElseIf} $ToolTarget == "resources"
-		Call InstallOnResources
+		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
+	${Else}
+		${If} $ToolTarget == "vendor"
+			StrCpy $ToolFinalPath "$InstDrive${VENDOR}"
+		${ElseIf} $ToolTarget == "resources"
+			StrCpy $ToolFinalPath "${RESOURCES}\$ToolId"
+		${ElseIf} $ToolTarget == "tools"
+			StrCpy $ToolFinalPath "$InstDrive${TOOLS}\$ToolId"
+		${EndIf}
+		${If} ${FileExists} $ToolFinalPath
+			CopyFiles /SILENT "$ToolTempDir\*.*" "$ToolFinalPath\"
+		${Else}
+			StrCpy $R8 $ToolTempDir 2
+			StrCpy $R9 $InstDrive 2
+			${If} "$R8" == "$R9"
+				Rename "$ToolTempDir" "$ToolFinalPath"
+			${Else}
+				CreateDirectory "$ToolFinalPath"
+				CopyFiles /SILENT "$ToolTempDir\*.*" "$ToolFinalPath\"
+			${EndIf}
+		${EndIf}
 	${EndIf}
 	${If} $ToolAddPath == "1"
-		Push "$InstDrive${TOOLS}\$ToolId"
+	${AndIf} $ToolFinalPath != ""
+		Push "$ToolFinalPath"
 		Call AddToEnvUserPath
 	${EndIf}
+	Call AddComponentToRegistry
 	${If} $ToolId == "release"
 		StrCpy $Version $ToolVersion
 		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
-!macroend
-
-!macro MUninstallTools
-	;TODO: Cambiar para que elimine usando componentes.ini
-	Call un.JsonLoadComplementos
-	${For} $Pos 0 ${MAX_COMPONENTES}
-		${If} $Pos < ${MAX_COMPONENTES}
-			Call un.GetInfoComplementos
-			RMDir /r "$InstDrive${TOOLS}\$ToolId"
-			Push "$InstDrive${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
-	Call un.JsonLoadRequisitos
-	${For} $Pos 0 ${MAX_COMPONENTES}
-		${If} $Pos < ${MAX_COMPONENTES}
-			Call un.GetInfoRequisitos
-			RMDir /r "$InstDrive${TOOLS}\$ToolId"
-			Push "$InstDrive${TOOLS}\$ToolId"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-	${Next}
+	StrCpy $ToolId ""
 !macroend
 
 !insertmacro WordFind
@@ -363,53 +373,8 @@ FunctionEnd
 
 ;--------------------------------
 
-Function InstallOnAppDir
-	CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
-FunctionEnd
-
-Function InstallOnTools
-	StrCpy $R8 $ToolTempDir 2
-	StrCpy $R9 $InstDrive 2
-	RMDir /r "$InstDrive${TOOLS}\$ToolId"
-	${If} "$R8" == "$R9"
-		Rename "$ToolTempDir" "$InstDrive${TOOLS}\$ToolId"
-	${Else}
-		CreateDirectory "$InstDrive${TOOLS}\$ToolId"
-		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive${TOOLS}\$ToolId\"
-	${EndIf}
-FunctionEnd
-
-Function InstallOnResources
-	StrCpy $R8 $ToolTempDir 2
-	StrCpy $R9 $InstDrive 2
-	RMDir /r "${RESOURCES}\$ToolId"
-	${If} "$R8" == "$R9"
-		Rename "$ToolTempDir" "${RESOURCES}\$ToolId"
-	${Else}
-		CreateDirectory "${RESOURCES}\$ToolId"
-		CopyFiles /SILENT "$ToolTempDir\*.*" "${RESOURCES}\$ToolId\"
-	${EndIf}
-FunctionEnd
-
-Function InstallOnVendor
-	StrCpy $R8 $ToolTempDir 2
-	StrCpy $R9 $InstDrive 2
-	RMDir /r "$InstDrive${VENDOR}"
-	${If} "$R8" == "$R9"
-		Rename "$ToolTempDir" "$InstDrive${VENDOR}"
-	${Else}
-		CreateDirectory "$InstDrive${VENDOR}"
-		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive${VENDOR}"
-	${EndIf}
-FunctionEnd
-
-;--------------------------------
-
 Function DownloadSinglePack
-	${If} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.exe"
-	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\bin\*.exe"
-	${OrIf} ${FileExists} "$InstDrive${TOOLS}\$ToolId\*.json"
-	${OrIf} $ToolId == ""
+	${If} $ToolId == ""
 		Goto SkipTool
 	${EndIf}
 	Call DownloadFile
@@ -538,7 +503,141 @@ SkipExtract:
 FunctionEnd
 
 ;--------------------------------
+
+Function CheckComponentInRegistry
+	ReadINIStr $2 "$InstDrive$INSTDIR\componentes.ini" "Installed" "$ToolId"
+	${If} $2 == ""
+		Push "0" ; no instalado
+	${ElseIf} $2 == $ToolVersion
+		Push "2" ; misma versión
+	${Else}
+		${VersionCompare} "$2" "$ToolVersion" $3
+		${If} $3 == 1
+			Push "1" ; instalado < catálogo
+		${Else}
+			Push "3" ; instalado > catálogo
+		${EndIf}
+	${EndIf}
+FunctionEnd
+
+Function AddComponentToRegistry
+	WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Installed" "$ToolId" "$ToolVersion"
+	${If} $ToolFinalPath != ""
+		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Paths" "$ToolId" "$ToolFinalPath"
+	${EndIf}
+FunctionEnd
+
+;--------------------------------
 ; FUNCIONES DESINSTALACION
+
+!ifndef __TRIMSPACES_NSIS
+!define __TRIMSPACES_NSIS
+
+!macro TrimSpaces _out _in
+	Push `${_in}`
+	Call un._TrimSpaces
+	Pop `${_out}`
+!macroend
+
+Function un._TrimSpaces
+	Exch $0
+	Push $1
+	Push $2
+	StrLen $2 $0
+loopLeading:
+		StrCpy $1 $0 1
+		StrCmp $1 " " doneLeading
+		StrCpy $0 $0 "" 1
+		Goto loopLeading
+doneLeading:
+	StrLen $2 $0
+	IntOp $2 $2 - 1
+loopTrailing:
+		StrCpy $1 $0 1 $2
+		StrCmp $1 " " doneTrailing
+		StrCpy $0 $0 $2
+		IntOp $2 $2 - 1
+		Goto loopTrailing
+doneTrailing:
+	Push $0
+	Pop $2
+	Pop $1
+	Pop $0
+FunctionEnd
+!endif
+
+!ifndef __TRIMNEWLINES_NSIS
+!define __TRIMNEWLINES_NSIS
+
+!macro TrimNewLines _out _in
+	Push `${_in}`
+	Call un._TrimNewLines
+	Pop `${_out}`
+!macroend
+
+Function un._TrimNewLines
+	Exch $0
+	StrLen $1 $0
+	IntOp $1 $1 - 1
+	StrCpy $2 $0 1 $1
+	StrCmp $2 "$\n" 0 +2
+		StrCpy $0 $0 $1
+	IntOp $1 $1 - 1
+	StrCpy $2 $0 1 $1
+	StrCmp $2 "$\r" 0 +2
+		StrCpy $0 $0 $1
+	Push $0
+FunctionEnd
+!endif
+
+!macro MUninstallComponents
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	StrCpy $R2 "$PluginsDir\componentes.ini"
+	IfFileExists "$R2" 0 EndMacro
+	FileOpen $R0 "$R2" r
+	StrCpy $R3 0
+LoopRead:
+	FileRead $R0 $R1
+	IfErrors CloseFile
+	!insertmacro TrimNewLines $R1 $R1
+	${If} "$R1" == ""
+	${OrIf} "$R1" == ";"
+		Goto LoopRead
+	${EndIf}
+		${If} "$R1" == "[Paths]"
+			StrCpy $R3 1
+			Goto LoopRead
+		${EndIf}
+		${If} $R3 == 1
+			${If} "$R1" < "["
+				${WordFind} "$R1" "=" "+1" $R4
+				!insertmacro TrimSpaces $R4 $R4
+				${unStrRep} $R4 $R4 '"' ''
+				${If} $R4 != ""
+					RMDir /r "$R4"
+					Push "$R4"
+					Call un.RemoveFromEnvUserPath
+				${EndIf}
+				Goto LoopRead
+			${Else}
+				Goto CloseFile
+			${EndIf}
+		${EndIf}
+		Goto LoopRead
+CloseFile:
+	FileClose $R0
+EndMacro:
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+!macroend
 
 Function un.RemoveFromEnvUserPath
 	Exch $0
@@ -585,24 +684,3 @@ EndRm:
 	Pop $0
 FunctionEnd
 
-Function un.JsonLoadCatalog
-	CopyFiles /SILENT /FILESONLY "$INSTDIR\${CATALOGFILE}" "$PluginsDir\"
-	StrCpy $CatalogPath "$PluginsDir\${CATALOGFILE}"
-	nsJSON::Set /file $CatalogPath
-FunctionEnd
-
-Function un.JsonLoadComplementos
-	!insertmacro MJsonLoadComponents "Complementos"
-FunctionEnd
-
-Function un.JsonLoadRequisitos
-	!insertmacro MJsonLoadComponents "Requisitos"
-FunctionEnd
-
-Function un.GetInfoComplementos
-	!insertmacro MGetInfoComponent "Complementos"
-FunctionEnd
-
-Function un.GetInfoRequisitos
-	!insertmacro MGetInfoComponent "Requisitos"
-FunctionEnd

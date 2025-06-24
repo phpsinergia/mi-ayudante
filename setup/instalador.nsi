@@ -181,7 +181,7 @@ Function SetDateTimeStamp
 	IntFmt $Day "%02d" $Day
 	IntFmt $Hour "%02d" $Hour
 	IntFmt $Min "%02d" $Min
-	StrCpy  $Timestamp "$Year$Month$Day-$Hour$Min"
+	StrCpy $Timestamp "$Year$Month$Day-$Hour$Min"
 FunctionEnd
 
 Function GetConfigValues
@@ -248,7 +248,8 @@ FunctionEnd
 Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
-	Call un.JsonLoadCatalog
+	InitPluginsDir
+	CopyFiles /SILENT /FILESONLY "$InstDrive$INSTDIR\componentes.ini" "$PluginsDir\componentes.ini"
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -291,8 +292,10 @@ Section "Uninstall"
 	SetOutPath "$PluginsDir"
 	RMDir /r "$InstDrive$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
-	!insertmacro MUninstallTools
+	!insertmacro MUninstallComponents
 	Push "$InstDrive${TOOLS}"
+	Call un.RemoveDirIfEmpty
+	Push "${RESOURCES}"
 	Call un.RemoveDirIfEmpty
 	RMDir /r "$InstDrive${VENDOR}"
 Done:
