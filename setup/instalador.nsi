@@ -132,6 +132,7 @@ ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
 !insertmacro GetTime
+!insertmacro WordFind
 
 ;--------------------------------
 ; PAGINAS
@@ -149,7 +150,7 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
-; TEXTOS DE LA INTERFAZ
+; TEXTOS DE INTERFAZ
 !insertmacro MUI_LANGUAGE "Spanish"
 !include "idioma_es.nsh"
 
@@ -249,7 +250,6 @@ Function un.onInit
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
 	InitPluginsDir
-	CopyFiles /SILENT /FILESONLY "$InstDrive$INSTDIR\componentes.ini" "$PluginsDir\componentes.ini"
 FunctionEnd
 
 Function un.ShowOptionsUninstall
@@ -273,15 +273,59 @@ Function un.RemoveDirIfEmpty
 	RMDir "$0"
 FunctionEnd
 
+Function un.RemoveFromEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	${unStrTrimNewLines} $0 $0
+	${unStrRep} $0 $0 '"' ''
+	ReadRegStr $1 HKCU "Environment" "Path"
+	${If} $1 == ""
+		Goto EndRm
+	${EndIf}
+	${unStrRep} $1 "$1" ";$0;" ";"
+	${unStrRep} $1 "$1" "$0;" ""
+	${unStrRep} $1 "$1" ";$0" ""
+LoopCleanRm:
+	${unStrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto TrimEnds
+	${EndIf}
+	${unStrRep} $1 $1 ";;" ";"
+	Goto LoopCleanRm
+TrimEnds:
+	${If} $1 != ""
+		StrCpy $2 $1 1
+		${If} $2 == ";"
+			StrCpy $1 $1 "" 1
+		${EndIf}
+		StrLen $2 $1
+		${If} $2 > 0
+			IntOp $2 $2 - 1
+			StrCpy $3 $1 1 $2
+			${If} $3 == ";"
+				StrCpy $1 $1 $2
+			${EndIf}
+		${EndIf}
+	${EndIf}
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndRm:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
+FunctionEnd
+
 ;--------------------------------
 ; SECCIONES
 
 !include "secciones.nsh"
 
 Section "Uninstall"
-	Delete "$InstDrive$INSTDIR\*.*"
-	Delete "$InstDrive$INSTDIR\${CATALOGFILE}"
-	Delete "$InstDrive$INSTDIR\${UNINSTALLER}"
+	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"
+	Delete "$INSTDIR\*.*"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\${INSTALLER_NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
@@ -290,9 +334,9 @@ Section "Uninstall"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	SetOutPath "$PluginsDir"
-	RMDir /r "$InstDrive$INSTDIR"
+	RMDir /r "$INSTDIR"
 	StrCmp $unToolsCheckboxState "1" 0 Done
-	!insertmacro MUninstallComponents
+	!insertmacro MUninstallAllComponents
 	Push "$InstDrive${TOOLS}"
 	Call un.RemoveDirIfEmpty
 	Push "${RESOURCES}"

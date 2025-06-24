@@ -236,11 +236,64 @@ SectionEnd
 	StrCpy $ToolId ""
 !macroend
 
-!insertmacro WordFind
+!macro MUninstallAllComponents
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	StrCpy $R2 "$PluginsDir\componentes.ini"
+	IfFileExists "$R2" 0 EndMacro
+	FileOpen $R0 "$R2" r
+	StrCpy $R3 0
+	ClearErrors
+LoopRead:
+	FileRead $R0 $R1
+	IfErrors CloseFile
+	${unStrTrimNewLines} $R1 "$R1"
+	${If} "$R1" == ""
+	${OrIf} "$R1" == ";"
+		Goto LoopRead
+	${EndIf}
+	${If} "$R1" == "[Paths]"
+		StrCpy $R3 1
+		Goto LoopRead
+	${EndIf}
+	${If} $R3 == 1
+		${WordFind} "$R1" "=" "+2" $R4
+		${unStrRep} $R4 $R4 '"' ''
+		${If} $R4 != ""
+			RMDir /r "$R4"
+			Push "$R4"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+		Goto LoopRead
+	${EndIf}
+	Goto LoopRead
+CloseFile:
+	FileClose $R0
+EndMacro:
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+!macroend
 
 ;--------------------------------
-; FUNCIONES INSTALACION
-;--------------------------------
+; FUNCIONES
+
+Function CheckAllComponents
+	Call FetchCatalog
+	;TODO: Hacer dinámico y sin nombres
+	Call CheckGroupActualizaciones
+	Call CheckGroupRequisitos
+	Call CheckGroupComplementos
+	Call CheckGroupExtensiones
+	Call CheckGroupRecursos
+	Call CheckSectionPrograma
+FunctionEnd
 
 Function FetchCatalog
 	StrCpy $CatalogPath "$InstDrive$INSTDIR\${CATALOGFILE}"
@@ -294,17 +347,6 @@ Function CreateMapCatalog
 		nsArray::Set MapGroupsByName /key=$R2 $R4
 		nsArray::Set MapGroupsByIndex /key=$R4 $R2
 	${Next}
-FunctionEnd
-
-Function CheckAllComponents
-	Call FetchCatalog
-	;TODO: Hacer dinámico y sin nombres
-	Call CheckGroupActualizaciones
-	Call CheckGroupRequisitos
-	Call CheckGroupComplementos
-	Call CheckGroupExtensiones
-	Call CheckGroupRecursos
-	Call CheckSectionPrograma
 FunctionEnd
 
 Function CheckSectionPrograma
@@ -370,8 +412,6 @@ EndAdd:
 	Pop $1
 	Pop $0
 FunctionEnd
-
-;--------------------------------
 
 Function DownloadSinglePack
 	${If} $ToolId == ""
@@ -502,8 +542,6 @@ SkipExtract:
 	Push "NO"
 FunctionEnd
 
-;--------------------------------
-
 Function CheckComponentInRegistry
 	ReadINIStr $2 "$InstDrive$INSTDIR\componentes.ini" "Installed" "$ToolId"
 	${If} $2 == ""
@@ -526,161 +564,3 @@ Function AddComponentToRegistry
 		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Paths" "$ToolId" "$ToolFinalPath"
 	${EndIf}
 FunctionEnd
-
-;--------------------------------
-; FUNCIONES DESINSTALACION
-
-!ifndef __TRIMSPACES_NSIS
-!define __TRIMSPACES_NSIS
-
-!macro TrimSpaces _out _in
-	Push `${_in}`
-	Call un._TrimSpaces
-	Pop `${_out}`
-!macroend
-
-Function un._TrimSpaces
-	Exch $0
-	Push $1
-	Push $2
-	StrLen $2 $0
-loopLeading:
-		StrCpy $1 $0 1
-		StrCmp $1 " " doneLeading
-		StrCpy $0 $0 "" 1
-		Goto loopLeading
-doneLeading:
-	StrLen $2 $0
-	IntOp $2 $2 - 1
-loopTrailing:
-		StrCpy $1 $0 1 $2
-		StrCmp $1 " " doneTrailing
-		StrCpy $0 $0 $2
-		IntOp $2 $2 - 1
-		Goto loopTrailing
-doneTrailing:
-	Push $0
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-!endif
-
-!ifndef __TRIMNEWLINES_NSIS
-!define __TRIMNEWLINES_NSIS
-
-!macro TrimNewLines _out _in
-	Push `${_in}`
-	Call un._TrimNewLines
-	Pop `${_out}`
-!macroend
-
-Function un._TrimNewLines
-	Exch $0
-	StrLen $1 $0
-	IntOp $1 $1 - 1
-	StrCpy $2 $0 1 $1
-	StrCmp $2 "$\n" 0 +2
-		StrCpy $0 $0 $1
-	IntOp $1 $1 - 1
-	StrCpy $2 $0 1 $1
-	StrCmp $2 "$\r" 0 +2
-		StrCpy $0 $0 $1
-	Push $0
-FunctionEnd
-!endif
-
-!macro MUninstallComponents
-	Push $R0
-	Push $R1
-	Push $R2
-	Push $R3
-	Push $R4
-	StrCpy $R2 "$PluginsDir\componentes.ini"
-	IfFileExists "$R2" 0 EndMacro
-	FileOpen $R0 "$R2" r
-	StrCpy $R3 0
-LoopRead:
-	FileRead $R0 $R1
-	IfErrors CloseFile
-	!insertmacro TrimNewLines $R1 $R1
-	${If} "$R1" == ""
-	${OrIf} "$R1" == ";"
-		Goto LoopRead
-	${EndIf}
-		${If} "$R1" == "[Paths]"
-			StrCpy $R3 1
-			Goto LoopRead
-		${EndIf}
-		${If} $R3 == 1
-			${If} "$R1" < "["
-				${WordFind} "$R1" "=" "+1" $R4
-				!insertmacro TrimSpaces $R4 $R4
-				${unStrRep} $R4 $R4 '"' ''
-				${If} $R4 != ""
-					RMDir /r "$R4"
-					Push "$R4"
-					Call un.RemoveFromEnvUserPath
-				${EndIf}
-				Goto LoopRead
-			${Else}
-				Goto CloseFile
-			${EndIf}
-		${EndIf}
-		Goto LoopRead
-CloseFile:
-	FileClose $R0
-EndMacro:
-	Pop $R5
-	Pop $R4
-	Pop $R3
-	Pop $R2
-	Pop $R1
-	Pop $R0
-!macroend
-
-Function un.RemoveFromEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
-	${unStrTrimNewLines} $0 $0
-	${unStrRep} $0 $0 '"' ''
-	ReadRegStr $1 HKCU "Environment" "Path"
-	${If} $1 == ""
-		Goto EndRm
-	${EndIf}
-	${unStrRep} $1 "$1" ";$0;" ";"
-	${unStrRep} $1 "$1" "$0;" ""
-	${unStrRep} $1 "$1" ";$0" ""
-LoopCleanRm:
-	${unStrStr} $2 $1 ";;"
-	${If} $2 == ""
-		Goto TrimEnds
-	${EndIf}
-	${unStrRep} $1 $1 ";;" ";"
-	Goto LoopCleanRm
-TrimEnds:
-	${If} $1 != ""
-		StrCpy $2 $1 1
-		${If} $2 == ";"
-			StrCpy $1 $1 "" 1
-		${EndIf}
-		StrLen $2 $1
-		${If} $2 > 0
-			IntOp $2 $2 - 1
-			StrCpy $3 $1 1 $2
-			${If} $3 == ";"
-				StrCpy $1 $1 $2
-			${EndIf}
-		${EndIf}
-	${EndIf}
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
-EndRm:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-
