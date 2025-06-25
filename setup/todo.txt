@@ -8,11 +8,7 @@ PENDIENTES:
 
 -----------------------
 
-- Añadir Encrypt / Decrypt al guardar y recuperar contraseñas cifrándolas con XOR
-
 - Agregar Protocolos FTPS y HTTPA en DownloadFile, FetchCatalog + ShowOptionsForm, SaveOptionsForm, TestConnection, TestFtpConnection y TestHttpConnection
-
-
 
 -----------------------
 

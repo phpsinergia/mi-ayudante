@@ -49,11 +49,12 @@ Function WriteLogFinal
 	DetailPrint "*****FIN*****"
 	DumpLog::DumpLogUTF8 "$LogFile" .r0
 	Pop $0
-	${If} $0 == "0"
+	${If} ${FileExists} $LogFile
 		DetailPrint "$(TXT_LogGuardado)"
 		DetailPrint "$LogFile"
 	${Else}
 		DetailPrint "$(TXT_LogNoGuardado)"
+		DetailPrint "$LogFile"
 		DetailPrint "$0"
 	${EndIf}
 FunctionEnd

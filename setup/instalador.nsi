@@ -66,6 +66,7 @@ Var TextFinish
 Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
+Var EncPass
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -220,7 +221,7 @@ Function .onInit
 FunctionEnd
 
 Function SetDateTimeStamp
-	${GetTime} "" "L" $Day $Month $Year $R3 $Hour $Min $Sec
+	${GetTime} "" "L" $Day $Month $Year $1 $Hour $Min $Sec
 	IntFmt $Year "%04d" $Year
 	IntFmt $Month "%02d" $Month
 	IntFmt $Day "%02d" $Day
@@ -235,14 +236,17 @@ Function GetConfigValues
 	${If} $0 != ""
 		StrCpy $INSTDIR $0
 		StrCpy $IsUpdateInstall "1"
+		ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
 		ReadRegStr $InstDrive HKCU "Software\${NAME}" "Install_Drive"
 		ReadRegStr $SkipPrereq HKCU "Software\${NAME}" "SkipPrereq"
 		ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
 		ReadRegStr $Server HKCU "Software\${NAME}" "Server"
-		ReadRegStr $User HKCU "Software\${NAME}" "User"
-		ReadRegStr $Pass HKCU "Software\${NAME}" "Pass"
 		ReadRegStr $Protocol HKCU "Software\${NAME}" "Protocol"
-		ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
+		ReadRegStr $User HKCU "Software\${NAME}" "User"
+		ReadRegStr $EncPass HKCU "Software\${NAME}" "Pass"
+		${If} $EncPass != ""
+			Call DecryptPw
+		${EndIf}
 	${Else}
 		StrCpy $InstDrive $EXEPATH 2
 		StrCpy $Version ${RELEASE}
@@ -251,8 +255,8 @@ Function GetConfigValues
 	${EndIf}
 
 	;TODO: Sólo para pruebas, quitar al terminar
-	StrCpy $Server "masexperto.cl"
-	StrCpy $Protocol "HTTP"
+	;StrCpy $Server "masexperto.com"
+	;StrCpy $Protocol "FTP"
 	StrCpy $SkipPrereq "1"
 	StrCpy $InstDrive "D:"
 
@@ -288,7 +292,6 @@ FunctionEnd
 !include "logs.nsh"
 
 ;--------------------------------
-
 Function AddToEnvUserPath
 	Exch $0
 	Push $1
@@ -470,6 +473,63 @@ SkipExtract:
 	Push "NO"
 FunctionEnd
 
+Function EncryptPw
+  StrCpy $1 "$PluginsDir\pw.txt"
+  Delete $1
+  FileOpen  $2 $1 "w"
+  FileWrite $2 "$Pass"
+  FileClose $2
+  StrCpy $3 "$PluginsDir\pw.b64"
+  Delete $3
+  nsExec::ExecToStack 'CertUtil -f -encode "$1" "$3"'
+  Pop $4
+  Pop $4
+  StrCpy $4 ""
+  FileOpen $2 $3 "r"
+  ${Do}
+    FileRead $2 $1
+    ${IfThen} '$1' == "" ${|} ${Break} ${|}
+    StrCpy $1 $1 -2
+    ${If} $1 == "-----BEGIN CERTIFICATE-----"
+    ${OrIf} $1 == "-----END CERTIFICATE-----"
+    ${OrIf} $1 == ""
+    ${Else}
+      StrCpy $4 "$4$1"
+    ${EndIf}
+  ${Loop}
+  FileClose $2
+  Delete "$PluginsDir\pw.txt"
+  Delete "$PluginsDir\pw.b64"
+  StrCpy $EncPass $4
+FunctionEnd
+
+Function DecryptPw
+  StrCpy $1 "$PluginsDir\pw.b64"
+  Delete $1
+  FileOpen $2 $1 "w"
+  FileWrite $2 "-----BEGIN CERTIFICATE-----$\r$\n"
+  StrLen $3 $EncPass
+  StrCpy $4 0
+  ${While} $4 < $3
+    StrCpy $5 $EncPass 64 $4
+    FileWrite $2 "$5$\r$\n"
+    IntOp $4 $4 + 64
+  ${EndWhile}
+  FileWrite $2 "-----END CERTIFICATE-----$\r$\n"
+  FileClose $2
+  StrCpy $6 "$PluginsDir\pw.txt"
+  Delete $6
+  nsExec::ExecToStack 'CertUtil -f -decode "$1" "$6"'
+  Pop $5
+  Pop $5
+  FileOpen $2 $6 "r"
+  FileRead $2 $5
+  FileClose $2
+  Delete "$PluginsDir\pw.b64"
+  Delete "$PluginsDir\pw.txt"
+  StrCpy $Pass $5
+FunctionEnd
+
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 
@@ -608,8 +668,11 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
 	${If} $RememberCreds == "1"
+		${If} $Pass != ""
+			Call EncryptPw
+			WriteRegStr HKCU "Software\${NAME}" "Pass" "$EncPass"
+		${EndIf}
 		WriteRegStr HKCU "Software\${NAME}" "User" "$User"
-		WriteRegStr HKCU "Software\${NAME}" "Pass" "$Pass"
 	${Else}
 		DeleteRegValue HKCU "Software\${NAME}" "User"
 		DeleteRegValue HKCU "Software\${NAME}" "Pass"

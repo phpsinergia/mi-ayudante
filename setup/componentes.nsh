@@ -4,7 +4,6 @@
 ;!define MAX_COMPONENTES 20
 ;!define SEC_PROGRAMA 1
 ;!define SEC_RELEASE 4
-
 ;--------------------------------
 ; VARIABLES
 Var ComponentesTotal

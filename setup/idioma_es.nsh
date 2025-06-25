@@ -3,9 +3,9 @@
 ;--------------------------------
 LangString TXT_VentanaActualizador ${LANG_SPANISH} "Actualizar ${NAME}"
 LangString TXT_TituloWelcomeActualizador ${LANG_SPANISH} "Asistente para Actualizar$\n${NAME} v$Version"
-LangString TXT_InstruccionesWelcomeActualizador ${LANG_SPANISH} "Este programa actualizará el software ${NAME} que está instalado en:$\n$\n$InstDrive$0$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
+LangString TXT_InstruccionesWelcomeActualizador ${LANG_SPANISH} "Este programa actualizará el software ${NAME} que está instalado en:$\n$\n$InstDrive$INSTDIR$\n$\nPodrá agregar nuevos componentes o restaurar los existentes, sin perder sus configuraciones y datos.$\n$\n$\nPresione Siguiente para continuar."
 LangString TXT_TituloFinishActualizador ${LANG_SPANISH} "Finalizando el Asistente para$\nActualizar ${NAME}"
-LangString TXT_InstruccionesFinishActualizador ${LANG_SPANISH} "${NAME} ha sido actualizado en:$\n$\n$InstDrive$0$\n$\nPresione Terminar para cerrar este asistente."
+LangString TXT_InstruccionesFinishActualizador ${LANG_SPANISH} "${NAME} ha sido actualizado en:$\n$\n$InstDrive$INSTDIR$\n$\nPresione Terminar para cerrar este asistente."
 ;--------------------------------
 LangString TXT_VentanaInstalador ${LANG_SPANISH} "Instalar ${NAME}"
 LangString TXT_TituloWelcomeInstalador ${LANG_SPANISH} "Asistente para Instalar$\n${NAME} v$Version"
