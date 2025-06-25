@@ -67,6 +67,7 @@ Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
 Var EncPass
+Var StartUpDir
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -353,7 +354,7 @@ Function DownloadSinglePack
 	${If} $R1 == "NO"
 		Goto SkipTool
 	${EndIf}
-	Call VerifySHA256
+	Call VerifySha256
 	Pop $R1
 	${If} $R1 == "NO"
 		Goto SkipTool
@@ -408,7 +409,7 @@ SkipDownload:
 	Push "NO"
 FunctionEnd
 
-Function VerifySHA256
+Function VerifySha256
 	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
 	Pop $0
@@ -474,60 +475,60 @@ SkipExtract:
 FunctionEnd
 
 Function EncryptPw
-  StrCpy $1 "$PluginsDir\pw.txt"
-  Delete $1
-  FileOpen  $2 $1 "w"
-  FileWrite $2 "$Pass"
-  FileClose $2
-  StrCpy $3 "$PluginsDir\pw.b64"
-  Delete $3
-  nsExec::ExecToStack 'CertUtil -f -encode "$1" "$3"'
-  Pop $4
-  Pop $4
-  StrCpy $4 ""
-  FileOpen $2 $3 "r"
-  ${Do}
-    FileRead $2 $1
-    ${IfThen} '$1' == "" ${|} ${Break} ${|}
-    StrCpy $1 $1 -2
-    ${If} $1 == "-----BEGIN CERTIFICATE-----"
-    ${OrIf} $1 == "-----END CERTIFICATE-----"
-    ${OrIf} $1 == ""
-    ${Else}
-      StrCpy $4 "$4$1"
-    ${EndIf}
-  ${Loop}
-  FileClose $2
-  Delete "$PluginsDir\pw.txt"
-  Delete "$PluginsDir\pw.b64"
-  StrCpy $EncPass $4
+	StrCpy $1 "$PluginsDir\pw.txt"
+	Delete $1
+	FileOpen $2 $1 "w"
+	FileWrite $2 "$Pass"
+	FileClose $2
+	StrCpy $3 "$PluginsDir\pw.b64"
+	Delete $3
+	nsExec::ExecToStack 'CertUtil -f -encode "$1" "$3"'
+	Pop $4
+	Pop $4
+	StrCpy $4 ""
+	FileOpen $2 $3 "r"
+	${Do}
+		FileRead $2 $1
+		${IfThen} '$1' == "" ${|} ${Break} ${|}
+		StrCpy $1 $1 -2
+		${If} $1 == "-----BEGIN CERTIFICATE-----"
+		${OrIf} $1 == "-----END CERTIFICATE-----"
+		${OrIf} $1 == ""
+		${Else}
+			StrCpy $4 "$4$1"
+		${EndIf}
+	${Loop}
+	FileClose $2
+	Delete "$PluginsDir\pw.txt"
+	Delete "$PluginsDir\pw.b64"
+	StrCpy $EncPass $4
 FunctionEnd
 
 Function DecryptPw
-  StrCpy $1 "$PluginsDir\pw.b64"
-  Delete $1
-  FileOpen $2 $1 "w"
-  FileWrite $2 "-----BEGIN CERTIFICATE-----$\r$\n"
-  StrLen $3 $EncPass
-  StrCpy $4 0
-  ${While} $4 < $3
-    StrCpy $5 $EncPass 64 $4
-    FileWrite $2 "$5$\r$\n"
-    IntOp $4 $4 + 64
-  ${EndWhile}
-  FileWrite $2 "-----END CERTIFICATE-----$\r$\n"
-  FileClose $2
-  StrCpy $6 "$PluginsDir\pw.txt"
-  Delete $6
-  nsExec::ExecToStack 'CertUtil -f -decode "$1" "$6"'
-  Pop $5
-  Pop $5
-  FileOpen $2 $6 "r"
-  FileRead $2 $5
-  FileClose $2
-  Delete "$PluginsDir\pw.b64"
-  Delete "$PluginsDir\pw.txt"
-  StrCpy $Pass $5
+	StrCpy $1 "$PluginsDir\pw.b64"
+	Delete $1
+	FileOpen $2 $1 "w"
+	FileWrite $2 "-----BEGIN CERTIFICATE-----$\r$\n"
+	StrLen $3 $EncPass
+	StrCpy $4 0
+	${While} $4 < $3
+		StrCpy $5 $EncPass 64 $4
+		FileWrite $2 "$5$\r$\n"
+		IntOp $4 $4 + 64
+	${EndWhile}
+	FileWrite $2 "-----END CERTIFICATE-----$\r$\n"
+	FileClose $2
+	StrCpy $6 "$PluginsDir\pw.txt"
+	Delete $6
+	nsExec::ExecToStack 'CertUtil -f -decode "$1" "$6"'
+	Pop $5
+	Pop $5
+	FileOpen $2 $6 "r"
+	FileRead $2 $5
+	FileClose $2
+	Delete "$PluginsDir\pw.b64"
+	Delete "$PluginsDir\pw.txt"
+	StrCpy $Pass $5
 FunctionEnd
 
 ;--------------------------------
@@ -691,9 +692,13 @@ Section "-Config"
 	DetailPrint "$(TXT_LogCreateShortCut)"
 	CreateDirectory "$SMPROGRAMS\${NAME}"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	SetOutPath "$InstDrive$INSTDIR"
 	CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
 	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+	CreateDirectory $StartUpDir
+	CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
 SectionEnd
 
 Section "-Final"
@@ -702,10 +707,12 @@ SectionEnd
 
 Section "Uninstall"
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"
+	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 	Delete "$INSTDIR\*.*"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\${INSTALLER_NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
+	Delete "$StartUpDir\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk"
 	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
