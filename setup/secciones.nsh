@@ -1,45 +1,6 @@
 ﻿;--------------------------------
 ; SECCIONES NUMERADAS
 
-Section "-Inicial" 0
-	Call WriteLogInicial
-SectionEnd
-
-Section "!${NAME} (*)" 1
-	Call WriteLogPrograma
-	CreateDirectory "$InstDrive$INSTDIR\compartidos"
-	CreateDirectory "$InstDrive$INSTDIR\datos"
-	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
-	CreateDirectory "$InstDrive$INSTDIR\logs"
-	CreateDirectory "$InstDrive$INSTDIR\respaldos"
-	CreateDirectory "$InstDrive$INSTDIR\extensiones"
-	CreateDirectory "$InstDrive${TOOLS}"
-	CreateDirectory "$InstDrive${RESOURCES}"
-	CreateDirectory "$InstDrive${VENDOR}"
-	SetOutPath "$InstDrive$INSTDIR\base"
-	File /r "..\app\base\*.*"
-	SetOutPath "$InstDrive$INSTDIR\img"
-	File /r "..\app\img\*.*"
-	SetOutPath "$InstDrive$INSTDIR"
-	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
-		File "..\app\${APPFILE}"
-	IfFileExists "$InstDrive$INSTDIR\${READMEFILE}" +2 0
-		File "..\app\${READMEFILE}"
-	IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
-		File /oname=LICENSE.txt "..\${LICENSEFILE}"
-	SetOutPath "$InstDrive$INSTDIR\datos"
-	IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
-		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
-	SetOutPath "$InstDrive$INSTDIR\entornos\basico"
-	IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
-		File /r "..\app\base\entorno\*.*"
-	SetOutPath "$InstDrive${TOOLS}"
-	SetOutPath "$InstDrive$INSTDIR"
-	IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
-		File "config.ini"
-		File "componentes.ini"
-SectionEnd
-
 Section "-" 2
 	Push "ACTUALIZACIONES"
 	Call WriteLogSection
@@ -184,51 +145,3 @@ SectionGroup "Recursos" 95
 	!insertmacro MCreateSectionComponent "Recursos" 95 114
 	!insertmacro MCreateSectionComponent "Recursos" 95 115
 SectionGroupEnd ;116
-
-Section "-" 117
-	Call WriteLogConfig
-SectionEnd
-
-Section "-Config" 118
-	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
-	DetailPrint "$1 KB"
-	IntFmt $1 "0x%08X" $1
-	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
-	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
-	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
-	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
-	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$Protocol"
-	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
-	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
-	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
-	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
-	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
-	${If} $RememberCreds == "1"
-		WriteRegStr HKCU "Software\${NAME}" "User" "$User"
-		WriteRegStr HKCU "Software\${NAME}" "Pass" "$Pass"
-	${Else}
-		DeleteRegValue HKCU "Software\${NAME}" "User"
-		DeleteRegValue HKCU "Software\${NAME}" "Pass"
-	${EndIf}
-	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
-	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
-	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
-	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALLER}"
-	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
-	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
-	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-	StrCpy $User ""
-	StrCpy $Pass ""
-	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
-	DetailPrint "$(TXT_LogCreateShortCut)"
-	CreateDirectory "$SMPROGRAMS\${NAME}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
-SectionEnd
-
-Section "-Final" 119
-	Call WriteLogFinal
-SectionEnd

@@ -59,7 +59,6 @@ Var IsUpdateInstall
 Var SkipPrereq
 Var RememberCreds
 Var LogFile
-Var CatalogPath
 Var TitleWelcome
 Var TextWelcome
 Var TitleFinish
@@ -133,6 +132,51 @@ ${unStrRep}
 ${unStrStr}
 !insertmacro GetTime
 !insertmacro WordFind
+
+!macro MUninstallAllComponents
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	StrCpy $R2 "$PluginsDir\componentes.ini"
+	IfFileExists "$R2" 0 EndMacro
+	FileOpen $R0 "$R2" r
+	StrCpy $R3 0
+	ClearErrors
+LoopRead:
+	FileRead $R0 $R1
+	IfErrors CloseFile
+	${unStrTrimNewLines} $R1 "$R1"
+	${If} "$R1" == ""
+	${OrIf} "$R1" == ";"
+		Goto LoopRead
+	${EndIf}
+	${If} "$R1" == "[Paths]"
+		StrCpy $R3 1
+		Goto LoopRead
+	${EndIf}
+	${If} $R3 == 1
+		${WordFind} "$R1" "=" "+2" $R4
+		${unStrRep} $R4 $R4 '"' ''
+		${If} $R4 != ""
+			RMDir /r "$R4"
+			Push "$R4"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+		Goto LoopRead
+	${EndIf}
+	Goto LoopRead
+CloseFile:
+	FileClose $R0
+EndMacro:
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+!macroend
 
 ;--------------------------------
 ; PAGINAS
@@ -244,6 +288,189 @@ FunctionEnd
 !include "logs.nsh"
 
 ;--------------------------------
+
+Function AddToEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	${StrTrimNewLines} $0 $0
+	${StrRep} $0 $0 '"' ''
+	${If} $0 == ""
+		Goto EndAdd
+	${EndIf}
+	ReadRegStr $1 HKCU "Environment" "Path"
+	StrCpy $2 ";$1;"
+	StrCpy $3 ";$0;"
+	${StrCase} $2 $2 U
+	${StrCase} $3 $3 U
+	${StrStr} $2 $2 $3
+	${If} $2 != ""
+		Goto CleanAndSave
+	${EndIf}
+	StrLen $2 $1
+	${If} $2 > 0
+		IntOp $2 $2 - 1
+		StrCpy $3 $1 1 $2
+	${Else}
+		StrCpy $3 ""
+	${EndIf}
+	${If} $3 == ";"
+		StrCpy $1 "$1$0"
+	${ElseIf} $1 == ""
+		StrCpy $1 "$0"
+	${Else}
+		StrCpy $1 "$1;$0"
+	${EndIf}
+CleanAndSave:
+LoopClean:
+	${StrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto WriteAndBroadcast
+	${EndIf}
+	${StrRep} $1 $1 ";;" ";"
+	Goto LoopClean
+WriteAndBroadcast:
+	DetailPrint "$(TXT_LogAddPath) $0"
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndAdd:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
+FunctionEnd
+
+Function DownloadSinglePack
+	${If} $ToolId == ""
+		Goto SkipTool
+	${EndIf}
+	Call DownloadFile
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call VerifySHA256
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call ExtractZip
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Push "OK"
+	Return
+SkipTool:
+	Push "NO"
+FunctionEnd
+
+Function DownloadFile
+	${If} $Protocol == "FTP"
+		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
+		DetailPrint ${SEPARATOR}
+		DetailPrint "$(TXT_MsgDescargando) $R0"
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
+		Pop $R1
+		Pop $R2
+		${If} $R1 != "0"
+			StrCpy $LogMsg "$(TXT_MsgErrorDescargaFtp) $ToolId$\n$R2"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONEXCLAMATION "$LogMsg"
+			Goto SkipDownload
+		${EndIf}
+	${ElseIf} $Protocol == "HTTP"
+		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
+		DetailPrint ${SEPARATOR}
+		DetailPrint "$(TXT_MsgDescargando) $R0"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
+		Pop $R1
+		Pop $R2
+		${If} $R1 == "0"
+			Goto SuccessDownload
+		${Else}
+			StrCpy $LogMsg "$(TXT_MsgErrorDescargaHttp) $ToolId$\n$(TXT_CodigoRespuesta) $R1"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONEXCLAMATION "$LogMsg"
+			Goto SkipDownload
+		${EndIf}
+	${Else}
+		Goto SkipDownload
+	${EndIf}
+SuccessDownload:
+	Push "OK"
+	Return
+SkipDownload:
+	Push "NO"
+FunctionEnd
+
+Function VerifySHA256
+	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
+	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
+	Pop $0
+	Pop $1
+	StrCmp $0 0 +5
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${If} $1 != ""
+	${AndIf} $ToolHash != ""
+		${WordFind} "$1" "$ToolHash" "+1" $2
+		${If} $2 != ""
+			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
+			Goto SuccessVerify
+		${Else}
+			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip$\n$2 ≠ $ToolHash"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONSTOP "$LogMsg"
+			Goto SkipVerify
+		${EndIf}
+	${Else}
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${EndIf}
+SuccessVerify:
+	Push "OK"
+	Return
+SkipVerify:
+	Push "NO"
+FunctionEnd
+
+Function ExtractZip
+	DetailPrint "..."
+	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
+	RMDir /r "$ToolTempDir"
+	CreateDirectory "$ToolTempDir"
+	SetOutPath "$ToolTempDir"
+	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
+	Pop $R1
+	${If} $R1 != "success"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipExtract
+	${EndIf}
+	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - $ToolSizeKb
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 +2
+		Goto SuccessExtract
+	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	DetailPrint "$LogMsg"
+	MessageBox MB_ICONEXCLAMATION "$LogMsg"
+	Goto SkipExtract
+SuccessExtract:
+	Push "OK"
+	Return
+SkipExtract:
+	Push "NO"
+FunctionEnd
+
+;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 
 Function un.onInit
@@ -321,7 +548,94 @@ FunctionEnd
 ;--------------------------------
 ; SECCIONES
 
+Section "-Inicial" 0
+	Call WriteLogInicial
+SectionEnd
+
+Section "!${NAME} (*)" 1
+	Call WriteLogPrograma
+	CreateDirectory "$InstDrive$INSTDIR\compartidos"
+	CreateDirectory "$InstDrive$INSTDIR\datos"
+	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
+	CreateDirectory "$InstDrive$INSTDIR\logs"
+	CreateDirectory "$InstDrive$INSTDIR\respaldos"
+	CreateDirectory "$InstDrive$INSTDIR\extensiones"
+	CreateDirectory "$InstDrive${TOOLS}"
+	CreateDirectory "$InstDrive${RESOURCES}"
+	CreateDirectory "$InstDrive${VENDOR}"
+	SetOutPath "$InstDrive$INSTDIR\base"
+	File /r "..\app\base\*.*"
+	SetOutPath "$InstDrive$INSTDIR\img"
+	File /r "..\app\img\*.*"
+	SetOutPath "$InstDrive$INSTDIR"
+	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
+		File "..\app\${APPFILE}"
+	IfFileExists "$InstDrive$INSTDIR\${READMEFILE}" +2 0
+		File "..\app\${READMEFILE}"
+	IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
+		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	SetOutPath "$InstDrive$INSTDIR\datos"
+	IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
+		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+	SetOutPath "$InstDrive$INSTDIR\entornos\basico"
+	IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
+		File /r "..\app\base\entorno\*.*"
+	SetOutPath "$InstDrive${TOOLS}"
+	SetOutPath "$InstDrive$INSTDIR"
+	IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
+		File "config.ini"
+		File "componentes.ini"
+SectionEnd
+
 !include "secciones.nsh"
+
+Section "-"
+	Call WriteLogConfig
+SectionEnd
+
+Section "-Config"
+	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
+	DetailPrint "$1 KB"
+	IntFmt $1 "0x%08X" $1
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
+	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
+	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
+	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$Protocol"
+	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
+	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
+	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
+	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
+	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
+	${If} $RememberCreds == "1"
+		WriteRegStr HKCU "Software\${NAME}" "User" "$User"
+		WriteRegStr HKCU "Software\${NAME}" "Pass" "$Pass"
+	${Else}
+		DeleteRegValue HKCU "Software\${NAME}" "User"
+		DeleteRegValue HKCU "Software\${NAME}" "Pass"
+	${EndIf}
+	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
+	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALLER}"
+	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
+	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
+	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
+	StrCpy $User ""
+	StrCpy $Pass ""
+	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
+	DetailPrint "$(TXT_LogCreateShortCut)"
+	CreateDirectory "$SMPROGRAMS\${NAME}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+SectionEnd
+
+Section "-Final"
+	Call WriteLogFinal
+SectionEnd
 
 Section "Uninstall"
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"

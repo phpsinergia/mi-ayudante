@@ -8,15 +8,11 @@ PENDIENTES:
 
 -----------------------
 
-- Implementar registro local de componentes en componentes.ini, con ReadINIStr y VersionCompare, usando [Installed] y [Paths]
-
 - Añadir Encrypt / Decrypt al guardar y recuperar contraseñas cifrándolas con XOR
 
 - Agregar Protocolos FTPS y HTTPA en DownloadFile, FetchCatalog + ShowOptionsForm, SaveOptionsForm, TestConnection, TestFtpConnection y TestHttpConnection
 
------------------------
 
-- En Uninstall, reemplazar JsonLoadCatalog, JsonLoadComplementos, JsonLoadRequisitos, GetInfoComplementos, GetInfoRequisitos, y en MUninstallTools usar los datos de components.ini
 
 -----------------------
 
