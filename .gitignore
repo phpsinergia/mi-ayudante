@@ -1,5 +1,6 @@
 /bin/
 /dist/
+/dev/
 /app/datos/
 /app/doc/
 /app/entornos/
@@ -7,3 +8,4 @@
 /app/respaldos/
 /app/config.ini
 /app/*.exe
+/*.zip

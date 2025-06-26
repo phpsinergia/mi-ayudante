@@ -76,8 +76,8 @@ Var StartUpDir
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE $TitleWelcome
 !define MUI_WELCOMEPAGE_TEXT $TextWelcome
-!define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
-!define MUI_HEADERIMAGE_BITMAP "head.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "..\app\img\left.bmp"
+!define MUI_HEADERIMAGE_BITMAP "..\app\img\head.bmp"
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
@@ -198,7 +198,7 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 ;--------------------------------
 ; TEXTOS DE INTERFAZ
 !insertmacro MUI_LANGUAGE "Spanish"
-!include "idioma_es.nsh"
+!include "txt_spanish.nsh"
 
 ;--------------------------------
 ; FUNCIONES: INSTALACIÓN
@@ -222,6 +222,7 @@ Function .onInit
 FunctionEnd
 
 Function SetDateTimeStamp
+	Push $1
 	${GetTime} "" "L" $Day $Month $Year $1 $Hour $Min $Sec
 	IntFmt $Year "%04d" $Year
 	IntFmt $Month "%02d" $Month
@@ -229,6 +230,7 @@ Function SetDateTimeStamp
 	IntFmt $Hour "%02d" $Hour
 	IntFmt $Min "%02d" $Min
 	StrCpy $Timestamp "$Year$Month$Day-$Hour$Min"
+	Pop $1
 FunctionEnd
 
 Function GetConfigValues
@@ -255,13 +257,6 @@ Function GetConfigValues
 		StrCpy $SkipPrereq "0"
 		StrCpy $RememberCreds "0"
 	${EndIf}
-
-	;TODO: Sólo para pruebas, quitar al terminar
-	;StrCpy $Server "masexperto.com"
-	;StrCpy $Protocol "FTP"
-	StrCpy $SkipPrereq "1"
-	StrCpy $InstDrive "D:"
-
 	Pop $0
 FunctionEnd
 
@@ -294,7 +289,7 @@ FunctionEnd
 !include "opciones.nsh"
 !include "prereqs.nsh"
 !include "componentes.nsh"
-!include "logs.nsh"
+!include "registro.nsh"
 
 ;--------------------------------
 Function AddToEnvUserPath
@@ -414,10 +409,12 @@ Function DownloadFile
 	${EndIf}
 SuccessDownload:
 	Push "OK"
-	Goto EndDownload
+	Pop $R2
+	Pop $R1
+	Pop $R0
+	Return
 SkipDownload:
 	Push "NO"
-EndDownload:
 	Pop $R2
 	Pop $R1
 	Pop $R0
@@ -456,10 +453,12 @@ Function VerifySha256
 	${EndIf}
 SuccessVerify:
 	Push "OK"
-	Goto EndVerify
+	Pop $2
+	Pop $1
+	Pop $0
+	Return
 SkipVerify:
 	Push "NO"
-EndVerify:
 	Pop $2
 	Pop $1
 	Pop $0
@@ -497,10 +496,16 @@ Function ExtractZip
 	Goto SkipExtract
 SuccessExtract:
 	Push "OK"
-	Goto EndExtract
+	Pop $R6
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+	Return
 SkipExtract:
 	Push "NO"
-EndExtract:
 	Pop $R6
 	Pop $R5
 	Pop $R4

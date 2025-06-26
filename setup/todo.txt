@@ -1,7 +1,5 @@
 PENDIENTES:
 
-- Poner las etiquetas de secciones según los datos de catalogo.json
-
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
 -----------------------
@@ -17,3 +15,23 @@ PENDIENTES:
 
 -----------------------
 
+
+ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
+
+/mi-ayudante/
+├── setup/
+│   ├── instalador.nsi (*)
+│   ├── componentes.nsh
+│   ├── opciones.nsh
+│   ├── prereqs.nsh
+│   ├── registro.nsh
+│   ├── secciones.nsh
+│   ├── txt_spanish.nsh
+│   ├── componentes.ini
+│   ├── config.ini
+│   └── catalogo.json
+├── dist/
+│   └── Instalar-MiAyudante.exe
+├── app/
+│   └── [Aplicación a instalar]
+└── ...

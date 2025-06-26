@@ -35,7 +35,8 @@ Var LogMsg
 	Pop $GroupIndex
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
-		IntOp $Ajuste $GroupIndex + 2
+		SectionSetText $GroupIndex "${TIPO}"
+		IntOp $Ajuste $GroupIndex + 1
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end
@@ -103,7 +104,7 @@ Var LogMsg
 	nsArray::Get List${TIPO}Target /at=$Pos
 	Pop $1
 	Pop $ToolTarget
-	IntOp $Ajuste $GroupIndex + 2
+	IntOp $Ajuste $GroupIndex + 1
 	IntOp $SectionIndex $Pos + $Ajuste
 !macroend
 
@@ -125,7 +126,7 @@ FunctionEnd
 !macro MCreateSectionComponent TIPO GRUPO INDEX
 Section /o "" ${INDEX}
 	StrCpy $GroupIndex ${GRUPO}
-	IntOp $Ajuste $GroupIndex + 2
+	IntOp $Ajuste $GroupIndex + 1
 	IntOp $Pos ${INDEX} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
 		Call InstallByIndex${TIPO}
@@ -189,7 +190,8 @@ SectionEnd
 
 !macro MInstallComponentsByIndex TIPO
 	;La variable $Pos contiene el índice del componente actual en los nsArray de su TIPO (su grupo dentro del catalogo)
-	;La siguiente función establece los valores de: ToolId, ToolName, ToolVersion, ToolSizeKb, ToolAddPath, ToolOpChk, ToolHash, ToolTarget y SectionIndex, y usa $Pos
+	;La siguiente función "GetInfo{TIPO}" usa $Pos y establece los valores de las siguientes variables:
+	;ToolId, ToolName, ToolVersion, ToolSizeKb, ToolAddPath, ToolOpChk, ToolHash, ToolTarget y SectionIndex
 	Call GetInfo${TIPO}
 	${IfNot} ${SectionIsSelected} $SectionIndex
 	${OrIf} $ToolId == ""
@@ -197,8 +199,8 @@ SectionEnd
 		Return
 	${EndIf}
 	; Función para descargar un componente
-	Call DownloadSinglePack
-	Pop $0
+		Call DownloadSinglePack
+		Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTempDir == ""
 		Return
@@ -232,7 +234,7 @@ SectionEnd
 	${If} $ToolAddPath == "1"
 	${AndIf} $ToolFinalPath != ""
 		Push "$ToolFinalPath"
-		; Función para agregar la ruta del componente a la variable de entorno Path
+		; Función AddToEnvUserPath: para agregar la ruta del componente a la variable de entorno Path
 		Call AddToEnvUserPath
 	${EndIf}
 	Call AddComponentToRegistry
@@ -260,6 +262,9 @@ Function CheckAllComponents
 FunctionEnd
 
 Function FetchCatalog
+	Push $R0
+	Push $R1
+	Push $R2
 	StrCpy $CatalogPath "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
 	${If} ${FileExists} $CatalogPath
@@ -296,23 +301,37 @@ LoadLocalCatalog:
 	${EndIf}
 CatalogMap:
 	Call CreateMapCatalog
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function CreateMapCatalog
+	Push $0
+	Push $1
+	Push $2
+	Push $3
+	Push $4
 	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
-	IntOp $R1 $0 - 1
-	${For} $Pos 0 $R1
+	IntOp $1 $0 - 1
+	${For} $Pos 0 $1
 		nsJSON::Get /key /index $Pos /end
-		Pop $R2 ;Nombre
-		IntOp $R3 $Pos * 23
-		IntOp $R4 $R3 + 2
-		nsArray::Set MapGroupsByName /key=$R2 $R4
+		Pop $2 ;Nombre
+		IntOp $3 $Pos * 23
+		IntOp $4 $3 + 3
+		nsArray::Set MapGroupsByName /key=$2 $4
 	${Next}
+	Pop $4
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 Function CheckSectionPrograma
+	Push $0
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
 		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
@@ -322,6 +341,7 @@ Function CheckSectionPrograma
 		SectionSetFlags ${SEC_RELEASE} 0
 		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
+	Pop $0
 FunctionEnd
 
 Function CheckComponentInRegistry

@@ -34,7 +34,7 @@ Function WriteLogPrograma
 FunctionEnd
 
 Function WriteLogSection
-	Pop $0
+	Exch $0
 	Push $1
 	SectionGetText $0 $1
 	${If} $1 != ""
