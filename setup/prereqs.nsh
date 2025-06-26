@@ -4,6 +4,7 @@
 ; FUNCIONES
 
 Function CheckPreRequisites
+	Push $0
 	${If} $SkipPrereq == "1"
 		Abort
 	${EndIf}
@@ -24,6 +25,7 @@ Function CheckPreRequisites
 	${NSD_CreateCheckbox} 100u 130u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
+	Pop $0
 FunctionEnd
 
 Function LeavePreRequisites

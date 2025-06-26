@@ -232,6 +232,7 @@ Function SetDateTimeStamp
 FunctionEnd
 
 Function GetConfigValues
+	Push $0
 	StrCpy $IsUpdateInstall "0"
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Dir"
 	${If} $0 != ""
@@ -261,6 +262,7 @@ Function GetConfigValues
 	StrCpy $SkipPrereq "1"
 	StrCpy $InstDrive "D:"
 
+	Pop $0
 FunctionEnd
 
 Function SkipIfUpdate
@@ -277,6 +279,7 @@ Function LaunchApp
 FunctionEnd
 
 Function RunUninstaller
+	Push $0
 	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(TXT_MsgConfirmaDesinstalacion)" IDNO EndAsk
 		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALLER}"
 		IfFileExists "$0" 0 NoUninst
@@ -285,6 +288,7 @@ Function RunUninstaller
 NoUninst:
 	MessageBox MB_ICONSTOP "$(TXT_MsgUniNoEncontrado)$\n$0"
 EndAsk:
+	Pop $0
 FunctionEnd
 
 !include "opciones.nsh"
@@ -346,6 +350,7 @@ EndAdd:
 FunctionEnd
 
 Function DownloadSinglePack
+	Push $R1
 	${If} $ToolId == ""
 		Goto SkipTool
 	${EndIf}
@@ -365,12 +370,17 @@ Function DownloadSinglePack
 		Goto SkipTool
 	${EndIf}
 	Push "OK"
+	Pop $R1
 	Return
 SkipTool:
 	Push "NO"
+	Pop $R1
 FunctionEnd
 
 Function DownloadFile
+	Push $R0
+	Push $R1
+	Push $R2
 	${If} $Protocol == "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
 		DetailPrint ${SEPARATOR}
@@ -404,12 +414,19 @@ Function DownloadFile
 	${EndIf}
 SuccessDownload:
 	Push "OK"
-	Return
+	Goto EndDownload
 SkipDownload:
 	Push "NO"
+EndDownload:
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function VerifySha256
+	Push $0
+	Push $1
+	Push $2
 	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
 	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
 	Pop $0
@@ -439,12 +456,23 @@ Function VerifySha256
 	${EndIf}
 SuccessVerify:
 	Push "OK"
-	Return
+	Goto EndVerify
 SkipVerify:
 	Push "NO"
+EndVerify:
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 Function ExtractZip
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	Push $R5
+	Push $R6
 	DetailPrint "..."
 	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
 	RMDir /r "$ToolTempDir"
@@ -469,12 +497,25 @@ Function ExtractZip
 	Goto SkipExtract
 SuccessExtract:
 	Push "OK"
-	Return
+	Goto EndExtract
 SkipExtract:
 	Push "NO"
+EndExtract:
+	Pop $R6
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function EncryptPw
+	Push $0
+	Push $1
+	Push $2
+	Push $3
+	Push $4
 	StrCpy $1 "$PluginsDir\pw.txt"
 	Delete $1
 	FileOpen $2 $1 "w"
@@ -502,9 +543,21 @@ Function EncryptPw
 	Delete "$PluginsDir\pw.txt"
 	Delete "$PluginsDir\pw.b64"
 	StrCpy $EncPass $4
+	Pop $4
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 Function DecryptPw
+	Push $0
+	Push $1
+	Push $2
+	Push $3
+	Push $4
+	Push $5
+	Push $6
 	StrCpy $1 "$PluginsDir\pw.b64"
 	Delete $1
 	FileOpen $2 $1 "w"
@@ -529,18 +582,28 @@ Function DecryptPw
 	Delete "$PluginsDir\pw.b64"
 	Delete "$PluginsDir\pw.txt"
 	StrCpy $Pass $5
+	Pop $6
+	Pop $5
+	Pop $4
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd
 
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 
 Function un.onInit
+	Push $0
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
 	InitPluginsDir
+	Pop $0
 FunctionEnd
 
 Function un.ShowOptionsUninstall
+	Push $0
 	nsDialogs::Create 1018
 	Pop $0
 	${NSD_CreateLabel} 0 0 100% 12u "$(TXT_EtiqDesinstalarHerramientas)"
@@ -548,6 +611,7 @@ Function un.ShowOptionsUninstall
 	${NSD_CreateCheckbox} 0 16u 100% 12u "$(TXT_EtiqRemoverTodas)"
 	Pop $unToolsCheckbox
 	nsDialogs::Show
+	Pop $0
 FunctionEnd
 
 Function un.ReadChoiceUninstall
@@ -655,10 +719,14 @@ Section "-"
 SectionEnd
 
 Section "-Config"
-	${GetSize} "$InstDrive\home" "/S=0K" $1 $R7 $R8
-	DetailPrint "$1 KB"
-	IntFmt $1 "0x%08X" $1
-	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$1"
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	${GetSize} "$InstDrive\home" "/S=0K" $R1 $R2 $R3
+	DetailPrint "$R1 KB"
+	IntFmt $R1 "0x%08X" $R1
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R1"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
@@ -699,6 +767,10 @@ Section "-Config"
 	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 	CreateDirectory $StartUpDir
 	CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
 SectionEnd
 
 Section "-Final"

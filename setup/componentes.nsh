@@ -1,6 +1,5 @@
 ﻿;--------------------------------
 ; DEFINICIONES HEREDADAS:
-;!define CATALOGFILE "catalogo.json"
 ;!define MAX_COMPONENTES 20
 ;!define SEC_PROGRAMA 1
 ;!define SEC_RELEASE 4
@@ -19,7 +18,6 @@ Var ToolAddPath
 Var ToolOpChk
 Var ToolHash
 Var ToolTarget
-Var ToolUninstall
 Var SectionIndex
 Var ToolTempDir
 Var ToolFinalPath
@@ -37,7 +35,7 @@ Var LogMsg
 	Pop $GroupIndex
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
-		IntOp $Ajuste $GroupIndex + 1
+		IntOp $Ajuste $GroupIndex + 2
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
 			nsJSON::Get `${TIPO}` /index $Pos "id" /end
@@ -56,8 +54,6 @@ Var LogMsg
 			Pop $ToolHash
 			nsJSON::Get `${TIPO}` /index $Pos "target" /end
 			Pop $ToolTarget
-			nsJSON::Get `${TIPO}` /index $Pos "uninstall" /end
-			Pop $ToolUninstall
 			IntOp $SectionIndex $Pos + $Ajuste
 			nsArray::Set List${TIPO}Id /key=$SectionIndex $ToolId
 			nsArray::Set List${TIPO}Name /key=$SectionIndex $ToolName
@@ -67,7 +63,6 @@ Var LogMsg
 			nsArray::Set List${TIPO}OpChk /key=$SectionIndex $ToolOpChk
 			nsArray::Set List${TIPO}Hash /key=$SectionIndex $ToolHash
 			nsArray::Set List${TIPO}Target /key=$SectionIndex $ToolTarget
-			nsArray::Set List${TIPO}Uninstall /key=$SectionIndex $ToolUninstall
 		${Next}
 		${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
 			IntOp $SectionIndex $Pos + $Ajuste
@@ -79,7 +74,6 @@ Var LogMsg
 			nsArray::Set List${TIPO}OpChk /key=$SectionIndex ""
 			nsArray::Set List${TIPO}Hash /key=$SectionIndex ""
 			nsArray::Set List${TIPO}Target /key=$SectionIndex ""
-			nsArray::Set List${TIPO}Uninstall /key=$SectionIndex ""
 		${Next}
 	${EndIf}
 !macroend
@@ -109,10 +103,7 @@ Var LogMsg
 	nsArray::Get List${TIPO}Target /at=$Pos
 	Pop $1
 	Pop $ToolTarget
-	nsArray::Get List${TIPO}Uninstall /at=$Pos
-	Pop $1
-	Pop $ToolUninstall
-	IntOp $Ajuste $GroupIndex + 1
+	IntOp $Ajuste $GroupIndex + 2
 	IntOp $SectionIndex $Pos + $Ajuste
 !macroend
 
@@ -134,11 +125,18 @@ FunctionEnd
 !macro MCreateSectionComponent TIPO GRUPO INDEX
 Section /o "" ${INDEX}
 	StrCpy $GroupIndex ${GRUPO}
-	IntOp $Ajuste $GroupIndex + 1
+	IntOp $Ajuste $GroupIndex + 2
 	IntOp $Pos ${INDEX} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
 		Call InstallByIndex${TIPO}
 	${EndIf}
+SectionEnd
+!macroend
+
+!macro MCreateSectionLog GRUPO INDEX
+Section "-" ${INDEX}
+	Push ${GRUPO}
+	Call WriteLogSection
 SectionEnd
 !macroend
 
@@ -191,7 +189,7 @@ SectionEnd
 
 !macro MInstallComponentsByIndex TIPO
 	;La variable $Pos contiene el índice del componente actual en los nsArray de su TIPO (su grupo dentro del catalogo)
-	;La siguiente función establece los valores de: ToolId, ToolName, ToolVersion, ToolSizeKb, ToolAddPath, ToolOpChk, ToolHash, ToolTarget, ToolUninstall y SectionIndex, y usa $Pos
+	;La siguiente función establece los valores de: ToolId, ToolName, ToolVersion, ToolSizeKb, ToolAddPath, ToolOpChk, ToolHash, ToolTarget y SectionIndex, y usa $Pos
 	Call GetInfo${TIPO}
 	${IfNot} ${SectionIsSelected} $SectionIndex
 	${OrIf} $ToolId == ""
@@ -309,9 +307,8 @@ Function CreateMapCatalog
 		nsJSON::Get /key /index $Pos /end
 		Pop $R2 ;Nombre
 		IntOp $R3 $Pos * 23
-		IntOp $R4 $R3 + 3
+		IntOp $R4 $R3 + 2
 		nsArray::Set MapGroupsByName /key=$R2 $R4
-		;nsArray::Set MapGroupsByIndex /key=$R4 $R2
 	${Next}
 FunctionEnd
 

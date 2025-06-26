@@ -13,6 +13,7 @@ Var RememberCredsCheckbox
 ; FUNCIONES
 
 Function ShowOptionsForm
+	Push $0
 	nsDialogs::Create 1018
 	Pop $0
 	${If} $Protocol == ""
@@ -67,9 +68,11 @@ Function ShowOptionsForm
 			${NSD_Check} $RememberCredsCheckbox
 		${EndIf}
 	nsDialogs::Show
+	Pop $0
 FunctionEnd
 
 Function SaveOptionsForm
+	Push $0
 	${NSD_GetText} $DriveDropList $0
 	StrCpy $InstDrive $0 2
 	${NSD_GetText} $ServerInput $Server
@@ -89,6 +92,7 @@ Function SaveOptionsForm
 			Abort
 		${EndIf}
 	${EndIf}
+	Pop $0
 FunctionEnd
 
 Function TestConnection
@@ -110,6 +114,8 @@ Function TestConnection
 FunctionEnd
 
 Function TestFtpConnection
+	Push $R0
+	Push $R1
 	${NSD_GetText} $UserInput $User
 	${NSD_GetText} $PassInput $Pass
 	${If} $User == ""
@@ -117,6 +123,8 @@ Function TestFtpConnection
 		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
 		Return
 	${EndIf}
+	Push $R0
+	Push $R1
 	nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server" --silent --list-only --connect-timeout 5'
 	Pop $R0
 	Pop $R1
@@ -125,9 +133,13 @@ Function TestFtpConnection
 	${Else}
 		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionFtpError)$\n$R1"
 	${EndIf}
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function TestHttpConnection
+	Push $R0
+	Push $R1
 	nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$Server/herramientas/${CATALOGFILE}"'
 	Pop $R1
 	Pop $R0
@@ -137,6 +149,8 @@ Function TestHttpConnection
 	${Else}
 		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionHttpError)$\n$(TXT_MsgDetallesRespuesta) $R0"
 	${EndIf}
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function FillDriveList

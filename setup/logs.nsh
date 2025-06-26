@@ -2,6 +2,7 @@
 ; FUNCIONES
 
 Function WriteLogInicial
+	Push $0
 	Call SetDateTimeStamp
 	${If} $IsUpdateInstall == "1"
 		StrCpy $LogFile "$InstDrive$INSTDIR\logs\actualizacion_$Timestamp.log"
@@ -9,7 +10,9 @@ Function WriteLogInicial
 		StrCpy $LogFile "$InstDrive$INSTDIR\logs\instalacion_$Timestamp.log"
 	${EndIf}
 	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_LogSection) ${NAME}"
+	StrCpy $0 "${NAME}"
+	${StrCase} $0 "$0" U
+	DetailPrint "$(TXT_LogSection) $0"
 	DetailPrint ${SEPARATOR}
 	DetailPrint "$(TXT_LogFechaHora) $Day-$Month-$Year  $Hour:$Min"
 	DetailPrint "$(TXT_LogVersion) v$Version"
@@ -21,6 +24,7 @@ Function WriteLogInicial
 	DetailPrint "Desktop: $DESKTOP"
 	DetailPrint "Documents: $DOCUMENTS"
 	DetailPrint "LocalAppData: $LOCALAPPDATA"
+	Pop $0
 FunctionEnd
 
 Function WriteLogPrograma
@@ -31,8 +35,14 @@ FunctionEnd
 
 Function WriteLogSection
 	Pop $0
-	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSection) $0*****"
+	Push $1
+	SectionGetText $0 $1
+	${If} $1 != ""
+		${StrCase} $1 "$1" U
+		DetailPrint ${SEPARATOR}
+		DetailPrint "*****$(TXT_LogSection) $1*****"
+	${EndIf}
+	Pop $1
 FunctionEnd
 
 Function WriteLogConfig
