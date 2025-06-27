@@ -1,10 +1,11 @@
 PENDIENTES:
 
++ Corregir: cuando falla una descarga igual registra al componente como instalado en .ini
++ Corregir: Test de conexión HTTPS y FTPS
+
 * Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
 
 -----------------------
-
-- Agregar Protocolos FTPS y HTTPA en DownloadFile, FetchCatalog + ShowOptionsForm, SaveOptionsForm, TestConnection, TestFtpConnection y TestHttpConnection
 
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
 
@@ -14,7 +15,6 @@ PENDIENTES:
 - En desinstalador, no destruir la carpeta $INSTDIR ni borrar el Registro a menos que se elija desinstalar el programa
 
 -----------------------
-
 
 ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 
@@ -35,3 +35,19 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 ├── app/
 │   └── [Aplicación a instalar]
 └── ...
+
+-----------------------
+
+FTPS	Con curl la diferencia es básicamente el esquema ftps:// y la opción --ftp-ssl (explicita AUTH TLS/SSL sobre el puerto 21). Si tu servidor usa FTPS implícito (puerto 990), añade --implicit-ftps. Fuera de eso la línea es igual que para FTP.
+
+HTTP POST	En lugar de -u user:pass (Basic-Auth) mandamos JSON {"user":"…","pass":"…"}; el servidor valida y, si ok, devuelve el binario como cuerpo de la respuesta. Si tu endpoint exige un token en cabecera, sustitúyelo por -H "Authorization: Bearer $Token".
+Ajusta tu backend HTTP para aceptar el JSON (o header) indicado y devolver 200 OK con el binario; recuerda poner Content-Disposition: attachment; filename="foo.zip" si quieres que curl lo guarde con ese nombre.
+
+-----------------------
+
+Function XxxxXxxx
+  Exch $0
+  !insertmacro WITH_LOCAL BeginAdd
+BeginAdd:
+  ; …código sin miedo a contaminar…
+FunctionEnd

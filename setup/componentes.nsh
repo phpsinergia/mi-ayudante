@@ -1,9 +1,4 @@
 ﻿;--------------------------------
-; DEFINICIONES HEREDADAS:
-;!define MAX_COMPONENTES 20
-;!define SEC_PROGRAMA 1
-;!define SEC_RELEASE 4
-;--------------------------------
 ; VARIABLES
 Var ComponentesTotal
 Var ComponentesVisibles
@@ -23,6 +18,8 @@ Var ToolTempDir
 Var ToolFinalPath
 Var CatalogPath
 Var LogMsg
+Var GroupName
+;Var GroupPos
 
 ;--------------------------------
 ; MACROS
@@ -33,9 +30,17 @@ Var LogMsg
 	Pop $ComponentesTotal
 	nsArray::Get MapGroupsByName ${TIPO}
 	Pop $GroupIndex
+	nsArray::Get MapGroupsByIndex $GroupIndex
+	Pop $GroupName
+	;nsArray::Get GroupByIndexPos $GroupIndex
+	;Pop $GroupPos
+	;nsArray::Get GroupByPosSectionIndex $GroupPos
+	;Pop ...
+	;nsArray::Get GroupByPosSectionName $GroupPos
+	;Pop ...
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
-		SectionSetText $GroupIndex "${TIPO}"
+		SectionSetText $GroupIndex "$GroupName"
 		IntOp $Ajuste $GroupIndex + 1
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
@@ -134,13 +139,6 @@ Section /o "" ${INDEX}
 SectionEnd
 !macroend
 
-!macro MCreateSectionLog GRUPO INDEX
-Section "-" ${INDEX}
-	Push ${GRUPO}
-	Call WriteLogSection
-SectionEnd
-!macroend
-
 !macro MCheckGroupComponents TIPO
 	Call JsonLoad${TIPO}
 	StrCpy $ComponentesVisibles "0"
@@ -161,7 +159,7 @@ SectionEnd
 					SectionSetText $SectionIndex $ToolName
 					SectionSetFlags $SectionIndex ${SF_SELECTED}
 					SectionSetSize $SectionIndex $ToolSizeKb
-				${Else}
+				${Else} ; no instalado
 					${If} "$ToolOpChk" == "3"
 						IntOp $R1 0 | ${SF_RO}
 						SectionSetFlags $SectionIndex $R1
@@ -198,9 +196,9 @@ SectionEnd
 	${OrIf} $Pos >= ${MAX_COMPONENTES}
 		Return
 	${EndIf}
-	; Función para descargar un componente
-		Call DownloadSinglePack
-		Pop $0
+	;Función DownloadSinglePack: para descargar un componente
+	Call DownloadSinglePack
+	Pop $0
 	${If} $0 == "NO"
 	${OrIf} $ToolTempDir == ""
 		Return
@@ -233,8 +231,8 @@ SectionEnd
 	${EndIf}
 	${If} $ToolAddPath == "1"
 	${AndIf} $ToolFinalPath != ""
+		;Función AddToEnvUserPath: para agregar la ruta del componente a la variable de entorno Path
 		Push "$ToolFinalPath"
-		; Función AddToEnvUserPath: para agregar la ruta del componente a la variable de entorno Path
 		Call AddToEnvUserPath
 	${EndIf}
 	Call AddComponentToRegistry
@@ -245,6 +243,13 @@ SectionEnd
 	${EndIf}
 	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
 	StrCpy $ToolId ""
+!macroend
+
+!macro MCreateSectionLog GRUPO INDEX
+Section "-" ${INDEX}
+	Push ${GRUPO}
+	Call WriteLogSection
+SectionEnd
 !macroend
 
 ;--------------------------------
@@ -258,7 +263,7 @@ Function CheckAllComponents
 	Call CheckGroupComplementos
 	Call CheckGroupExtensiones
 	Call CheckGroupRecursos
-	Call CheckSectionPrograma
+	Call CheckSectionBase
 FunctionEnd
 
 Function FetchCatalog
@@ -271,21 +276,26 @@ Function FetchCatalog
 		Delete $CatalogPath
 	${EndIf}
 	${If} $Server == ""
-	${OrIf} $Protocol == ""
-	${OrIf} $Protocol == "---"
 		Goto LoadLocalCatalog
 	${Endif}
-	${If} $Protocol == "FTP"
+	${Select} $Protocol
+	${Case} "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/${CATALOGFILE}"
 		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$CatalogPath" --silent --show-error --fail'
-		Pop $R1
-		Pop $R2
-	${ElseIf} $Protocol == "HTTP"
-		StrCpy $R0 "https://$Server/herramientas/${CATALOGFILE}"
+	${Case} "FTPS"
+		StrCpy $R0 "ftps://$Server/herramientas/${CATALOGFILE}"
+		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$CatalogPath"'
+	${Case} "HTTP"
+		StrCpy $R0 "http://$Server/herramientas/${CATALOGFILE}"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$CatalogPath" "$R0"'
-		Pop $R1
-		Pop $R2
-	${EndIf}
+	${Case} "HTTPS"
+		StrCpy $R0 "https://$Server/herramientas/${CATALOGFILE}"
+		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$CatalogPath" --silent --show-error'
+	${Default}
+		Goto LoadLocalCatalog
+	${EndSelect}
+	Pop $R1
+	Pop $R2
 	${If} $R1 == "0"
 		${If} ${FileExists} "$CatalogPath"
 			Goto CatalogMap
@@ -322,6 +332,10 @@ Function CreateMapCatalog
 		IntOp $3 $Pos * 23
 		IntOp $4 $3 + 3
 		nsArray::Set MapGroupsByName /key=$2 $4
+		nsArray::Set MapGroupsByIndex /key=$4 $2
+		nsArray::Set GroupByIndexPos /key=$4 $Pos
+		nsArray::Set GroupByPosSectionIndex /key=$Pos $4
+		nsArray::Set GroupByPosSectionName /key=$Pos $2
 	${Next}
 	Pop $4
 	Pop $3
@@ -330,7 +344,7 @@ Function CreateMapCatalog
 	Pop $0
 FunctionEnd
 
-Function CheckSectionPrograma
+Function CheckSectionBase
 	Push $0
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0

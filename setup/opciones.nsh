@@ -45,7 +45,9 @@ Function ShowOptionsForm
 		Pop $ProtocolDropList
 			${NSD_CB_AddString} $ProtocolDropList "---"
 			${NSD_CB_AddString} $ProtocolDropList "HTTP"
+			${NSD_CB_AddString} $ProtocolDropList "HTTPS"
 			${NSD_CB_AddString} $ProtocolDropList "FTP"
+			${NSD_CB_AddString} $ProtocolDropList "FTPS"
 			${NSD_CB_SelectString} $ProtocolDropList "$Protocol"
 		${NSD_CreateLabel} 15u 77u 90u 10u "$(TXT_EtiqDominioServidor)"
 		Pop $0
@@ -86,6 +88,8 @@ Function SaveOptionsForm
 	${Endif}
 	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
 	${If} $Protocol == "FTP"
+	${OrIf} $Protocol == "FTPS"
+	${OrIf} $Protocol == "HTTPS"
 		${If} $User == ""
 		${OrIf} $Pass == ""
 			MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
@@ -103,13 +107,18 @@ Function TestConnection
 	${EndIf}
 	System::Call 'user32::EnableWindow(p$btnTest,i0)'
 	${NSD_GetText} $ProtocolDropList $Protocol
-	${If} $Protocol == "FTP"
+	${Select} $Protocol
+	${Case} "FTP"
 		Call TestFtpConnection
-	${ElseIf} $Protocol == "HTTP"
+	${Case} "FTPS"
+		Call TestFtpConnection
+	${Case} "HTTP"
 		Call TestHttpConnection
-	${Else}
+	${Case} "HTTPS"
+		Call TestHttpConnection
+	${Default}
 		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltaProtocolo)"
-	${EndIf}
+	${EndSelect}
 	System::Call 'user32::EnableWindow(p$btnTest,i1)'
 FunctionEnd
 
@@ -125,13 +134,17 @@ Function TestFtpConnection
 	${EndIf}
 	Push $R0
 	Push $R1
-	nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server" --silent --list-only --connect-timeout 5'
+	${If} $Protocol == "FTPS"
+		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "ftps://$Server" --silent --list-only --connect-timeout 5'
+	${Else}
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server" --silent --list-only --connect-timeout 5'
+	${EndIf}
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionFtpExito)"
+		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionExito)"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionFtpError)$\n$R1"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$R1"
 	${EndIf}
 	Pop $R1
 	Pop $R0
@@ -140,14 +153,18 @@ FunctionEnd
 Function TestHttpConnection
 	Push $R0
 	Push $R1
-	nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "https://$Server/herramientas/${CATALOGFILE}"'
+	${If} $Protocol == "HTTPS"
+		nsExec::ExecToStack '"curl.exe" -s -S -L -I -X POST "https://$Server/herramientas/${CATALOGFILE}" --connect-timeout 5 --write-out "%{http_code}" -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o NUL'
+	${Else}
+		nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "http://$Server/herramientas/${CATALOGFILE}"'
+	${EndIf}
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"
 	${AndIf} $R1 == "0"
-		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionHttpExito)"
+		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionExito)"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionHttpError)$\n$(TXT_MsgDetallesRespuesta) $R0"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$(TXT_MsgDetallesRespuesta) $R0"
 	${EndIf}
 	Pop $R1
 	Pop $R0

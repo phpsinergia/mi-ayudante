@@ -135,6 +135,18 @@ ${unStrStr}
 !insertmacro GetTime
 !insertmacro WordFind
 
+!macro WITH_LOCAL _body
+	Push $0
+	Push $1
+	Push $2
+	Push $3
+	${_body}
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
+!macroend
+
 !macro MUninstallAllComponents
 	Push $R0
 	Push $R1
@@ -376,36 +388,33 @@ Function DownloadFile
 	Push $R0
 	Push $R1
 	Push $R2
-	${If} $Protocol == "FTP"
+	${Select} $Protocol
+	${Case} "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
-		DetailPrint ${SEPARATOR}
-		DetailPrint "$(TXT_MsgDescargando) $R0"
 		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
-		Pop $R1
-		Pop $R2
-		${If} $R1 != "0"
-			StrCpy $LogMsg "$(TXT_MsgErrorDescargaFtp) $ToolId$\n$R2"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipDownload
-		${EndIf}
-	${ElseIf} $Protocol == "HTTP"
-		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
-		DetailPrint ${SEPARATOR}
-		DetailPrint "$(TXT_MsgDescargando) $R0"
+	${Case} "FTPS"
+		StrCpy $R0 "ftps://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$PluginsDir\$ToolId.zip"'
+	${Case} "HTTP"
+		StrCpy $R0 "http://$Server/herramientas/$ToolId.zip"
 		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
-		Pop $R1
-		Pop $R2
-		${If} $R1 == "0"
-			Goto SuccessDownload
-		${Else}
-			StrCpy $LogMsg "$(TXT_MsgErrorDescargaHttp) $ToolId$\n$(TXT_CodigoRespuesta) $R1"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONEXCLAMATION "$LogMsg"
-			Goto SkipDownload
-		${EndIf}
-	${Else}
+	${Case} "HTTPS"
+		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$PluginsDir\$ToolId.zip" --silent --show-error'
+	${Default}
 		Goto SkipDownload
+	${EndSelect}
+	Pop $R1
+	Pop $R2
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_MsgDescargando) $R0"
+	${If} $R1 != "0"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId $\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONEXCLAMATION "$LogMsg"
+		Goto SkipDownload
+	${Else}
+		Goto SuccessDownload
 	${EndIf}
 SuccessDownload:
 	Push "OK"
