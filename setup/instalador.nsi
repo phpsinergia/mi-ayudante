@@ -366,7 +366,7 @@ FunctionEnd
 
 Function DownloadFile
 	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolId"
+	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolName"
 	${Select} $Protocol
 	${Case} "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"

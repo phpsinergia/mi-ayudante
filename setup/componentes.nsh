@@ -219,7 +219,7 @@ SectionEnd
 		Return
 	${EndIf}
 	DetailPrint "..."
-	DetailPrint "$(TXT_MsgInstalando) $ToolId"
+	DetailPrint "$(TXT_MsgInstalando) $ToolName"
 	StrCpy $ToolFinalPath ""
 	${If} $ToolTarget == "appdir"
 		CopyFiles /SILENT "$ToolTempDir\*.*" "$InstDrive$INSTDIR\"
