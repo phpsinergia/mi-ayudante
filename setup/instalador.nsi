@@ -251,7 +251,7 @@ Function RunUninstaller
 		Exec '"$0"'
 		Quit
 NoUninst:
-	MessageBox MB_ICONSTOP "$(TXT_MsgUniNoEncontrado)$\n$0"
+	MessageBox MB_ICONSTOP "$(TXT_MsgUninstallNoEncontrado)$\n$0"
 EndAsk:
 	Pop $0
 FunctionEnd
@@ -389,7 +389,7 @@ Function DownloadFile
 	${If} $R1 == "0"
 		Goto SuccessDownload
 	${Else}
-		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$\n$(TXT_CodigoRespuesta): $R1. $\n$R2"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONEXCLAMATION "$LogMsg"
 		Goto SkipDownload
@@ -407,7 +407,7 @@ Function VerifySha256
 	Pop $0
 	Pop $1
 	StrCmp $0 0 +5
-		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipVerify
@@ -418,13 +418,13 @@ Function VerifySha256
 			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
 			Goto SuccessVerify
 		${Else}
-			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip. $\n$2 ≠ $ToolHash"
+			StrCpy $LogMsg "$(TXT_MsgHashNoCoincide) $ToolId.zip. $\n$2 ≠ $ToolHash"
 			DetailPrint "$LogMsg"
 			MessageBox MB_ICONSTOP "$LogMsg"
 			Goto SkipVerify
 		${EndIf}
 	${Else}
-		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONSTOP "$LogMsg"
 		Goto SkipVerify
@@ -652,7 +652,7 @@ Section "-Inicial" 0
 SectionEnd
 
 Section "!${NAME} (*)" 1
-	Call WriteLogPrograma
+	Call WriteLogBase
 	CreateDirectory "$InstDrive$INSTDIR\compartidos"
 	CreateDirectory "$InstDrive$INSTDIR\datos"
 	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"

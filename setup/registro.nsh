@@ -33,9 +33,9 @@ Function WriteLogInicial
 	Pop $0
 FunctionEnd
 
-Function WriteLogPrograma
+Function WriteLogBase
 	DetailPrint ${SEPARATOR}
-	DetailPrint "*****$(TXT_LogSecPrograma)*****"
+	DetailPrint "*****$(TXT_LogSecBase)*****"
 	DetailPrint ${SEPARATOR}
 FunctionEnd
 

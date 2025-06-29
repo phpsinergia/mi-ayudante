@@ -62,14 +62,11 @@ Function ShowOptionsForm
 		Pop $0
 		${NSD_CreateText} 110u 75u 90u 12u "$Server"
 		Pop $ServerInput
-		${NSD_CreateButton} 215u 59u 60u 16u "$(TXT_BotonComprobar)"
-		Pop $btnTest
-		${NSD_OnClick} $btnTest TestConnection
-		${NSD_CreateLabel} 15u 93u 90u 10u "$(TXT_EtiqUsuarioFtp)"
+		${NSD_CreateLabel} 15u 93u 90u 10u "$(TXT_EtiqUsuario)"
 		Pop $0
 		${NSD_CreateText} 110u 91u 90u 12u "$User"
 		Pop $UserInput
-		${NSD_CreateLabel} 15u 109u 90u 10u "$(TXT_EtiqPassFtp)"
+		${NSD_CreateLabel} 15u 109u 90u 10u "$(TXT_EtiqPass)"
 		Pop $0
 		${NSD_CreatePassword} 110u 107u 90u 12u "$Pass"
 		Pop $PassInput
@@ -78,6 +75,9 @@ Function ShowOptionsForm
 		${If} $RememberCreds == "1"
 			${NSD_Check} $RememberCredsCheckbox
 		${EndIf}
+		${NSD_CreateButton} 215u 59u 60u 16u "$(TXT_BotonComprobar)"
+		Pop $btnTest
+		${NSD_OnClick} $btnTest TestConnection
 	nsDialogs::Show
 	Pop $0
 FunctionEnd
@@ -101,7 +101,7 @@ Function SaveOptionsForm
 	${OrIf} $Protocol == "HTTPS"
 		${If} $User == ""
 		${OrIf} $Pass == ""
-			MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
+			MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredenciales)"
 			Abort
 		${EndIf}
 	${EndIf}
@@ -138,7 +138,7 @@ Function TestFtpConnection
 	${NSD_GetText} $PassInput $Pass
 	${If} $User == ""
 	${OrIf} $Pass == ""
-		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredencialesFtp)"
+		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredenciales)"
 		Return
 	${EndIf}
 	Push $R0
@@ -173,7 +173,7 @@ Function TestHttpConnection
 	${AndIf} $R1 == "0"
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionExito)"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$(TXT_MsgDetallesRespuesta) $R0$\n$R1"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$\n$(TXT_MsgDetallesRespuesta): $R0$\n$R1"
 	${EndIf}
 	Pop $R1
 	Pop $R0

@@ -32,6 +32,14 @@ Var GroupName
 ;--------------------------------
 
 !macro MJsonLoadComponents TIPO
+	nsArray::Clear List${TIPO}Id
+	nsArray::Clear List${TIPO}Name
+	nsArray::Clear List${TIPO}Version
+	nsArray::Clear List${TIPO}SizeKb
+	nsArray::Clear List${TIPO}AddPath
+	nsArray::Clear List${TIPO}OpChk
+	nsArray::Clear List${TIPO}Hash
+	nsArray::Clear List${TIPO}Target
 	StrCpy $ComponentesTotal "0"
 	nsJSON::Get /count `${TIPO}` /end
 	Pop $ComponentesTotal
@@ -333,6 +341,11 @@ Function CreateMapCatalog
 	Push $2
 	Push $3
 	Push $4
+	nsArray::Clear MapGroupsByName
+	nsArray::Clear MapGroupsByIndex
+	nsArray::Clear GroupByIndexPos
+	nsArray::Clear GroupByPosSectionIndex
+	nsArray::Clear GroupByPosSectionName
 	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
