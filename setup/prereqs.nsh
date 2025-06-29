@@ -1,7 +1,16 @@
-﻿Var SkipPreCheckbox
+﻿; prereqs.nsh
+;================================
+; MODULO: PREREQUISITOS
+;================================
+
+;--------------------------------
+; VARIABLES
+;--------------------------------
+Var SkipPreCheckbox
 
 ;--------------------------------
 ; FUNCIONES
+;--------------------------------
 
 Function CheckPreRequisites
 	Push $0

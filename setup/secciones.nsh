@@ -1,5 +1,7 @@
-﻿;--------------------------------
-; SECCIONES NUMERADAS
+﻿; secciones.nsh
+;================================
+; MODULO: SECCIONES
+;================================
 
 !insertmacro MCreateSectionLog 3 2
 

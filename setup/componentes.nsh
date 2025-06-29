@@ -1,5 +1,11 @@
-﻿;--------------------------------
+﻿; componentes.nsh
+;================================
+; MODULO: COMPONENTES
+;================================
+
+;--------------------------------
 ; VARIABLES
+;--------------------------------
 Var ComponentesTotal
 Var ComponentesVisibles
 Var Ajuste
@@ -23,6 +29,7 @@ Var GroupName
 
 ;--------------------------------
 ; MACROS
+;--------------------------------
 
 !macro MJsonLoadComponents TIPO
 	StrCpy $ComponentesTotal "0"
@@ -254,6 +261,7 @@ SectionEnd
 
 ;--------------------------------
 ; FUNCIONES
+;--------------------------------
 
 Function CheckAllComponents
 	Call FetchCatalog

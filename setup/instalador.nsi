@@ -1,4 +1,5 @@
-﻿;================================
+﻿; instalador.nsi
+;================================
 ; INSTALADOR DE MI-AYUDANTE
 ;================================
 
@@ -344,17 +345,17 @@ Function DownloadSinglePack
 	${EndIf}
 	Call DownloadFile
 	Pop $R1
-	${If} $R1 == "NO"
+	${If} $R1 != "OK"
 		Goto SkipTool
 	${EndIf}
 	Call VerifySha256
 	Pop $R1
-	${If} $R1 == "NO"
+	${If} $R1 != "OK"
 		Goto SkipTool
 	${EndIf}
 	Call ExtractZip
 	Pop $R1
-	${If} $R1 == "NO"
+	${If} $R1 != "OK"
 		Goto SkipTool
 	${EndIf}
 	Push "OK"
@@ -364,6 +365,8 @@ SkipTool:
 FunctionEnd
 
 Function DownloadFile
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolId"
 	${Select} $Protocol
 	${Case} "FTP"
 		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
@@ -382,15 +385,14 @@ Function DownloadFile
 	${EndSelect}
 	Pop $R1
 	Pop $R2
-	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_MsgDescargando) $R0"
-	${If} $R1 != "0"
-		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
+	DetailPrint "$R0"
+	${If} $R1 == "0"
+		Goto SuccessDownload
+	${Else}
+		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
 		DetailPrint "$LogMsg"
 		MessageBox MB_ICONEXCLAMATION "$LogMsg"
 		Goto SkipDownload
-	${Else}
-		Goto SuccessDownload
 	${EndIf}
 SuccessDownload:
 	Push "OK"

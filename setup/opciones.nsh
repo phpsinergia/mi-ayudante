@@ -1,4 +1,12 @@
-﻿Var btnTest
+﻿; opciones.nsh
+;================================
+; MODULO: OPCIONES
+;================================
+
+;--------------------------------
+; VARIABLES
+;--------------------------------
+Var btnTest
 Var tmpGB
 Var hDriveDropList
 Var btnUninstall
@@ -11,6 +19,7 @@ Var RememberCredsCheckbox
 
 ;--------------------------------
 ; FUNCIONES
+;--------------------------------
 
 Function ShowOptionsForm
 	Push $0
