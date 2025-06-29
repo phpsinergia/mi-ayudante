@@ -308,9 +308,12 @@ LoadLocalCatalog:
 	File /oname=${CATALOGFILE} "catalogo.json"
 	${If} ${FileExists} "$CatalogPath"
 		Goto CatalogMap
+	${Else}
+		Goto EndFetch
 	${EndIf}
 CatalogMap:
 	Call CreateMapCatalog
+EndFetch:
 	Pop $R2
 	Pop $R1
 	Pop $R0
@@ -325,18 +328,20 @@ Function CreateMapCatalog
 	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
-	IntOp $1 $0 - 1
-	${For} $Pos 0 $1
-		nsJSON::Get /key /index $Pos /end
-		Pop $2 ;Nombre
-		IntOp $3 $Pos * 23
-		IntOp $4 $3 + 3
-		nsArray::Set MapGroupsByName /key=$2 $4
-		nsArray::Set MapGroupsByIndex /key=$4 $2
-		nsArray::Set GroupByIndexPos /key=$4 $Pos
-		nsArray::Set GroupByPosSectionIndex /key=$Pos $4
-		nsArray::Set GroupByPosSectionName /key=$Pos $2
-	${Next}
+	${If} $0 > 0
+		IntOp $1 $0 - 1
+		${For} $Pos 0 $1
+			nsJSON::Get /key /index $Pos /end
+			Pop $2 ;Nombre
+			IntOp $3 $Pos * 23
+			IntOp $4 $3 + 3
+			nsArray::Set MapGroupsByName /key=$2 $4
+			nsArray::Set MapGroupsByIndex /key=$4 $2
+			nsArray::Set GroupByIndexPos /key=$4 $Pos
+			nsArray::Set GroupByPosSectionIndex /key=$Pos $4
+			nsArray::Set GroupByPosSectionName /key=$Pos $2
+		${Next}
+	${EndIf}
 	Pop $4
 	Pop $3
 	Pop $2

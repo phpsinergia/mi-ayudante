@@ -144,7 +144,7 @@ Function TestFtpConnection
 	${If} $R0 == 0
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionExito)"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$R1"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$R0$\n$R1"
 	${EndIf}
 	Pop $R1
 	Pop $R0
@@ -164,7 +164,7 @@ Function TestHttpConnection
 	${AndIf} $R1 == "0"
 		MessageBox MB_ICONINFORMATION|MB_SETFOREGROUND "$(TXT_MsgConexionExito)"
 	${Else}
-		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$(TXT_MsgDetallesRespuesta) $R0"
+		MessageBox MB_ICONSTOP|MB_SETFOREGROUND "$(TXT_MsgConexionError)$\n$(TXT_MsgDetallesRespuesta) $R0$\n$R1"
 	${EndIf}
 	Pop $R1
 	Pop $R0

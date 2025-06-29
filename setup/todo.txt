@@ -45,9 +45,4 @@ Ajusta tu backend HTTP para aceptar el JSON (o header) indicado y devolver 200 O
 
 -----------------------
 
-Function XxxxXxxx
-  Exch $0
-  !insertmacro WITH_LOCAL BeginAdd
-BeginAdd:
-  ; …código sin miedo a contaminar…
-FunctionEnd
+Futuro trabajo pendiente (TODO)

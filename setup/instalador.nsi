@@ -1,9 +1,10 @@
-﻿;--------------------------------
+﻿;================================
 ; INSTALADOR DE MI-AYUDANTE
-;--------------------------------
+;================================
 
 ;--------------------------------
 ; INCLUDES
+;--------------------------------
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
@@ -16,6 +17,7 @@
 
 ;--------------------------------
 ; DEFINICIONES BÁSICAS
+;--------------------------------
 !define NAME "Mi Ayudante"
 !define RELEASE "1.0.0"
 !define INSTALLER_VERSION "0.0.0.1"
@@ -42,6 +44,7 @@
 
 ;--------------------------------
 ; VARIABLES GLOBALES
+;--------------------------------
 Var Version
 Var InstDrive
 Var Server
@@ -71,6 +74,7 @@ Var StartUpDir
 
 ;--------------------------------
 ; DEFINICIONES MUI
+;--------------------------------
 !define MUI_ICON "..\app\${ICON}"
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
@@ -103,6 +107,7 @@ Var StartUpDir
 
 ;--------------------------------
 ; CONFIGURACION GENERAL
+;--------------------------------
 Unicode true
 Name "${NAME}"
 OutFile "${INSTALLER}"
@@ -125,6 +130,7 @@ VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
 ; MACROS
+;--------------------------------
 ${StrTrimNewLines}
 ${StrRep}
 ${StrStr}
@@ -135,65 +141,9 @@ ${unStrStr}
 !insertmacro GetTime
 !insertmacro WordFind
 
-!macro WITH_LOCAL _body
-	Push $0
-	Push $1
-	Push $2
-	Push $3
-	${_body}
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-!macroend
-
-!macro MUninstallAllComponents
-	Push $R0
-	Push $R1
-	Push $R2
-	Push $R3
-	Push $R4
-	StrCpy $R2 "$PluginsDir\componentes.ini"
-	IfFileExists "$R2" 0 EndMacro
-	FileOpen $R0 "$R2" r
-	StrCpy $R3 0
-	ClearErrors
-LoopRead:
-	FileRead $R0 $R1
-	IfErrors CloseFile
-	${unStrTrimNewLines} $R1 "$R1"
-	${If} "$R1" == ""
-	${OrIf} "$R1" == ";"
-		Goto LoopRead
-	${EndIf}
-	${If} "$R1" == "[Paths]"
-		StrCpy $R3 1
-		Goto LoopRead
-	${EndIf}
-	${If} $R3 == 1
-		${WordFind} "$R1" "=" "+2" $R4
-		${unStrRep} $R4 $R4 '"' ''
-		${If} $R4 != ""
-			RMDir /r "$R4"
-			Push "$R4"
-			Call un.RemoveFromEnvUserPath
-		${EndIf}
-		Goto LoopRead
-	${EndIf}
-	Goto LoopRead
-CloseFile:
-	FileClose $R0
-EndMacro:
-	Pop $R5
-	Pop $R4
-	Pop $R3
-	Pop $R2
-	Pop $R1
-	Pop $R0
-!macroend
-
 ;--------------------------------
-; PAGINAS
+; PAGINAS DEL ASISTENTE
+;--------------------------------
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
@@ -208,12 +158,19 @@ UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
-; TEXTOS DE INTERFAZ
+; TEXTOS INTERFAZ DE USUARIO
+;--------------------------------
 !insertmacro MUI_LANGUAGE "Spanish"
 !include "txt_spanish.nsh"
 
 ;--------------------------------
 ; FUNCIONES: INSTALACIÓN
+;--------------------------------
+
+!include "opciones.nsh"
+!include "prereqs.nsh"
+!include "componentes.nsh"
+!include "registro.nsh"
 
 Function .onInit
 	InitPluginsDir
@@ -298,232 +255,6 @@ EndAsk:
 	Pop $0
 FunctionEnd
 
-!include "opciones.nsh"
-!include "prereqs.nsh"
-!include "componentes.nsh"
-!include "registro.nsh"
-
-;--------------------------------
-Function AddToEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
-	${StrTrimNewLines} $0 $0
-	${StrRep} $0 $0 '"' ''
-	${If} $0 == ""
-		Goto EndAdd
-	${EndIf}
-	ReadRegStr $1 HKCU "Environment" "Path"
-	StrCpy $2 ";$1;"
-	StrCpy $3 ";$0;"
-	${StrCase} $2 $2 U
-	${StrCase} $3 $3 U
-	${StrStr} $2 $2 $3
-	${If} $2 != ""
-		Goto CleanAndSave
-	${EndIf}
-	StrLen $2 $1
-	${If} $2 > 0
-		IntOp $2 $2 - 1
-		StrCpy $3 $1 1 $2
-	${Else}
-		StrCpy $3 ""
-	${EndIf}
-	${If} $3 == ";"
-		StrCpy $1 "$1$0"
-	${ElseIf} $1 == ""
-		StrCpy $1 "$0"
-	${Else}
-		StrCpy $1 "$1;$0"
-	${EndIf}
-CleanAndSave:
-LoopClean:
-	${StrStr} $2 $1 ";;"
-	${If} $2 == ""
-		Goto WriteAndBroadcast
-	${EndIf}
-	${StrRep} $1 $1 ";;" ";"
-	Goto LoopClean
-WriteAndBroadcast:
-	DetailPrint "$(TXT_LogAddPath) $0"
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
-EndAdd:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-
-Function DownloadSinglePack
-	Push $R1
-	${If} $ToolId == ""
-		Goto SkipTool
-	${EndIf}
-	Call DownloadFile
-	Pop $R1
-	${If} $R1 == "NO"
-		Goto SkipTool
-	${EndIf}
-	Call VerifySha256
-	Pop $R1
-	${If} $R1 == "NO"
-		Goto SkipTool
-	${EndIf}
-	Call ExtractZip
-	Pop $R1
-	${If} $R1 == "NO"
-		Goto SkipTool
-	${EndIf}
-	Push "OK"
-	Pop $R1
-	Return
-SkipTool:
-	Push "NO"
-	Pop $R1
-FunctionEnd
-
-Function DownloadFile
-	Push $R0
-	Push $R1
-	Push $R2
-	${Select} $Protocol
-	${Case} "FTP"
-		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
-	${Case} "FTPS"
-		StrCpy $R0 "ftps://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$PluginsDir\$ToolId.zip"'
-	${Case} "HTTP"
-		StrCpy $R0 "http://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
-	${Case} "HTTPS"
-		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$PluginsDir\$ToolId.zip" --silent --show-error'
-	${Default}
-		Goto SkipDownload
-	${EndSelect}
-	Pop $R1
-	Pop $R2
-	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_MsgDescargando) $R0"
-	${If} $R1 != "0"
-		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId $\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONEXCLAMATION "$LogMsg"
-		Goto SkipDownload
-	${Else}
-		Goto SuccessDownload
-	${EndIf}
-SuccessDownload:
-	Push "OK"
-	Pop $R2
-	Pop $R1
-	Pop $R0
-	Return
-SkipDownload:
-	Push "NO"
-	Pop $R2
-	Pop $R1
-	Pop $R0
-FunctionEnd
-
-Function VerifySha256
-	Push $0
-	Push $1
-	Push $2
-	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
-	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
-	Pop $0
-	Pop $1
-	StrCmp $0 0 +5
-		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipVerify
-	${If} $1 != ""
-	${AndIf} $ToolHash != ""
-		${WordFind} "$1" "$ToolHash" "+1" $2
-		${If} $2 != ""
-			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
-			Goto SuccessVerify
-		${Else}
-			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip$\n$2 ≠ $ToolHash"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONSTOP "$LogMsg"
-			Goto SkipVerify
-		${EndIf}
-	${Else}
-		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipVerify
-	${EndIf}
-SuccessVerify:
-	Push "OK"
-	Pop $2
-	Pop $1
-	Pop $0
-	Return
-SkipVerify:
-	Push "NO"
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-
-Function ExtractZip
-	Push $R0
-	Push $R1
-	Push $R2
-	Push $R3
-	Push $R4
-	Push $R5
-	Push $R6
-	DetailPrint "..."
-	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
-	RMDir /r "$ToolTempDir"
-	CreateDirectory "$ToolTempDir"
-	SetOutPath "$ToolTempDir"
-	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
-	Pop $R1
-	${If} $R1 != "success"
-		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipExtract
-	${EndIf}
-	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
-	IntOp $R0 $R4 - $ToolSizeKb
-	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
-	IntCmp $R0 1 0 0 +2
-		Goto SuccessExtract
-	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
-	DetailPrint "$LogMsg"
-	MessageBox MB_ICONEXCLAMATION "$LogMsg"
-	Goto SkipExtract
-SuccessExtract:
-	Push "OK"
-	Pop $R6
-	Pop $R5
-	Pop $R4
-	Pop $R3
-	Pop $R2
-	Pop $R1
-	Pop $R0
-	Return
-SkipExtract:
-	Push "NO"
-	Pop $R6
-	Pop $R5
-	Pop $R4
-	Pop $R3
-	Pop $R2
-	Pop $R1
-	Pop $R0
-FunctionEnd
-
 Function EncryptPw
 	Push $0
 	Push $1
@@ -606,7 +337,188 @@ Function DecryptPw
 FunctionEnd
 
 ;--------------------------------
+
+Function DownloadSinglePack
+	${If} $ToolId == ""
+		Goto SkipTool
+	${EndIf}
+	Call DownloadFile
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call VerifySha256
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Call ExtractZip
+	Pop $R1
+	${If} $R1 == "NO"
+		Goto SkipTool
+	${EndIf}
+	Push "OK"
+	Return
+SkipTool:
+	Push "NO"
+FunctionEnd
+
+Function DownloadFile
+	${Select} $Protocol
+	${Case} "FTP"
+		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
+	${Case} "FTPS"
+		StrCpy $R0 "ftps://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$PluginsDir\$ToolId.zip"'
+	${Case} "HTTP"
+		StrCpy $R0 "http://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
+	${Case} "HTTPS"
+		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$PluginsDir\$ToolId.zip" --silent --show-error'
+	${Default}
+		Goto SkipDownload
+	${EndSelect}
+	Pop $R1
+	Pop $R2
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_MsgDescargando) $R0"
+	${If} $R1 != "0"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$(TXT_CodigoRespuesta) $R1 $\n$R2"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONEXCLAMATION "$LogMsg"
+		Goto SkipDownload
+	${Else}
+		Goto SuccessDownload
+	${EndIf}
+SuccessDownload:
+	Push "OK"
+	Return
+SkipDownload:
+	Push "NO"
+FunctionEnd
+
+Function VerifySha256
+	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
+	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
+	Pop $0
+	Pop $1
+	StrCmp $0 0 +5
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${If} $1 != ""
+	${AndIf} $ToolHash != ""
+		${WordFind} "$1" "$ToolHash" "+1" $2
+		${If} $2 != ""
+			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
+			Goto SuccessVerify
+		${Else}
+			StrCpy $LogMsg "$(TXT_MsgErrorHashNoCoincide) $ToolId.zip. $\n$2 ≠ $ToolHash"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONSTOP "$LogMsg"
+			Goto SkipVerify
+		${EndIf}
+	${Else}
+		StrCpy $LogMsg "$(TXT_MsgErrorHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${EndIf}
+SuccessVerify:
+	Push "OK"
+	Return
+SkipVerify:
+	Push "NO"
+FunctionEnd
+
+Function ExtractZip
+	DetailPrint "..."
+	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
+	RMDir /r "$ToolTempDir"
+	CreateDirectory "$ToolTempDir"
+	SetOutPath "$ToolTempDir"
+	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
+	Pop $R1
+	${If} $R1 != "success"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipExtract
+	${EndIf}
+	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - $ToolSizeKb
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 +2
+		Goto SuccessExtract
+	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	DetailPrint "$LogMsg"
+	MessageBox MB_ICONEXCLAMATION "$LogMsg"
+	Goto SkipExtract
+SuccessExtract:
+	Push "OK"
+	Return
+SkipExtract:
+	Push "NO"
+FunctionEnd
+
+Function AddToEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	${StrTrimNewLines} $0 $0
+	${StrRep} $0 $0 '"' ''
+	${If} $0 == ""
+		Goto EndAdd
+	${EndIf}
+	ReadRegStr $1 HKCU "Environment" "Path"
+	StrCpy $2 ";$1;"
+	StrCpy $3 ";$0;"
+	${StrCase} $2 $2 U
+	${StrCase} $3 $3 U
+	${StrStr} $2 $2 $3
+	${If} $2 != ""
+		Goto CleanAndSave
+	${EndIf}
+	StrLen $2 $1
+	${If} $2 > 0
+		IntOp $2 $2 - 1
+		StrCpy $3 $1 1 $2
+	${Else}
+		StrCpy $3 ""
+	${EndIf}
+	${If} $3 == ";"
+		StrCpy $1 "$1$0"
+	${ElseIf} $1 == ""
+		StrCpy $1 "$0"
+	${Else}
+		StrCpy $1 "$1;$0"
+	${EndIf}
+CleanAndSave:
+LoopClean:
+	${StrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto WriteAndBroadcast
+	${EndIf}
+	${StrRep} $1 $1 ";;" ";"
+	Goto LoopClean
+WriteAndBroadcast:
+	DetailPrint "$(TXT_LogAddPath) $0"
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndAdd:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
+FunctionEnd
+
+;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
+;--------------------------------
 
 Function un.onInit
 	Push $0
@@ -684,8 +596,54 @@ EndRm:
 	Pop $0
 FunctionEnd
 
+!macro MUninstallAllComponents
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	StrCpy $R2 "$PluginsDir\componentes.ini"
+	IfFileExists "$R2" 0 EndMacro
+	FileOpen $R0 "$R2" r
+	StrCpy $R3 0
+	ClearErrors
+LoopRead:
+	FileRead $R0 $R1
+	IfErrors CloseFile
+	${unStrTrimNewLines} $R1 "$R1"
+	${If} "$R1" == ""
+	${OrIf} "$R1" == ";"
+		Goto LoopRead
+	${EndIf}
+	${If} "$R1" == "[Paths]"
+		StrCpy $R3 1
+		Goto LoopRead
+	${EndIf}
+	${If} $R3 == 1
+		${WordFind} "$R1" "=" "+2" $R4
+		${unStrRep} $R4 $R4 '"' ''
+		${If} $R4 != ""
+			RMDir /r "$R4"
+			Push "$R4"
+			Call un.RemoveFromEnvUserPath
+		${EndIf}
+		Goto LoopRead
+	${EndIf}
+	Goto LoopRead
+CloseFile:
+	FileClose $R0
+EndMacro:
+	Pop $R5
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+!macroend
+
 ;--------------------------------
 ; SECCIONES
+;--------------------------------
 
 Section "-Inicial" 0
 	Call WriteLogInicial
