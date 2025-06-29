@@ -25,7 +25,6 @@ Var ToolFinalPath
 Var CatalogPath
 Var LogMsg
 Var GroupName
-;Var GroupPos
 
 ;--------------------------------
 ; MACROS
@@ -41,39 +40,33 @@ Var GroupName
 	nsArray::Clear List${TIPO}Hash
 	nsArray::Clear List${TIPO}Target
 	StrCpy $ComponentesTotal "0"
-	nsJSON::Get /count `${TIPO}` /end
+	nsJSON::Get /count /index ${TIPO} /end
 	Pop $ComponentesTotal
-	nsArray::Get MapGroupsByName ${TIPO}
+	nsArray::Get GroupByPosSectionIndex ${TIPO}
 	Pop $GroupIndex
-	nsArray::Get MapGroupsByIndex $GroupIndex
+	nsArray::Get GroupByPosSectionName ${TIPO}
 	Pop $GroupName
-	;nsArray::Get GroupByIndexPos $GroupIndex
-	;Pop $GroupPos
-	;nsArray::Get GroupByPosSectionIndex $GroupPos
-	;Pop ...
-	;nsArray::Get GroupByPosSectionName $GroupPos
-	;Pop ...
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
 		SectionSetText $GroupIndex "$GroupName"
 		IntOp $Ajuste $GroupIndex + 1
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
-			nsJSON::Get `${TIPO}` /index $Pos "id" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "id" /end
 			Pop $ToolId
-			nsJSON::Get `${TIPO}` /index $Pos "name" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "name" /end
 			Pop $ToolName
-			nsJSON::Get `${TIPO}` /index $Pos "version" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "version" /end
 			Pop $ToolVersion
-			nsJSON::Get `${TIPO}` /index $Pos "size_kb" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "size_kb" /end
 			Pop $ToolSizeKb
-			nsJSON::Get `${TIPO}` /index $Pos "add_path" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "add_path" /end
 			Pop $ToolAddPath
-			nsJSON::Get `${TIPO}` /index $Pos "op_chk" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "op_chk" /end
 			Pop $ToolOpChk
-			nsJSON::Get `${TIPO}` /index $Pos "hash" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "hash" /end
 			Pop $ToolHash
-			nsJSON::Get `${TIPO}` /index $Pos "target" /end
+			nsJSON::Get /index ${TIPO} /index $Pos "target" /end
 			Pop $ToolTarget
 			IntOp $SectionIndex $Pos + $Ajuste
 			nsArray::Set List${TIPO}Id /key=$SectionIndex $ToolId
@@ -202,16 +195,12 @@ SectionEnd
 !macroend
 
 !macro MInstallComponentsByIndex TIPO
-	;La variable $Pos contiene el índice del componente actual en los nsArray de su TIPO (su grupo dentro del catalogo)
-	;La siguiente función "GetInfo{TIPO}" usa $Pos y establece los valores de las siguientes variables:
-	;ToolId, ToolName, ToolVersion, ToolSizeKb, ToolAddPath, ToolOpChk, ToolHash, ToolTarget y SectionIndex
 	Call GetInfo${TIPO}
 	${IfNot} ${SectionIsSelected} $SectionIndex
 	${OrIf} $ToolId == ""
 	${OrIf} $Pos >= ${MAX_COMPONENTES}
 		Return
 	${EndIf}
-	;Función DownloadSinglePack: para descargar un componente
 	Call DownloadSinglePack
 	Pop $0
 	${If} $0 == "NO"
@@ -246,7 +235,6 @@ SectionEnd
 	${EndIf}
 	${If} $ToolAddPath == "1"
 	${AndIf} $ToolFinalPath != ""
-		;Función AddToEnvUserPath: para agregar la ruta del componente a la variable de entorno Path
 		Push "$ToolFinalPath"
 		Call AddToEnvUserPath
 	${EndIf}
@@ -256,7 +244,7 @@ SectionEnd
 		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
 		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	${EndIf}
-	DetailPrint "$ToolName ($ToolId) → OK ($ToolVersion)"
+	DetailPrint "$ToolName $ToolVersion ($ToolId) → OK"
 	StrCpy $ToolId ""
 !macroend
 
@@ -273,12 +261,12 @@ SectionEnd
 
 Function CheckAllComponents
 	Call FetchCatalog
-	;TODO: Falta avanzar en hacer dinámico el siguiente conjunto de "CheckGroup" sin usar nombres de "TIPO" (Actualizaciones, Requisitos, Complementos, Extensiones, Recursos), para que puedan cambiarse de nombre o agregarse nuevos tipos.
-	Call CheckGroupActualizaciones
-	Call CheckGroupRequisitos
-	Call CheckGroupComplementos
-	Call CheckGroupExtensiones
-	Call CheckGroupRecursos
+	Call CheckGroup0
+	Call CheckGroup1
+	Call CheckGroup2
+	Call CheckGroup3
+	Call CheckGroup4
+	Call CheckGroup5
 	Call CheckSectionBase
 FunctionEnd
 
@@ -341,24 +329,17 @@ Function CreateMapCatalog
 	Push $2
 	Push $3
 	Push $4
-	nsArray::Clear MapGroupsByName
-	nsArray::Clear MapGroupsByIndex
-	nsArray::Clear GroupByIndexPos
 	nsArray::Clear GroupByPosSectionIndex
 	nsArray::Clear GroupByPosSectionName
 	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
 	${If} $0 > 0
-		IntOp $1 $0 - 1
-		${For} $Pos 0 $1
+		${For} $Pos 0 $0
 			nsJSON::Get /key /index $Pos /end
 			Pop $2 ;Nombre
 			IntOp $3 $Pos * 23
 			IntOp $4 $3 + 3
-			nsArray::Set MapGroupsByName /key=$2 $4
-			nsArray::Set MapGroupsByIndex /key=$4 $2
-			nsArray::Set GroupByIndexPos /key=$4 $Pos
 			nsArray::Set GroupByPosSectionIndex /key=$Pos $4
 			nsArray::Set GroupByPosSectionName /key=$Pos $2
 		${Next}
