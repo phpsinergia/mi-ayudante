@@ -76,7 +76,7 @@ LangString TXT_SubtituloInstCompletada ${LANG_SPANISH} "Se ha completado el proc
 LangString TXT_TituloInstCancelada ${LANG_SPANISH} "Instalación cancelada"
 LangString TXT_SubtituloInstCancelada ${LANG_SPANISH} "La instalación fue cancelada por el usuario."
 LangString TXT_TituloPrereq ${LANG_SPANISH} "Comprobación de Pre-requisitos"
-LangString TXT_SubtituloPrereq ${LANG_SPANISH} "Debe instalar además los siguientes programas en su computadora local."
+LangString TXT_SubtituloPrereq ${LANG_SPANISH} "Las funciones avanzadas de ${NAME} requieren que tenga los siguientes programas en su computadora."
 LangString TXT_TituloComponentes ${LANG_SPANISH} "Opciones de instalación"
 LangString TXT_SubtituloComponentes ${LANG_SPANISH} "Indique los datos necesarios para descargar y copiar los componentes."
 LangString TXT_InstruccionesComponentes ${LANG_SPANISH} "Marque los componentes que desee instalar y desmarque aquellos que no desee. Presione Instalar para comenzar el proceso (requiere conexión a Internet)."
