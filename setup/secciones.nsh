@@ -5,7 +5,7 @@
 
 !insertmacro MCreateSectionLog 3 2
 
-SectionGroup /e "-" 3
+SectionGroup /e "-" 3 ;0-
 	!insertmacro MCreateFunctionsComponent "0"
 	!insertmacro MCreateSectionComponent "0" 3 4
 	!insertmacro MCreateSectionComponent "0" 3 5
@@ -31,7 +31,7 @@ SectionGroupEnd ;24
 
 !insertmacro MCreateSectionLog 26 25
 
-SectionGroup /e "-" 26
+SectionGroup /e "-" 26 ;1-
 	!insertmacro MCreateFunctionsComponent "1"
 	!insertmacro MCreateSectionComponent "1" 26 27
 	!insertmacro MCreateSectionComponent "1" 26 28
@@ -57,7 +57,7 @@ SectionGroupEnd ;47
 
 !insertmacro MCreateSectionLog 49 48
 
-SectionGroup "-" 49
+SectionGroup "-" 49 ;2-
 	!insertmacro MCreateFunctionsComponent "2"
 	!insertmacro MCreateSectionComponent "2" 49 50
 	!insertmacro MCreateSectionComponent "2" 49 51
@@ -83,7 +83,7 @@ SectionGroupEnd ;70
 
 !insertmacro MCreateSectionLog 72 71
 
-SectionGroup "-" 72
+SectionGroup "-" 72 ;3-
 	!insertmacro MCreateFunctionsComponent "3"
 	!insertmacro MCreateSectionComponent "3" 72 73
 	!insertmacro MCreateSectionComponent "3" 72 74
@@ -109,7 +109,7 @@ SectionGroupEnd ;93
 
 !insertmacro MCreateSectionLog 95 94
 
-SectionGroup "-" 95
+SectionGroup "-" 95 ;4-
 	!insertmacro MCreateFunctionsComponent "4"
 	!insertmacro MCreateSectionComponent "4" 95 96
 	!insertmacro MCreateSectionComponent "4" 95 97
@@ -135,7 +135,7 @@ SectionGroupEnd ;116
 
 !insertmacro MCreateSectionLog 118 117
 
-SectionGroup "-" 118
+SectionGroup "-" 118 ;5-
 	!insertmacro MCreateFunctionsComponent "5"
 	!insertmacro MCreateSectionComponent "5" 118 119
 	!insertmacro MCreateSectionComponent "5" 118 120
@@ -158,3 +158,107 @@ SectionGroup "-" 118
 	!insertmacro MCreateSectionComponent "5" 118 137
 	!insertmacro MCreateSectionComponent "5" 118 138
 SectionGroupEnd ;139
+
+!insertmacro MCreateSectionLog 141 140
+
+SectionGroup "-" 141 ;6-
+	!insertmacro MCreateFunctionsComponent "6"
+	!insertmacro MCreateSectionComponent "6" 141 142
+	!insertmacro MCreateSectionComponent "6" 141 143
+	!insertmacro MCreateSectionComponent "6" 141 144
+	!insertmacro MCreateSectionComponent "6" 141 145
+	!insertmacro MCreateSectionComponent "6" 141 146
+	!insertmacro MCreateSectionComponent "6" 141 147
+	!insertmacro MCreateSectionComponent "6" 141 148
+	!insertmacro MCreateSectionComponent "6" 141 149
+	!insertmacro MCreateSectionComponent "6" 141 150
+	!insertmacro MCreateSectionComponent "6" 141 151
+	!insertmacro MCreateSectionComponent "6" 141 152
+	!insertmacro MCreateSectionComponent "6" 141 153
+	!insertmacro MCreateSectionComponent "6" 141 154
+	!insertmacro MCreateSectionComponent "6" 141 155
+	!insertmacro MCreateSectionComponent "6" 141 156
+	!insertmacro MCreateSectionComponent "6" 141 157
+	!insertmacro MCreateSectionComponent "6" 141 158
+	!insertmacro MCreateSectionComponent "6" 141 159
+	!insertmacro MCreateSectionComponent "6" 141 160
+	!insertmacro MCreateSectionComponent "6" 141 161
+SectionGroupEnd ;162
+
+!insertmacro MCreateSectionLog 164 163
+
+SectionGroup "-" 164 ;7-
+	!insertmacro MCreateFunctionsComponent "7"
+	!insertmacro MCreateSectionComponent "7" 164 165
+	!insertmacro MCreateSectionComponent "7" 164 166
+	!insertmacro MCreateSectionComponent "7" 164 167
+	!insertmacro MCreateSectionComponent "7" 164 168
+	!insertmacro MCreateSectionComponent "7" 164 169
+	!insertmacro MCreateSectionComponent "7" 164 170
+	!insertmacro MCreateSectionComponent "7" 164 171
+	!insertmacro MCreateSectionComponent "7" 164 172
+	!insertmacro MCreateSectionComponent "7" 164 173
+	!insertmacro MCreateSectionComponent "7" 164 174
+	!insertmacro MCreateSectionComponent "7" 164 175
+	!insertmacro MCreateSectionComponent "7" 164 176
+	!insertmacro MCreateSectionComponent "7" 164 177
+	!insertmacro MCreateSectionComponent "7" 164 178
+	!insertmacro MCreateSectionComponent "7" 164 179
+	!insertmacro MCreateSectionComponent "7" 164 180
+	!insertmacro MCreateSectionComponent "7" 164 181
+	!insertmacro MCreateSectionComponent "7" 164 182
+	!insertmacro MCreateSectionComponent "7" 164 183
+	!insertmacro MCreateSectionComponent "7" 164 184
+SectionGroupEnd ;185
+
+!insertmacro MCreateSectionLog 187 186
+
+SectionGroup "-" 187 ;8-
+	!insertmacro MCreateFunctionsComponent "8"
+	!insertmacro MCreateSectionComponent "8" 187 188
+	!insertmacro MCreateSectionComponent "8" 187 189
+	!insertmacro MCreateSectionComponent "8" 187 190
+	!insertmacro MCreateSectionComponent "8" 187 191
+	!insertmacro MCreateSectionComponent "8" 187 192
+	!insertmacro MCreateSectionComponent "8" 187 193
+	!insertmacro MCreateSectionComponent "8" 187 194
+	!insertmacro MCreateSectionComponent "8" 187 195
+	!insertmacro MCreateSectionComponent "8" 187 196
+	!insertmacro MCreateSectionComponent "8" 187 197
+	!insertmacro MCreateSectionComponent "8" 187 198
+	!insertmacro MCreateSectionComponent "8" 187 199
+	!insertmacro MCreateSectionComponent "8" 187 200
+	!insertmacro MCreateSectionComponent "8" 187 201
+	!insertmacro MCreateSectionComponent "8" 187 202
+	!insertmacro MCreateSectionComponent "8" 187 203
+	!insertmacro MCreateSectionComponent "8" 187 204
+	!insertmacro MCreateSectionComponent "8" 187 205
+	!insertmacro MCreateSectionComponent "8" 187 206
+	!insertmacro MCreateSectionComponent "8" 187 207
+SectionGroupEnd ;208
+
+!insertmacro MCreateSectionLog 210 209
+
+SectionGroup "-" 210 ;9-
+	!insertmacro MCreateFunctionsComponent "9"
+	!insertmacro MCreateSectionComponent "9" 210 211
+	!insertmacro MCreateSectionComponent "9" 210 212
+	!insertmacro MCreateSectionComponent "9" 210 213
+	!insertmacro MCreateSectionComponent "9" 210 214
+	!insertmacro MCreateSectionComponent "9" 210 215
+	!insertmacro MCreateSectionComponent "9" 210 216
+	!insertmacro MCreateSectionComponent "9" 210 217
+	!insertmacro MCreateSectionComponent "9" 210 218
+	!insertmacro MCreateSectionComponent "9" 210 219
+	!insertmacro MCreateSectionComponent "9" 210 220
+	!insertmacro MCreateSectionComponent "9" 210 221
+	!insertmacro MCreateSectionComponent "9" 210 222
+	!insertmacro MCreateSectionComponent "9" 210 223
+	!insertmacro MCreateSectionComponent "9" 210 224
+	!insertmacro MCreateSectionComponent "9" 210 225
+	!insertmacro MCreateSectionComponent "9" 210 226
+	!insertmacro MCreateSectionComponent "9" 210 227
+	!insertmacro MCreateSectionComponent "9" 210 228
+	!insertmacro MCreateSectionComponent "9" 210 229
+	!insertmacro MCreateSectionComponent "9" 210 230
+SectionGroupEnd ;231

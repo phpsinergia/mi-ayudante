@@ -30,21 +30,13 @@ Var GroupName
 ; MACROS
 ;--------------------------------
 
-!macro MJsonLoadComponents TIPO
-	nsArray::Clear List${TIPO}Id
-	nsArray::Clear List${TIPO}Name
-	nsArray::Clear List${TIPO}Version
-	nsArray::Clear List${TIPO}SizeKb
-	nsArray::Clear List${TIPO}AddPath
-	nsArray::Clear List${TIPO}OpChk
-	nsArray::Clear List${TIPO}Hash
-	nsArray::Clear List${TIPO}Target
+!macro MJsonLoadComponents CATEGORIA
 	StrCpy $ComponentesTotal "0"
-	nsJSON::Get /count /index ${TIPO} /end
+	nsJSON::Get /count /index ${CATEGORIA} /end
 	Pop $ComponentesTotal
-	nsArray::Get GroupByPosSectionIndex ${TIPO}
+	nsArray::Get GroupByPosSectionIndex ${CATEGORIA}
 	Pop $GroupIndex
-	nsArray::Get GroupByPosSectionName ${TIPO}
+	nsArray::Get GroupByPosSectionName ${CATEGORIA}
 	Pop $GroupName
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
@@ -52,109 +44,109 @@ Var GroupName
 		IntOp $Ajuste $GroupIndex + 1
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
-			nsJSON::Get /index ${TIPO} /index $Pos "id" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "id" /end
 			Pop $ToolId
-			nsJSON::Get /index ${TIPO} /index $Pos "name" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "name" /end
 			Pop $ToolName
-			nsJSON::Get /index ${TIPO} /index $Pos "version" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "version" /end
 			Pop $ToolVersion
-			nsJSON::Get /index ${TIPO} /index $Pos "size_kb" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "size_kb" /end
 			Pop $ToolSizeKb
-			nsJSON::Get /index ${TIPO} /index $Pos "add_path" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "add_path" /end
 			Pop $ToolAddPath
-			nsJSON::Get /index ${TIPO} /index $Pos "op_chk" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "op_chk" /end
 			Pop $ToolOpChk
-			nsJSON::Get /index ${TIPO} /index $Pos "hash" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "hash" /end
 			Pop $ToolHash
-			nsJSON::Get /index ${TIPO} /index $Pos "target" /end
+			nsJSON::Get /index ${CATEGORIA} /index $Pos "target" /end
 			Pop $ToolTarget
 			IntOp $SectionIndex $Pos + $Ajuste
-			nsArray::Set List${TIPO}Id /key=$SectionIndex $ToolId
-			nsArray::Set List${TIPO}Name /key=$SectionIndex $ToolName
-			nsArray::Set List${TIPO}Version /key=$SectionIndex $ToolVersion
-			nsArray::Set List${TIPO}SizeKb /key=$SectionIndex $ToolSizeKb
-			nsArray::Set List${TIPO}AddPath /key=$SectionIndex $ToolAddPath
-			nsArray::Set List${TIPO}OpChk /key=$SectionIndex $ToolOpChk
-			nsArray::Set List${TIPO}Hash /key=$SectionIndex $ToolHash
-			nsArray::Set List${TIPO}Target /key=$SectionIndex $ToolTarget
+			nsArray::Set List${CATEGORIA}Id /key=$SectionIndex $ToolId
+			nsArray::Set List${CATEGORIA}Name /key=$SectionIndex $ToolName
+			nsArray::Set List${CATEGORIA}Version /key=$SectionIndex $ToolVersion
+			nsArray::Set List${CATEGORIA}SizeKb /key=$SectionIndex $ToolSizeKb
+			nsArray::Set List${CATEGORIA}AddPath /key=$SectionIndex $ToolAddPath
+			nsArray::Set List${CATEGORIA}OpChk /key=$SectionIndex $ToolOpChk
+			nsArray::Set List${CATEGORIA}Hash /key=$SectionIndex $ToolHash
+			nsArray::Set List${CATEGORIA}Target /key=$SectionIndex $ToolTarget
 		${Next}
 		${For} $Pos $ComponentesTotal ${MAX_COMPONENTES}
 			IntOp $SectionIndex $Pos + $Ajuste
-			nsArray::Set List${TIPO}Id /key=$SectionIndex ""
-			nsArray::Set List${TIPO}Name /key=$SectionIndex ""
-			nsArray::Set List${TIPO}Version /key=$SectionIndex ""
-			nsArray::Set List${TIPO}SizeKb /key=$SectionIndex ""
-			nsArray::Set List${TIPO}AddPath /key=$SectionIndex ""
-			nsArray::Set List${TIPO}OpChk /key=$SectionIndex ""
-			nsArray::Set List${TIPO}Hash /key=$SectionIndex ""
-			nsArray::Set List${TIPO}Target /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}Id /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}Name /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}Version /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}SizeKb /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}AddPath /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}OpChk /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}Hash /key=$SectionIndex ""
+			nsArray::Set List${CATEGORIA}Target /key=$SectionIndex ""
 		${Next}
 	${EndIf}
 !macroend
 
-!macro MGetInfoComponent TIPO
-	nsArray::Get List${TIPO}Id /at=$Pos
+!macro MGetInfoComponent CATEGORIA
+	nsArray::Get List${CATEGORIA}Id /at=$Pos
 	Pop $1
 	Pop $ToolId
-	nsArray::Get List${TIPO}Name /at=$Pos
+	nsArray::Get List${CATEGORIA}Name /at=$Pos
 	Pop $1
 	Pop $ToolName
-	nsArray::Get List${TIPO}Version /at=$Pos
+	nsArray::Get List${CATEGORIA}Version /at=$Pos
 	Pop $1
 	Pop $ToolVersion
-	nsArray::Get List${TIPO}SizeKb /at=$Pos
+	nsArray::Get List${CATEGORIA}SizeKb /at=$Pos
 	Pop $1
 	Pop $ToolSizeKb
-	nsArray::Get List${TIPO}AddPath /at=$Pos
+	nsArray::Get List${CATEGORIA}AddPath /at=$Pos
 	Pop $1
 	Pop $ToolAddPath
-	nsArray::Get List${TIPO}OpChk /at=$Pos
+	nsArray::Get List${CATEGORIA}OpChk /at=$Pos
 	Pop $1
 	Pop $ToolOpChk
-	nsArray::Get List${TIPO}Hash /at=$Pos
+	nsArray::Get List${CATEGORIA}Hash /at=$Pos
 	Pop $1
 	Pop $ToolHash
-	nsArray::Get List${TIPO}Target /at=$Pos
+	nsArray::Get List${CATEGORIA}Target /at=$Pos
 	Pop $1
 	Pop $ToolTarget
 	IntOp $Ajuste $GroupIndex + 1
 	IntOp $SectionIndex $Pos + $Ajuste
 !macroend
 
-!macro MCreateFunctionsComponent TIPO
-Function InstallByIndex${TIPO}
-	!insertmacro MInstallComponentsByIndex "${TIPO}"
+!macro MCreateFunctionsComponent CATEGORIA
+Function InstallByIndex${CATEGORIA}
+	!insertmacro MInstallComponentsByIndex "${CATEGORIA}"
 FunctionEnd
-Function JsonLoad${TIPO}
-	!insertmacro MJsonLoadComponents "${TIPO}"
+Function JsonLoad${CATEGORIA}
+	!insertmacro MJsonLoadComponents "${CATEGORIA}"
 FunctionEnd
-Function GetInfo${TIPO}
-	!insertmacro MGetInfoComponent "${TIPO}"
+Function GetInfo${CATEGORIA}
+	!insertmacro MGetInfoComponent "${CATEGORIA}"
 FunctionEnd
-Function CheckGroup${TIPO}
-	!insertmacro MCheckGroupComponents "${TIPO}"
+Function CheckGroup${CATEGORIA}
+	!insertmacro MCheckGroupComponents "${CATEGORIA}"
 FunctionEnd
 !macroend
 
-!macro MCreateSectionComponent TIPO GRUPO INDEX
-Section /o "" ${INDEX}
+!macro MCreateSectionComponent CATEGORIA GRUPO SECCION
+Section /o "" ${SECCION}
 	StrCpy $GroupIndex ${GRUPO}
 	IntOp $Ajuste $GroupIndex + 1
-	IntOp $Pos ${INDEX} - $Ajuste
+	IntOp $Pos ${SECCION} - $Ajuste
 	${If} $Pos < ${MAX_COMPONENTES}
-		Call InstallByIndex${TIPO}
+		Call InstallByIndex${CATEGORIA}
 	${EndIf}
 SectionEnd
 !macroend
 
-!macro MCheckGroupComponents TIPO
-	Call JsonLoad${TIPO}
+!macro MCheckGroupComponents CATEGORIA
+	Call JsonLoad${CATEGORIA}
 	StrCpy $ComponentesVisibles "0"
 	${If} $ComponentesTotal > 0
 		IntOp $R0 $ComponentesTotal - 1
 		${For} $Pos 0 $R0
 			${If} $Pos < ${MAX_COMPONENTES}
-				Call GetInfo${TIPO}
+				Call GetInfo${CATEGORIA}
 				Call CheckComponentInRegistry
 				Pop $1
 				${If} $1 == 2 ; misma versión
@@ -194,8 +186,8 @@ SectionEnd
 	${EndIf}
 !macroend
 
-!macro MInstallComponentsByIndex TIPO
-	Call GetInfo${TIPO}
+!macro MInstallComponentsByIndex CATEGORIA
+	Call GetInfo${CATEGORIA}
 	${IfNot} ${SectionIsSelected} $SectionIndex
 	${OrIf} $ToolId == ""
 	${OrIf} $Pos >= ${MAX_COMPONENTES}
@@ -248,8 +240,8 @@ SectionEnd
 	StrCpy $ToolId ""
 !macroend
 
-!macro MCreateSectionLog GRUPO INDEX
-Section "-" ${INDEX}
+!macro MCreateSectionLog GRUPO SECCION
+Section "-" ${SECCION}
 	Push ${GRUPO}
 	Call WriteLogSection
 SectionEnd
@@ -267,6 +259,10 @@ Function CheckAllComponents
 	Call CheckGroup3
 	Call CheckGroup4
 	Call CheckGroup5
+	Call CheckGroup6
+	Call CheckGroup7
+	Call CheckGroup8
+	Call CheckGroup9
 	Call CheckSectionBase
 FunctionEnd
 
@@ -329,13 +325,21 @@ Function CreateMapCatalog
 	Push $2
 	Push $3
 	Push $4
-	nsArray::Clear GroupByPosSectionIndex
-	nsArray::Clear GroupByPosSectionName
+	${For} $Pos 0 9
+		IntOp $3 $Pos * 23
+		IntOp $4 $3 + 3
+		nsArray::Set GroupByPosSectionIndex /key=$Pos $4
+		nsArray::Set GroupByPosSectionName /key=$Pos ""
+	${Next}
 	nsJSON::Set /file $CatalogPath
 	nsJSON::Get /count /end
 	Pop $0 ;Total
 	${If} $0 > 0
-		${For} $Pos 0 $0
+		IntOp $1 $0 - 1
+		${If} $1 > 9
+			StrCpy $1 "9"
+		${EndIf}
+		${For} $Pos 0 $1
 			nsJSON::Get /key /index $Pos /end
 			Pop $2 ;Nombre
 			IntOp $3 $Pos * 23
