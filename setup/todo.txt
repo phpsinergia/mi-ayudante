@@ -1,11 +1,6 @@
 PENDIENTES:
 
-+ Corregir: cuando falla una descarga igual registra al componente como instalado en .ini
-+ Corregir: Test de conexión HTTPS y FTPS
-
-* Robustecer el gestor de catalogo.json: poder tener secciones vacías y secciones no usadas, que no rompa el script
-
------------------------
++ Completar "prereqs.nsh"
 
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
 

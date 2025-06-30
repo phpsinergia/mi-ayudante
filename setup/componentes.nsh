@@ -25,6 +25,7 @@ Var ToolFinalPath
 Var CatalogPath
 Var LogMsg
 Var GroupName
+Var CatalogStatus
 
 ;--------------------------------
 ; MACROS
@@ -252,18 +253,57 @@ SectionEnd
 ;--------------------------------
 
 Function CheckAllComponents
+	Push $R0
+	Push $R1
+	Push $R2
 	Call FetchCatalog
-	Call CheckGroup0
-	Call CheckGroup1
-	Call CheckGroup2
-	Call CheckGroup3
-	Call CheckGroup4
-	Call CheckGroup5
-	Call CheckGroup6
-	Call CheckGroup7
-	Call CheckGroup8
-	Call CheckGroup9
+	${If} $CatalogStatus == "OK"
+		Call CheckGroup0
+		Call CheckGroup1
+		Call CheckGroup2
+		Call CheckGroup3
+		Call CheckGroup4
+		Call CheckGroup5
+		Call CheckGroup6
+		Call CheckGroup7
+		Call CheckGroup8
+		Call CheckGroup9
+	${Else}
+		StrCpy $R0 "3"
+		Call HideSectionGroup
+		StrCpy $R0 "26"
+		Call HideSectionGroup
+		StrCpy $R0 "49"
+		Call HideSectionGroup
+		StrCpy $R0 "72"
+		Call HideSectionGroup
+		StrCpy $R0 "95"
+		Call HideSectionGroup
+		StrCpy $R0 "118"
+		Call HideSectionGroup
+		StrCpy $R0 "141"
+		Call HideSectionGroup
+		StrCpy $R0 "164"
+		Call HideSectionGroup
+		StrCpy $R0 "187"
+		Call HideSectionGroup
+		StrCpy $R0 "210"
+		Call HideSectionGroup
+	${EndIf}
 	Call CheckSectionBase
+	Pop $R2
+	Pop $R1
+	Pop $R0
+FunctionEnd
+
+Function HideSectionGroup
+	SectionSetText $R0 ""
+	IntOp $R1 $R0 + 1
+	IntOp $R2 $R0 + 20
+	${For} $Pos $R1 $R2
+		SectionSetText $Pos ""
+		SectionSetFlags $Pos 0
+	${Next}
 FunctionEnd
 
 Function FetchCatalog
@@ -302,16 +342,16 @@ Function FetchCatalog
 		${Else}
 			Goto LoadLocalCatalog
 		${EndIf}
+	${Else}
+		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgErrorCatalogo)"
 	${EndIf}
 LoadLocalCatalog:
+	StrCpy $CatalogStatus "NO"
 	SetOutPath "$InstDrive$INSTDIR"
 	File /oname=${CATALOGFILE} "catalogo.json"
-	${If} ${FileExists} "$CatalogPath"
-		Goto CatalogMap
-	${Else}
-		Goto EndFetch
-	${EndIf}
+	Goto EndFetch
 CatalogMap:
+	StrCpy $CatalogStatus "OK"
 	Call CreateMapCatalog
 EndFetch:
 	Pop $R2
