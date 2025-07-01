@@ -1,5 +1,9 @@
 PENDIENTES:
 
+- Guardar version detectada de PHP en componentes.ini
+
++ Afinar las conexiones de CURL por FTPS y HTTPS
+
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
 
 -----------------------
@@ -20,6 +24,10 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 │   ├── registro.nsh
 │   ├── secciones.nsh
 │   ├── txt_spanish.nsh
+│   ├── head.bmp
+│   ├── left.bmp
+│   ├── ok.bmp
+│   ├── no.bmp
 │   ├── componentes.ini
 │   ├── config.ini
 │   └── catalogo.json

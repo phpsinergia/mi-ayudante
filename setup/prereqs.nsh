@@ -38,6 +38,9 @@ Function CheckPreRequisites
 	nsDialogs::Create 1018
 	Pop $0
 	!insertmacro MUI_HEADER_TEXT "$(TXT_TituloPrereq)" "$(TXT_SubtituloPrereq)"
+	${If} ${RunningX64}
+		SetRegView 64
+	${EndIf}
 	Call DetectPHP
 	Call DetectComposer
 	Call DetectMSVC
@@ -113,7 +116,6 @@ Function CheckPreRequisites
 	${NSD_CreateCheckbox} 100u 131u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
-	;${NSD_FreeBitmap} $2
 FunctionEnd
 
 Function OpenUrlPHP
@@ -140,6 +142,7 @@ Function DetectPHP
 PHPDetected:
 	${WordFind} "$1" "PHP" "+1" $2
 	${If} $2 != ""
+		;TODO: Limpiar y Guardar version detectada de PHP en componentes.ini
 		StrCpy $ResPHP $2
 	${Else}
 		Goto PHPNotDetected
@@ -171,13 +174,21 @@ EndDetectComposer:
 FunctionEnd
 
 Function DetectMSVC
-	;TODO: Falta implementar la detección de MSVC
 	StrCpy $ResMSVC "NO"
-	;StrCpy $ResMSVC "ZTS Visual C++ 2019 x64"
+	ReadRegStr $0 HKLM "SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x86" "Version"
+	${If} $0 != ""
+		StrCpy $ResMSVC " $0 (x86)  . "
+	${EndIf}
+	ReadRegStr $1 HKLM "SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Version"
+	${If} $1 != ""
+		StrCpy $ResMSVC "$ResMSVC $1 (x64)"
+	${EndIf}
 FunctionEnd
 
 Function DetectNotepad
-	;TODO: Falta implementar la detección de Notepad
 	StrCpy $ResNotepad "NO"
-	;StrCpy $ResNotepad "Notepad++ v8.7.5 (64-bit)"
+	ReadRegStr $0 HKLM "SOFTWARE\Notepad++" ""
+	${If} $0 != ""
+		StrCpy $ResNotepad "$0"
+	${EndIf}
 FunctionEnd
