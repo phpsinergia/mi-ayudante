@@ -49,6 +49,7 @@ Function WriteLogSection
 		DetailPrint "*****$(TXT_LogSection) $1*****"
 	${EndIf}
 	Pop $1
+	Pop $0
 FunctionEnd
 
 Function WriteLogConfig

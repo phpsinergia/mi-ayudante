@@ -10,6 +10,7 @@ Var ComponentesTotal
 Var ComponentesVisibles
 Var Ajuste
 Var Pos
+Var Aux
 Var GroupIndex
 Var ToolId
 Var ToolName
@@ -43,8 +44,8 @@ Var CatalogStatus
 	${AndIf} $GroupIndex > 0
 		SectionSetText $GroupIndex "$GroupName"
 		IntOp $Ajuste $GroupIndex + 1
-		IntOp $R0 $ComponentesTotal - 1
-		${For} $Pos 0 $R0
+		IntOp $Aux $ComponentesTotal - 1
+		${For} $Pos 0 $Aux
 			nsJSON::Get /index ${CATEGORIA} /index $Pos "id" /end
 			Pop $ToolId
 			nsJSON::Get /index ${CATEGORIA} /index $Pos "name" /end
@@ -82,6 +83,53 @@ Var CatalogStatus
 			nsArray::Set List${CATEGORIA}Hash /key=$SectionIndex ""
 			nsArray::Set List${CATEGORIA}Target /key=$SectionIndex ""
 		${Next}
+	${EndIf}
+!macroend
+
+!macro MCheckGroupComponents CATEGORIA
+	Call JsonLoad${CATEGORIA}
+	StrCpy $ComponentesVisibles "0"
+	${If} $ComponentesTotal > 0
+		IntOp $Aux $ComponentesTotal - 1
+		${For} $Pos 0 $Aux
+			${If} $Pos < ${MAX_COMPONENTES}
+				Call GetInfo${CATEGORIA}
+				Call CheckComponentInRegistry
+				Pop $1
+				${If} $1 == 2 ; misma versión
+				${OrIf} $1 == 3 ; versión más reciente
+					IntOp $R1 0 | ${SF_RO}
+					SectionSetFlags $SectionIndex $R1
+					SectionSetText $SectionIndex ""
+				${ElseIf} $1 == 1 ; versión antigua
+					IntOp $ComponentesVisibles $ComponentesVisibles + 1
+					SectionSetText $SectionIndex $ToolName
+					SectionSetFlags $SectionIndex ${SF_SELECTED}
+					SectionSetSize $SectionIndex $ToolSizeKb
+				${Else} ; no instalado
+					${If} "$ToolOpChk" == "3"
+						IntOp $R1 0 | ${SF_RO}
+						SectionSetFlags $SectionIndex $R1
+						SectionSetText $SectionIndex ""
+					${Else}
+						IntOp $ComponentesVisibles $ComponentesVisibles + 1
+						SectionSetText $SectionIndex $ToolName
+						SectionSetSize $SectionIndex $ToolSizeKb
+						${If} "$ToolOpChk" == "0"
+							SectionSetFlags $SectionIndex 0
+						${ElseIf} "$ToolOpChk" == "1"
+							SectionSetFlags $SectionIndex ${SF_SELECTED}
+						${ElseIf} "$ToolOpChk" == "2"
+							IntOp $R1 ${SF_SELECTED} | ${SF_RO}
+							SectionSetFlags $SectionIndex $R1
+						${EndIf}
+					${EndIf}
+				${EndIf}
+			${EndIf}
+		${Next}
+	${EndIf}
+	${If} $ComponentesVisibles == "0"
+		SectionSetText $GroupIndex ""
 	${EndIf}
 !macroend
 
@@ -138,53 +186,6 @@ Section /o "" ${SECCION}
 		Call InstallByIndex${CATEGORIA}
 	${EndIf}
 SectionEnd
-!macroend
-
-!macro MCheckGroupComponents CATEGORIA
-	Call JsonLoad${CATEGORIA}
-	StrCpy $ComponentesVisibles "0"
-	${If} $ComponentesTotal > 0
-		IntOp $R0 $ComponentesTotal - 1
-		${For} $Pos 0 $R0
-			${If} $Pos < ${MAX_COMPONENTES}
-				Call GetInfo${CATEGORIA}
-				Call CheckComponentInRegistry
-				Pop $1
-				${If} $1 == 2 ; misma versión
-				${OrIf} $1 == 3 ; versión más reciente
-					IntOp $R1 0 | ${SF_RO}
-					SectionSetFlags $SectionIndex $R1
-					SectionSetText $SectionIndex ""
-				${ElseIf} $1 == 1 ; versión antigua
-					IntOp $ComponentesVisibles $ComponentesVisibles + 1
-					SectionSetText $SectionIndex $ToolName
-					SectionSetFlags $SectionIndex ${SF_SELECTED}
-					SectionSetSize $SectionIndex $ToolSizeKb
-				${Else} ; no instalado
-					${If} "$ToolOpChk" == "3"
-						IntOp $R1 0 | ${SF_RO}
-						SectionSetFlags $SectionIndex $R1
-						SectionSetText $SectionIndex ""
-					${Else}
-						IntOp $ComponentesVisibles $ComponentesVisibles + 1
-						SectionSetText $SectionIndex $ToolName
-						SectionSetSize $SectionIndex $ToolSizeKb
-						${If} "$ToolOpChk" == "0"
-							SectionSetFlags $SectionIndex 0
-						${ElseIf} "$ToolOpChk" == "1"
-							SectionSetFlags $SectionIndex ${SF_SELECTED}
-						${ElseIf} "$ToolOpChk" == "2"
-							IntOp $R1 ${SF_SELECTED} | ${SF_RO}
-							SectionSetFlags $SectionIndex $R1
-						${EndIf}
-					${EndIf}
-				${EndIf}
-			${EndIf}
-		${Next}
-	${EndIf}
-	${If} $ComponentesVisibles == "0"
-		SectionSetText $GroupIndex ""
-	${EndIf}
 !macroend
 
 !macro MInstallComponentsByIndex CATEGORIA
@@ -253,9 +254,6 @@ SectionEnd
 ;--------------------------------
 
 Function CheckAllComponents
-	Push $R0
-	Push $R1
-	Push $R2
 	Call FetchCatalog
 	${If} $CatalogStatus == "OK"
 		Call CheckGroup0
@@ -269,37 +267,34 @@ Function CheckAllComponents
 		Call CheckGroup8
 		Call CheckGroup9
 	${Else}
-		StrCpy $R0 "3"
+		StrCpy $Pos "3"
 		Call HideSectionGroup
-		StrCpy $R0 "26"
+		StrCpy $Pos "26"
 		Call HideSectionGroup
-		StrCpy $R0 "49"
+		StrCpy $Pos "49"
 		Call HideSectionGroup
-		StrCpy $R0 "72"
+		StrCpy $Pos "72"
 		Call HideSectionGroup
-		StrCpy $R0 "95"
+		StrCpy $Pos "95"
 		Call HideSectionGroup
-		StrCpy $R0 "118"
+		StrCpy $Pos "118"
 		Call HideSectionGroup
-		StrCpy $R0 "141"
+		StrCpy $Pos "141"
 		Call HideSectionGroup
-		StrCpy $R0 "164"
+		StrCpy $Pos "164"
 		Call HideSectionGroup
-		StrCpy $R0 "187"
+		StrCpy $Pos "187"
 		Call HideSectionGroup
-		StrCpy $R0 "210"
+		StrCpy $Pos "210"
 		Call HideSectionGroup
 	${EndIf}
 	Call CheckSectionBase
-	Pop $R2
-	Pop $R1
-	Pop $R0
 FunctionEnd
 
 Function HideSectionGroup
-	SectionSetText $R0 ""
-	IntOp $R1 $R0 + 1
-	IntOp $R2 $R0 + 20
+	SectionSetText $Pos ""
+	IntOp $R1 $Pos + 1
+	IntOp $R2 $Pos + 20
 	${For} $Pos $R1 $R2
 		SectionSetText $Pos ""
 		SectionSetFlags $Pos 0
@@ -307,9 +302,6 @@ Function HideSectionGroup
 FunctionEnd
 
 Function FetchCatalog
-	Push $R0
-	Push $R1
-	Push $R2
 	StrCpy $CatalogPath "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
 	${If} ${FileExists} $CatalogPath
@@ -354,17 +346,9 @@ CatalogMap:
 	StrCpy $CatalogStatus "OK"
 	Call CreateMapCatalog
 EndFetch:
-	Pop $R2
-	Pop $R1
-	Pop $R0
 FunctionEnd
 
 Function CreateMapCatalog
-	Push $0
-	Push $1
-	Push $2
-	Push $3
-	Push $4
 	${For} $Pos 0 9
 		IntOp $3 $Pos * 23
 		IntOp $4 $3 + 3
@@ -388,21 +372,15 @@ Function CreateMapCatalog
 			nsArray::Set GroupByPosSectionName /key=$Pos $2
 		${Next}
 	${EndIf}
-	Pop $4
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
 FunctionEnd
 
 Function CheckSectionBase
-	Push $0
 	${If} $IsUpdateInstall == "1"
 		SectionSetFlags ${SEC_PROGRAMA} 0
 		SectionSetText ${SEC_PROGRAMA} "${NAME} $(TXT_EtiqReinstalar)"
 	${Else}
-		IntOp $0 ${SF_SELECTED} | ${SF_RO}
-		SectionSetFlags ${SEC_PROGRAMA} $0
+		IntOp $R0 ${SF_SELECTED} | ${SF_RO}
+		SectionSetFlags ${SEC_PROGRAMA} $R0
 		SectionSetFlags ${SEC_RELEASE} 0
 		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
@@ -411,7 +389,6 @@ Function CheckSectionBase
 		SectionSetFlags ${SEC_PHP} 0
 		SectionSetText ${SEC_PHP} ""
 	${EndIf}
-	Pop $0
 FunctionEnd
 
 Function CheckComponentInRegistry
@@ -435,4 +412,184 @@ Function AddComponentToRegistry
 	${If} $ToolFinalPath != ""
 		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Paths" "$ToolId" "$ToolFinalPath"
 	${EndIf}
+FunctionEnd
+
+Function DownloadSinglePack
+	${If} $ToolId == ""
+		Goto SkipTool
+	${EndIf}
+	Call DownloadFile
+	Pop $R1
+	${If} $R1 != "OK"
+		Goto SkipTool
+	${EndIf}
+	Call VerifySha256
+	Pop $R1
+	${If} $R1 != "OK"
+		Goto SkipTool
+	${EndIf}
+	Call ExtractZip
+	Pop $R1
+	${If} $R1 != "OK"
+		Goto SkipTool
+	${EndIf}
+	Push "OK"
+	Return
+SkipTool:
+	Push "NO"
+FunctionEnd
+
+Function DownloadFile
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolName"
+	${Select} $Protocol
+	${Case} "FTP"
+		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
+	${Case} "FTPS"
+		StrCpy $R0 "ftps://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$PluginsDir\$ToolId.zip"'
+	${Case} "HTTP"
+		StrCpy $R0 "http://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
+	${Case} "HTTPS"
+		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
+		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$PluginsDir\$ToolId.zip" --silent --show-error'
+	${Default}
+		Goto SkipDownload
+	${EndSelect}
+	Pop $R1
+	Pop $R2
+	DetailPrint "$R0"
+	${If} $R1 == "0"
+		Goto SuccessDownload
+	${Else}
+		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$\n$(TXT_CodigoRespuesta): $R1. $\n$R2"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONEXCLAMATION "$LogMsg"
+		Goto SkipDownload
+	${EndIf}
+SuccessDownload:
+	Push "OK"
+	Return
+SkipDownload:
+	Push "NO"
+FunctionEnd
+
+Function VerifySha256
+	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
+	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
+	Pop $R0
+	Pop $R1
+	StrCmp $R0 0 +5
+		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${If} $R1 != ""
+	${AndIf} $ToolHash != ""
+		${WordFind} "$R1" "$ToolHash" "+1" $R2
+		${If} $R2 != ""
+			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
+			Goto SuccessVerify
+		${Else}
+			StrCpy $LogMsg "$(TXT_MsgHashNoCoincide) $ToolId.zip. $\n$R2 ≠ $ToolHash"
+			DetailPrint "$LogMsg"
+			MessageBox MB_ICONSTOP "$LogMsg"
+			Goto SkipVerify
+		${EndIf}
+	${Else}
+		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipVerify
+	${EndIf}
+SuccessVerify:
+	Push "OK"
+	Return
+SkipVerify:
+	Push "NO"
+FunctionEnd
+
+Function ExtractZip
+	DetailPrint "..."
+	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
+	RMDir /r "$ToolTempDir"
+	CreateDirectory "$ToolTempDir"
+	SetOutPath "$ToolTempDir"
+	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
+	Pop $R1
+	${If} $R1 != "success"
+		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
+		DetailPrint "$LogMsg"
+		MessageBox MB_ICONSTOP "$LogMsg"
+		Goto SkipExtract
+	${EndIf}
+	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
+	IntOp $R0 $R4 - $ToolSizeKb
+	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
+	IntCmp $R0 1 0 0 +2
+		Goto SuccessExtract
+	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
+	DetailPrint "$LogMsg"
+	MessageBox MB_ICONEXCLAMATION "$LogMsg"
+	Goto SkipExtract
+SuccessExtract:
+	Push "OK"
+	Return
+SkipExtract:
+	Push "NO"
+FunctionEnd
+
+Function AddToEnvUserPath
+	Exch $0
+	Push $1
+	Push $2
+	Push $3
+	Pop $0
+	${StrTrimNewLines} $0 $0
+	${StrRep} $0 $0 '"' ''
+	${If} $0 == ""
+		Goto EndAdd
+	${EndIf}
+	ReadRegStr $1 HKCU "Environment" "Path"
+	StrCpy $2 ";$1;"
+	StrCpy $3 ";$0;"
+	${StrCase} $2 $2 U
+	${StrCase} $3 $3 U
+	${StrStr} $2 $2 $3
+	${If} $2 != ""
+		Goto CleanAndSave
+	${EndIf}
+	StrLen $2 $1
+	${If} $2 > 0
+		IntOp $2 $2 - 1
+		StrCpy $3 $1 1 $2
+	${Else}
+		StrCpy $3 ""
+	${EndIf}
+	${If} $3 == ";"
+		StrCpy $1 "$1$0"
+	${ElseIf} $1 == ""
+		StrCpy $1 "$0"
+	${Else}
+		StrCpy $1 "$1;$0"
+	${EndIf}
+CleanAndSave:
+LoopClean:
+	${StrStr} $2 $1 ";;"
+	${If} $2 == ""
+		Goto WriteAndBroadcast
+	${EndIf}
+	${StrRep} $1 $1 ";;" ";"
+	Goto LoopClean
+WriteAndBroadcast:
+	DetailPrint "$(TXT_LogAddPath) $0"
+	WriteRegExpandStr HKCU "Environment" "Path" "$1"
+	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
+EndAdd:
+	Pop $3
+	Pop $2
+	Pop $1
+	Pop $0
 FunctionEnd

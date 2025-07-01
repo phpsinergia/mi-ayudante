@@ -344,187 +344,6 @@ Function DecryptPw
 FunctionEnd
 
 ;--------------------------------
-
-Function DownloadSinglePack
-	${If} $ToolId == ""
-		Goto SkipTool
-	${EndIf}
-	Call DownloadFile
-	Pop $R1
-	${If} $R1 != "OK"
-		Goto SkipTool
-	${EndIf}
-	Call VerifySha256
-	Pop $R1
-	${If} $R1 != "OK"
-		Goto SkipTool
-	${EndIf}
-	Call ExtractZip
-	Pop $R1
-	${If} $R1 != "OK"
-		Goto SkipTool
-	${EndIf}
-	Push "OK"
-	Return
-SkipTool:
-	Push "NO"
-FunctionEnd
-
-Function DownloadFile
-	DetailPrint ${SEPARATOR}
-	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolName"
-	${Select} $Protocol
-	${Case} "FTP"
-		StrCpy $R0 "ftp://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "$R0" -o "$PluginsDir\$ToolId.zip" --silent --show-error --fail'
-	${Case} "FTPS"
-		StrCpy $R0 "ftps://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "$R0" --silent --show-error --fail -o "$PluginsDir\$ToolId.zip"'
-	${Case} "HTTP"
-		StrCpy $R0 "http://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -s -S -L --fail --connect-timeout 30 -C - -o "$PluginsDir\$ToolId.zip" "$R0"'
-	${Case} "HTTPS"
-		StrCpy $R0 "https://$Server/herramientas/$ToolId.zip"
-		nsExec::ExecToStack '"curl.exe" -X POST "$R0" --connect-timeout 30 --fail -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o "$PluginsDir\$ToolId.zip" --silent --show-error'
-	${Default}
-		Goto SkipDownload
-	${EndSelect}
-	Pop $R1
-	Pop $R2
-	DetailPrint "$R0"
-	${If} $R1 == "0"
-		Goto SuccessDownload
-	${Else}
-		StrCpy $LogMsg "$(TXT_MsgErrorDescarga) $ToolId. $\n$\n$(TXT_CodigoRespuesta): $R1. $\n$R2"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONEXCLAMATION "$LogMsg"
-		Goto SkipDownload
-	${EndIf}
-SuccessDownload:
-	Push "OK"
-	Return
-SkipDownload:
-	Push "NO"
-FunctionEnd
-
-Function VerifySha256
-	DetailPrint "$(TXT_MsgVerificando) $ToolName ($ToolId.zip)"
-	nsExec::ExecToStack 'CertUtil -hashfile "$PluginsDir\$ToolId.zip" SHA256'
-	Pop $0
-	Pop $1
-	StrCmp $0 0 +5
-		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipVerify
-	${If} $1 != ""
-	${AndIf} $ToolHash != ""
-		${WordFind} "$1" "$ToolHash" "+1" $2
-		${If} $2 != ""
-			DetailPrint "$(TXT_MsgHashValidado) $ToolHash"
-			Goto SuccessVerify
-		${Else}
-			StrCpy $LogMsg "$(TXT_MsgHashNoCoincide) $ToolId.zip. $\n$2 ≠ $ToolHash"
-			DetailPrint "$LogMsg"
-			MessageBox MB_ICONSTOP "$LogMsg"
-			Goto SkipVerify
-		${EndIf}
-	${Else}
-		StrCpy $LogMsg "$(TXT_MsgHashNoCalculado) $ToolId.zip"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipVerify
-	${EndIf}
-SuccessVerify:
-	Push "OK"
-	Return
-SkipVerify:
-	Push "NO"
-FunctionEnd
-
-Function ExtractZip
-	DetailPrint "..."
-	StrCpy $ToolTempDir "$PluginsDir\$ToolId_tmp"
-	RMDir /r "$ToolTempDir"
-	CreateDirectory "$ToolTempDir"
-	SetOutPath "$ToolTempDir"
-	Nsisunz::UnzipToLog "$PluginsDir\$ToolId.zip" "$ToolTempDir"
-	Pop $R1
-	${If} $R1 != "success"
-		StrCpy $LogMsg "$(TXT_MsgErrorDescomprimir) $ToolName: $R1"
-		DetailPrint "$LogMsg"
-		MessageBox MB_ICONSTOP "$LogMsg"
-		Goto SkipExtract
-	${EndIf}
-	${GetSize} "$ToolTempDir" "/S=0K" $R4 $R5 $R6
-	IntOp $R0 $R4 - $ToolSizeKb
-	${IfThen} $R0 < 0 ${|} IntOp $R0 0 - $R0 ${|}
-	IntCmp $R0 1 0 0 +2
-		Goto SuccessExtract
-	StrCpy $LogMsg "$(TXT_MsgErrorTamano) $ToolName ($R4 KB ≠ $ToolSizeKb KB)"
-	DetailPrint "$LogMsg"
-	MessageBox MB_ICONEXCLAMATION "$LogMsg"
-	Goto SkipExtract
-SuccessExtract:
-	Push "OK"
-	Return
-SkipExtract:
-	Push "NO"
-FunctionEnd
-
-Function AddToEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
-	${StrTrimNewLines} $0 $0
-	${StrRep} $0 $0 '"' ''
-	${If} $0 == ""
-		Goto EndAdd
-	${EndIf}
-	ReadRegStr $1 HKCU "Environment" "Path"
-	StrCpy $2 ";$1;"
-	StrCpy $3 ";$0;"
-	${StrCase} $2 $2 U
-	${StrCase} $3 $3 U
-	${StrStr} $2 $2 $3
-	${If} $2 != ""
-		Goto CleanAndSave
-	${EndIf}
-	StrLen $2 $1
-	${If} $2 > 0
-		IntOp $2 $2 - 1
-		StrCpy $3 $1 1 $2
-	${Else}
-		StrCpy $3 ""
-	${EndIf}
-	${If} $3 == ";"
-		StrCpy $1 "$1$0"
-	${ElseIf} $1 == ""
-		StrCpy $1 "$0"
-	${Else}
-		StrCpy $1 "$1;$0"
-	${EndIf}
-CleanAndSave:
-LoopClean:
-	${StrStr} $2 $1 ";;"
-	${If} $2 == ""
-		Goto WriteAndBroadcast
-	${EndIf}
-	${StrRep} $1 $1 ";;" ";"
-	Goto LoopClean
-WriteAndBroadcast:
-	DetailPrint "$(TXT_LogAddPath) $0"
-	WriteRegExpandStr HKCU "Environment" "Path" "$1"
-	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
-EndAdd:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
-FunctionEnd
-
-;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 ;--------------------------------
 
@@ -537,7 +356,6 @@ Function un.onInit
 FunctionEnd
 
 Function un.ShowOptionsUninstall
-	Push $0
 	nsDialogs::Create 1018
 	Pop $0
 	${NSD_CreateLabel} 0 0 100% 12u "$(TXT_EtiqDesinstalarHerramientas)"
@@ -545,7 +363,6 @@ Function un.ShowOptionsUninstall
 	${NSD_CreateCheckbox} 0 16u 100% 12u "$(TXT_EtiqRemoverTodas)"
 	Pop $unToolsCheckbox
 	nsDialogs::Show
-	Pop $0
 FunctionEnd
 
 Function un.ReadChoiceUninstall
@@ -641,7 +458,6 @@ LoopRead:
 CloseFile:
 	FileClose $R0
 EndMacro:
-	Pop $R5
 	Pop $R4
 	Pop $R3
 	Pop $R2

@@ -93,6 +93,7 @@ Function SaveOptionsForm
 	${If} $Server == ""
 	${AndIf} $Protocol != "---"
 		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltaDominio)"
+		Pop $0
 		Abort
 	${Endif}
 	${NSD_GetState} $RememberCredsCheckbox $RememberCreds
@@ -102,6 +103,7 @@ Function SaveOptionsForm
 		${If} $User == ""
 		${OrIf} $Pass == ""
 			MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredenciales)"
+			Pop $0
 			Abort
 		${EndIf}
 	${EndIf}
@@ -139,6 +141,8 @@ Function TestFtpConnection
 	${If} $User == ""
 	${OrIf} $Pass == ""
 		MessageBox MB_ICONEXCLAMATION "$(TXT_MsgFaltanCredenciales)"
+		Pop $R1
+		Pop $R0
 		Return
 	${EndIf}
 	Push $R0
