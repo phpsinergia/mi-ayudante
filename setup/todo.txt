@@ -1,7 +1,5 @@
 PENDIENTES:
 
-+ Completar "prereqs.nsh"
-
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL
 
 -----------------------

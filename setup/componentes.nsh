@@ -406,6 +406,11 @@ Function CheckSectionBase
 		SectionSetFlags ${SEC_RELEASE} 0
 		SectionSetText ${SEC_RELEASE} ""
 	${EndIf}
+	${If} $ResPHP != ""
+	${AndIf} $ResPHP != "NO"
+		SectionSetFlags ${SEC_PHP} 0
+		SectionSetText ${SEC_PHP} ""
+	${EndIf}
 	Pop $0
 FunctionEnd
 

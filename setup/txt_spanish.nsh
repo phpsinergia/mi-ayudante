@@ -54,6 +54,8 @@ LangString TXT_EtiqDesinstalarHerramientas ${LANG_SPANISH} "¿Desea Desinstalar 
 LangString TXT_EtiqRemoverTodas ${LANG_SPANISH} "Remover todas"
 LangString TXT_EtiqReinstalar ${LANG_SPANISH} "(Reinstalar)"
 LangString TXT_EtiqVerRegistro ${LANG_SPANISH} "Ver Registro de Instalación"
+LangString TXT_EtiqNoDetectado ${LANG_SPANISH} "No Detectado"
+LangString TXT_EtiqDescargarDeSitioOficial ${LANG_SPANISH} "Descargar desde Sitio oficial"
 ;--------------------------------
 LangString TXT_BotonDesinstalar ${LANG_SPANISH} "Desinstalar"
 LangString TXT_BotonComprobar ${LANG_SPANISH} "Comprobar"

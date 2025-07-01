@@ -82,8 +82,8 @@ Var StartUpDir
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE $TitleWelcome
 !define MUI_WELCOMEPAGE_TEXT $TextWelcome
-!define MUI_WELCOMEFINISHPAGE_BITMAP "..\app\img\left.bmp"
-!define MUI_HEADERIMAGE_BITMAP "..\app\img\head.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
+!define MUI_HEADERIMAGE_BITMAP "head.bmp"
 !define MUI_STARTMENU_REGISTRY_ROOT "HKCU"
 !define MUI_STARTMENU_REGISTRY_KEY "Software\${NAME}"
 !define MUI_STARTMENU_REGISTRY_VALUENAME "Start Menu Folder"
@@ -190,6 +190,11 @@ Function .onInit
 		StrCpy $TitleFinish "$(TXT_TituloFinishInstalador)"
 		StrCpy $TextFinish "$(TXT_InstruccionesFinishInstalador)"
 	${EndIf}
+	SetOutPath "$PluginsDir"
+	File /oname=head.bmp "head.bmp"
+	File /oname=left.bmp "left.bmp"
+	File /oname=ok.bmp "ok.bmp"
+	File /oname=no.bmp "no.bmp"
 FunctionEnd
 
 Function SetDateTimeStamp
