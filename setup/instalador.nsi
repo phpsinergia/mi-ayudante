@@ -35,7 +35,12 @@ Var Min
 Var Sec
 Var IsUpdateInstall
 Var SkipPrereq
+Var SkipConfirm
 Var RememberCreds
+Var ShortcutStartMenu
+Var ShortcutDesktop
+Var ShortcutUpdater
+Var ShortcutWindowsStart
 Var LogFile
 Var TitleWelcome
 Var TextWelcome
@@ -129,7 +134,7 @@ VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
 ;--------------------------------
-; PAGINAS DEL ASISTENTE (7 + 3)
+; PAGINAS DEL ASISTENTE (8 + 3)
 ;--------------------------------
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
@@ -138,6 +143,7 @@ Page custom ShowOptionsForm SaveOptionsForm " "
 Page custom CheckPreRequisites LeavePreRequisites " "
 !define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllComponents
 !insertmacro MUI_PAGE_COMPONENTS
+Page custom ShowConfirmInstall LeaveConfirmInstall " "
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 ;--------------------------------
@@ -214,7 +220,12 @@ Function GetConfigValues
 		ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
 		ReadRegStr $InstDrive HKCU "Software\${NAME}" "Install_Drive"
 		ReadRegStr $SkipPrereq HKCU "Software\${NAME}" "SkipPrereq"
+		ReadRegStr $SkipConfirm HKCU "Software\${NAME}" "SkipConfirm"
 		ReadRegStr $RememberCreds HKCU "Software\${NAME}" "RememberCreds"
+		ReadRegStr $ShortcutStartMenu HKCU "Software\${NAME}" "ShortcutStartMenu"
+		ReadRegStr $ShortcutDesktop HKCU "Software\${NAME}" "ShortcutDesktop"
+		ReadRegStr $ShortcutUpdater HKCU "Software\${NAME}" "ShortcutUpdater"
+		ReadRegStr $ShortcutWindowsStart HKCU "Software\${NAME}" "ShortcutWindowsStart"
 		ReadRegStr $Server HKCU "Software\${NAME}" "Server"
 		ReadRegStr $Protocol HKCU "Software\${NAME}" "Protocol"
 		ReadRegStr $User HKCU "Software\${NAME}" "User"
@@ -226,7 +237,12 @@ Function GetConfigValues
 		StrCpy $InstDrive $EXEPATH 2
 		StrCpy $Version ${RELEASE}
 		StrCpy $SkipPrereq "0"
+		StrCpy $SkipConfirm "0"
 		StrCpy $RememberCreds "0"
+		StrCpy $ShortcutStartMenu "1"
+		StrCpy $ShortcutDesktop "1"
+		StrCpy $ShortcutUpdater "1"
+		StrCpy $ShortcutWindowsStart "1"
 	${EndIf}
 	Pop $0
 FunctionEnd
@@ -343,6 +359,7 @@ FunctionEnd
 !include "opciones.nsh"
 !include "prereqs.nsh"
 !include "componentes.nsh"
+!include "confirmacion.nsh"
 !include "registro.nsh"
 
 ;--------------------------------
@@ -534,9 +551,14 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
 	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$Protocol"
 	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
+	WriteRegStr HKCU "Software\${NAME}" "SkipConfirm" "$SkipConfirm"
 	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutStartMenu" "$ShortcutStartMenu"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutDesktop" "$ShortcutDesktop"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutUpdater" "$ShortcutUpdater"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutWindowsStart" "$ShortcutWindowsStart"
 	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
 	${If} $RememberCreds == "1"
 		${If} $Pass != ""
@@ -548,27 +570,36 @@ Section "-Config"
 		DeleteRegValue HKCU "Software\${NAME}" "User"
 		DeleteRegValue HKCU "Software\${NAME}" "Pass"
 	${EndIf}
+	StrCpy $User ""
+	StrCpy $Pass ""
 	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
 	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
 	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
 	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALLER}"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
-	WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
-	WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
-	StrCpy $User ""
-	StrCpy $Pass ""
 	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
-	DetailPrint "$(TXT_LogCreateShortCut)"
-	CreateDirectory "$SMPROGRAMS\${NAME}"
-	CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 	SetOutPath "$InstDrive$INSTDIR"
-	CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
-	CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
-	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-	CreateDirectory $StartUpDir
-	CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
+	DetailPrint "$(TXT_LogCreateShortCut)"
+	${If} $ShortcutStartMenu == "1"
+		CreateDirectory "$SMPROGRAMS\${NAME}"
+		CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+		CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutDesktop == "1"
+		CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutUpdater == "1"
+		CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutWindowsStart == "1"
+		StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+		CreateDirectory $StartUpDir
+		CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
+	${EndIf}
+	;TODO: Quitar al cambiar el Programa
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	Pop $R3
 	Pop $R2
 	Pop $R1
