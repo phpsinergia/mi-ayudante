@@ -18,30 +18,6 @@
 !include "WordFunc.nsh"
 
 ;--------------------------------
-; CONSTANTES
-;--------------------------------
-!define NAME "Mi Ayudante"
-!define RELEASE "1.0.0"
-!define INSTALLER_VERSION "0.0.0.1"
-!define INSTALLER_NAME "Actualizador"
-!define INSTALLER "..\dist\Instalar-MiAyudante.exe"
-!define UNINSTALLER "Desinstalar.exe"
-!define DESCRIPTION "${INSTALLER_NAME} ${NAME}"
-!define RESOURCES "$DOCUMENTS\MiAyudante"
-!define PUBLISHER "Rubén Araya Tagle"
-!define TOOLS "\home\herramientas"
-!define VENDOR "\home\vendor"
-!define APPDIR "\home\mi-ayudante"
-!define APPFILE "ayudante.exe"
-!define LICENSEFILE "LICENSE"
-!define CATALOGFILE "catalogo.json"
-!define READMEFILE "LEEME.txt"
-!define ICON "img\favicon.ico"
-!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
-!define LANG_SPANISH 1034
-!define SEPARATOR "============================================"
-
-;--------------------------------
 ; VARIABLES GLOBALES
 ;--------------------------------
 Var Version
@@ -70,6 +46,54 @@ Var unToolsCheckboxState
 Var unToolsCheckbox
 Var EncPass
 Var StartUpDir
+
+;--------------------------------
+; CONSTANTES
+;--------------------------------
+!define NAME "Mi Ayudante"
+!define RELEASE "1.0.0"
+!define PUBLISHER "Rubén Araya Tagle"
+;--------------------------------
+!define INSTALLER_VERSION "0.0.0.1"
+!define INSTALLER_NAME "Actualizador"
+!define INSTALLER "..\dist\Instalar-MiAyudante.exe"
+!define UNINSTALLER "Desinstalar.exe"
+!define DESCRIPTION "${INSTALLER_NAME} ${NAME}"
+!define RESOURCES "$DOCUMENTS\MiAyudante"
+!define TOOLS "\home\herramientas"
+!define VENDOR "\home\vendor"
+!define APPDIR "\home\mi-ayudante"
+!define APPFILE "ayudante.exe"
+!define LICENSEFILE "LICENSE"
+!define CATALOGFILE "catalogo.json"
+!define READMEFILE "LEEME.txt"
+!define ICON "img\favicon.ico"
+!define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+!define SEPARATOR "============================================"
+!define LANG_SPANISH 1034
+
+;--------------------------------
+; CONFIGURACION GENERAL
+;--------------------------------
+Unicode true
+Name "${NAME}"
+OutFile "${INSTALLER}"
+InstallDir "${APPDIR}"
+InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
+BrandingText " "
+RequestExecutionLevel user
+ShowInstDetails show
+ShowUninstDetails show
+AllowSkipFiles on
+SetCompressor lzma
+Caption $TextCaption
+;--------------------------------
+VIProductVersion ${INSTALLER_VERSION}
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${DESCRIPTION}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${INSTALLER_VERSION}
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
+VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 
 ;--------------------------------
 ; DEFINICIONES MUI
@@ -105,30 +129,30 @@ Var StartUpDir
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 
 ;--------------------------------
-; CONFIGURACION GENERAL
+; PAGINAS DEL ASISTENTE (7 + 3)
 ;--------------------------------
-Unicode true
-Name "${NAME}"
-OutFile "${INSTALLER}"
-InstallDir "${APPDIR}"
-InstallDirRegKey HKCU "Software\${NAME}" "Install_Dir"
-BrandingText " "
-RequestExecutionLevel user
-ShowInstDetails show
-ShowUninstDetails show
-AllowSkipFiles on
-SetCompressor lzma
-Caption $TextCaption
+!insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
+!insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
+Page custom ShowOptionsForm SaveOptionsForm " "
+Page custom CheckPreRequisites LeavePreRequisites " "
+!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllComponents
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
 ;--------------------------------
-VIProductVersion ${INSTALLER_VERSION}
-VIAddVersionKey /LANG=${LANG_SPANISH} "FileDescription" "${DESCRIPTION}"
-VIAddVersionKey /LANG=${LANG_SPANISH} "FileVersion" ${INSTALLER_VERSION}
-VIAddVersionKey /LANG=${LANG_SPANISH} "ProductVersion" "${RELEASE}"
-VIAddVersionKey /LANG=${LANG_SPANISH} "ProductName" "${NAME}"
-VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
+!insertmacro MUI_UNPAGE_CONFIRM
+UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
+!insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
-; MACROS
+; TEXTOS INTERFAZ DE USUARIO
+;--------------------------------
+!insertmacro MUI_LANGUAGE "Spanish"
+!include "txt_spanish.nsh"
+
+;--------------------------------
+; MACROS DE EXTENSIONES
 ;--------------------------------
 ${StrTrimNewLines}
 ${StrRep}
@@ -142,35 +166,8 @@ ${unStrStr}
 !insertmacro WordFind
 
 ;--------------------------------
-; PAGINAS DEL ASISTENTE
-;--------------------------------
-!insertmacro MUI_PAGE_WELCOME
-!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
-!insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
-Page custom ShowOptionsForm SaveOptionsForm " "
-Page custom CheckPreRequisites LeavePreRequisites " "
-!define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllComponents
-!insertmacro MUI_PAGE_COMPONENTS
-!insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_PAGE_FINISH
-!insertmacro MUI_UNPAGE_CONFIRM
-UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
-!insertmacro MUI_UNPAGE_INSTFILES
-
-;--------------------------------
-; TEXTOS INTERFAZ DE USUARIO
-;--------------------------------
-!insertmacro MUI_LANGUAGE "Spanish"
-!include "txt_spanish.nsh"
-
-;--------------------------------
 ; FUNCIONES: INSTALACIÓN
 ;--------------------------------
-
-!include "opciones.nsh"
-!include "prereqs.nsh"
-!include "componentes.nsh"
-!include "registro.nsh"
 
 Function .onInit
 	InitPluginsDir
@@ -343,6 +340,11 @@ Function DecryptPw
 	Pop $0
 FunctionEnd
 
+!include "opciones.nsh"
+!include "prereqs.nsh"
+!include "componentes.nsh"
+!include "registro.nsh"
+
 ;--------------------------------
 ; FUNCIONES: DESINSTALACIÓN
 ;--------------------------------
@@ -414,6 +416,10 @@ TrimEnds:
 EndRm:
 FunctionEnd
 
+;--------------------------------
+; MACROS: DESINSTALACIÓN
+;--------------------------------
+
 !macro MUninstallAllComponents
 	Push $R0
 	Push $R1
@@ -421,7 +427,7 @@ FunctionEnd
 	Push $R3
 	Push $R4
 	StrCpy $R2 "$PluginsDir\componentes.ini"
-	IfFileExists "$R2" 0 EndMacro
+	IfFileExists "$R2" 0 EndUninstall
 	FileOpen $R0 "$R2" r
 	StrCpy $R3 0
 	ClearErrors
@@ -450,7 +456,7 @@ LoopRead:
 	Goto LoopRead
 CloseFile:
 	FileClose $R0
-EndMacro:
+EndUninstall:
 	Pop $R4
 	Pop $R3
 	Pop $R2

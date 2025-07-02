@@ -24,16 +24,6 @@ Var ResNotepad
 ; FUNCIONES
 ;--------------------------------
 
-Function LeavePreRequisites
-	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
-	${If} $ResPHP != "NO"
-	${AndIf} $ResComposer != "NO"
-	${AndIf} $ResMSVC != "NO"
-	${AndIf} $ResNotepad != "NO"
-		StrCpy $SkipPrereq "1"
-	${EndIf}
-FunctionEnd
-
 Function CheckPreRequisites
 	${If} $SkipPrereq == "1"
 		Abort
@@ -122,21 +112,17 @@ Function CheckPreRequisites
 	${NSD_FreeBitmap} $R2
 FunctionEnd
 
-Function OpenUrlPHP
-	ExecShell "open" ${URL_PHP}
+Function LeavePreRequisites
+	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
+	${If} $ResPHP != "NO"
+	${AndIf} $ResComposer != "NO"
+	${AndIf} $ResMSVC != "NO"
+	${AndIf} $ResNotepad != "NO"
+		StrCpy $SkipPrereq "1"
+	${EndIf}
 FunctionEnd
 
-Function OpenUrlComposer
-	ExecShell "open" ${URL_COMPOSER}
-FunctionEnd
-
-Function OpenUrlMSVC
-	ExecShell "open" ${URL_MSVC}
-FunctionEnd
-
-Function OpenUrlNotepad
-	ExecShell "open" ${URL_NOTEPAD}
-FunctionEnd
+;--------------------------------
 
 Function DetectPHP
 	nsExec::ExecToStack 'php -v'
@@ -194,4 +180,22 @@ Function DetectNotepad
 	${If} $0 != ""
 		StrCpy $ResNotepad "$0"
 	${EndIf}
+FunctionEnd
+
+;--------------------------------
+
+Function OpenUrlPHP
+	ExecShell "open" ${URL_PHP}
+FunctionEnd
+
+Function OpenUrlComposer
+	ExecShell "open" ${URL_COMPOSER}
+FunctionEnd
+
+Function OpenUrlMSVC
+	ExecShell "open" ${URL_MSVC}
+FunctionEnd
+
+Function OpenUrlNotepad
+	ExecShell "open" ${URL_NOTEPAD}
 FunctionEnd

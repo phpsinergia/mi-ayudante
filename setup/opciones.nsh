@@ -110,6 +110,8 @@ Function SaveOptionsForm
 	Pop $0
 FunctionEnd
 
+;--------------------------------
+
 Function TestConnection
 	${NSD_GetText} $ServerInput $Server
 	${If} $Server == ""
@@ -182,6 +184,8 @@ Function TestHttpConnection
 	Pop $R1
 	Pop $R0
 FunctionEnd
+
+;--------------------------------
 
 Function FillDriveList
 	${GetDrives} "ALL" AddDriveCallback

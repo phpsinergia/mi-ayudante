@@ -37,7 +37,7 @@ Var GroupName
 Var CatalogStatus
 
 ;--------------------------------
-; MACROS
+; MACROS: INSTALACION
 ;--------------------------------
 
 !macro MJsonLoadComponents CATEGORIA
@@ -196,6 +196,8 @@ Section /o "" ${SECCION}
 SectionEnd
 !macroend
 
+;--------------------------------
+
 !macro MInstallComponentsByIndex CATEGORIA
 	Call GetInfo${CATEGORIA}
 	${IfNot} ${SectionIsSelected} $SectionIndex
@@ -250,7 +252,7 @@ SectionEnd
 	StrCpy $ToolId ""
 !macroend
 
-!macro MCreateSectionLog GRUPO SECCION
+!macro MCreateSectionLog SECCION GRUPO
 Section "-" ${SECCION}
 	Push ${GRUPO}
 	Call WriteLogSection
@@ -258,7 +260,7 @@ SectionEnd
 !macroend
 
 ;--------------------------------
-; FUNCIONES
+; FUNCIONES: INSTALACIÓN
 ;--------------------------------
 
 Function CheckAllComponents
@@ -420,12 +422,7 @@ Function CheckComponentInRegistry
 	${EndIf}
 FunctionEnd
 
-Function AddComponentToRegistry
-	WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Installed" "$ToolId" "$ToolVersion"
-	${If} $ToolFinalPath != ""
-		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Paths" "$ToolId" "$ToolFinalPath"
-	${EndIf}
-FunctionEnd
+;--------------------------------
 
 Function DownloadSinglePack
 	${If} $ToolId == ""
@@ -597,4 +594,11 @@ WriteAndBroadcast:
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndAdd:
+FunctionEnd
+
+Function AddComponentToRegistry
+	WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Installed" "$ToolId" "$ToolVersion"
+	${If} $ToolFinalPath != ""
+		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Paths" "$ToolId" "$ToolFinalPath"
+	${EndIf}
 FunctionEnd

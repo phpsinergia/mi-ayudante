@@ -3,9 +3,9 @@
 ; MODULO: SECCIONES
 ;================================
 
-!insertmacro MCreateSectionLog 3 2
+!insertmacro MCreateSectionLog 2 3
 
-SectionGroup /e "-" 3 ;0-
+SectionGroup /e "-" 3 ;CATEGORIA 0
 	!insertmacro MCreateFunctionsComponent "0"
 	!insertmacro MCreateSectionComponent "0" 3 4
 	!insertmacro MCreateSectionComponent "0" 3 5
@@ -29,9 +29,9 @@ SectionGroup /e "-" 3 ;0-
 	!insertmacro MCreateSectionComponent "0" 3 23
 SectionGroupEnd ;24
 
-!insertmacro MCreateSectionLog 26 25
+!insertmacro MCreateSectionLog 25 26
 
-SectionGroup /e "-" 26 ;1-
+SectionGroup /e "-" 26 ;CATEGORIA 1
 	!insertmacro MCreateFunctionsComponent "1"
 	!insertmacro MCreateSectionComponent "1" 26 27
 	!insertmacro MCreateSectionComponent "1" 26 28
@@ -55,9 +55,9 @@ SectionGroup /e "-" 26 ;1-
 	!insertmacro MCreateSectionComponent "1" 26 46
 SectionGroupEnd ;47
 
-!insertmacro MCreateSectionLog 49 48
+!insertmacro MCreateSectionLog 48 49
 
-SectionGroup "-" 49 ;2-
+SectionGroup "-" 49 ;CATEGORIA 2
 	!insertmacro MCreateFunctionsComponent "2"
 	!insertmacro MCreateSectionComponent "2" 49 50
 	!insertmacro MCreateSectionComponent "2" 49 51
@@ -81,9 +81,9 @@ SectionGroup "-" 49 ;2-
 	!insertmacro MCreateSectionComponent "2" 49 69
 SectionGroupEnd ;70
 
-!insertmacro MCreateSectionLog 72 71
+!insertmacro MCreateSectionLog 71 72
 
-SectionGroup "-" 72 ;3-
+SectionGroup "-" 72 ;CATEGORIA 3
 	!insertmacro MCreateFunctionsComponent "3"
 	!insertmacro MCreateSectionComponent "3" 72 73
 	!insertmacro MCreateSectionComponent "3" 72 74
@@ -107,9 +107,9 @@ SectionGroup "-" 72 ;3-
 	!insertmacro MCreateSectionComponent "3" 72 92
 SectionGroupEnd ;93
 
-!insertmacro MCreateSectionLog 95 94
+!insertmacro MCreateSectionLog 94 95
 
-SectionGroup "-" 95 ;4-
+SectionGroup "-" 95 ;CATEGORIA 4
 	!insertmacro MCreateFunctionsComponent "4"
 	!insertmacro MCreateSectionComponent "4" 95 96
 	!insertmacro MCreateSectionComponent "4" 95 97
@@ -133,9 +133,9 @@ SectionGroup "-" 95 ;4-
 	!insertmacro MCreateSectionComponent "4" 95 115
 SectionGroupEnd ;116
 
-!insertmacro MCreateSectionLog 118 117
+!insertmacro MCreateSectionLog 117 118
 
-SectionGroup "-" 118 ;5-
+SectionGroup "-" 118 ;CATEGORIA 5
 	!insertmacro MCreateFunctionsComponent "5"
 	!insertmacro MCreateSectionComponent "5" 118 119
 	!insertmacro MCreateSectionComponent "5" 118 120
@@ -159,9 +159,9 @@ SectionGroup "-" 118 ;5-
 	!insertmacro MCreateSectionComponent "5" 118 138
 SectionGroupEnd ;139
 
-!insertmacro MCreateSectionLog 141 140
+!insertmacro MCreateSectionLog 140 141
 
-SectionGroup "-" 141 ;6-
+SectionGroup "-" 141 ;CATEGORIA 6
 	!insertmacro MCreateFunctionsComponent "6"
 	!insertmacro MCreateSectionComponent "6" 141 142
 	!insertmacro MCreateSectionComponent "6" 141 143
@@ -185,9 +185,9 @@ SectionGroup "-" 141 ;6-
 	!insertmacro MCreateSectionComponent "6" 141 161
 SectionGroupEnd ;162
 
-!insertmacro MCreateSectionLog 164 163
+!insertmacro MCreateSectionLog 163 164
 
-SectionGroup "-" 164 ;7-
+SectionGroup "-" 164 ;CATEGORIA 7
 	!insertmacro MCreateFunctionsComponent "7"
 	!insertmacro MCreateSectionComponent "7" 164 165
 	!insertmacro MCreateSectionComponent "7" 164 166
@@ -211,9 +211,9 @@ SectionGroup "-" 164 ;7-
 	!insertmacro MCreateSectionComponent "7" 164 184
 SectionGroupEnd ;185
 
-!insertmacro MCreateSectionLog 187 186
+!insertmacro MCreateSectionLog 186 187
 
-SectionGroup "-" 187 ;8-
+SectionGroup "-" 187 ;CATEGORIA 8
 	!insertmacro MCreateFunctionsComponent "8"
 	!insertmacro MCreateSectionComponent "8" 187 188
 	!insertmacro MCreateSectionComponent "8" 187 189
@@ -237,9 +237,9 @@ SectionGroup "-" 187 ;8-
 	!insertmacro MCreateSectionComponent "8" 187 207
 SectionGroupEnd ;208
 
-!insertmacro MCreateSectionLog 210 209
+!insertmacro MCreateSectionLog 209 210
 
-SectionGroup "-" 210 ;9-
+SectionGroup "-" 210 ;CATEGORIA 9
 	!insertmacro MCreateFunctionsComponent "9"
 	!insertmacro MCreateSectionComponent "9" 210 211
 	!insertmacro MCreateSectionComponent "9" 210 212
