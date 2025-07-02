@@ -18,7 +18,7 @@
 !include "WordFunc.nsh"
 
 ;--------------------------------
-; DEFINICIONES BÁSICAS
+; CONSTANTES
 ;--------------------------------
 !define NAME "Mi Ayudante"
 !define RELEASE "1.0.0"
@@ -40,10 +40,6 @@
 !define HKCUNI "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define LANG_SPANISH 1034
 !define SEPARATOR "============================================"
-!define MAX_COMPONENTES 20
-!define SEC_PROGRAMA 1
-!define SEC_RELEASE 4
-!define SEC_PHP 27
 
 ;--------------------------------
 ; VARIABLES GLOBALES
@@ -138,6 +134,7 @@ ${StrTrimNewLines}
 ${StrRep}
 ${StrStr}
 ${StrCase}
+${StrTok}
 ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
@@ -244,10 +241,12 @@ Function SkipIfUpdate
 FunctionEnd
 
 Function LaunchApp
-	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" 0 +3
+	${If} ${FileExists} "$InstDrive$INSTDIR\${APPFILE}"
 		ExecShell "" '"$InstDrive$INSTDIR\${APPFILE}"'
 		Return
-	MessageBox MB_ICONSTOP "$(TXT_MsgExeNoEncontrado)"
+	${Else}
+		MessageBox MB_ICONSTOP "$(TXT_MsgExeNoEncontrado)"
+	${EndIf}
 FunctionEnd
 
 Function RunUninstaller
@@ -378,10 +377,7 @@ Function un.RemoveDirIfEmpty
 FunctionEnd
 
 Function un.RemoveFromEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
+	Pop $0
 	${unStrTrimNewLines} $0 $0
 	${unStrRep} $0 $0 '"' ''
 	ReadRegStr $1 HKCU "Environment" "Path"
@@ -416,10 +412,6 @@ TrimEnds:
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndRm:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
 FunctionEnd
 
 !macro MUninstallAllComponents
@@ -490,23 +482,30 @@ Section "!${NAME} (*)" 1
 	SetOutPath "$InstDrive$INSTDIR\img"
 	File /r "..\app\img\*.*"
 	SetOutPath "$InstDrive$INSTDIR"
-	IfFileExists "$InstDrive$INSTDIR\${APPFILE}" +2 0
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${APPFILE}"
 		File "..\app\${APPFILE}"
-	IfFileExists "$InstDrive$INSTDIR\${READMEFILE}" +2 0
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${READMEFILE}"
 		File "..\app\${READMEFILE}"
-	IfFileExists "$InstDrive$INSTDIR\${LICENSEFILE}" +2 0
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${LICENSEFILE}"
 		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	${EndIf}
 	SetOutPath "$InstDrive$INSTDIR\datos"
-	IfFileExists "$InstDrive$INSTDIR\datos\basico_proyectos.txt" +2 0
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\datos\basico_proyectos.txt"
 		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+	${EndIf}
 	SetOutPath "$InstDrive$INSTDIR\entornos\basico"
-	IfFileExists "$InstDrive$INSTDIR\entornos\basico\config.ini" +2 0
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\entornos\basico\config.ini"
 		File /r "..\app\base\entorno\*.*"
-	SetOutPath "$InstDrive${TOOLS}"
+	${EndIf}
 	SetOutPath "$InstDrive$INSTDIR"
-	IfFileExists "$InstDrive$INSTDIR\config.ini" +2 0
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\config.ini"
 		File "config.ini"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\componentes.ini"
 		File "componentes.ini"
+	${EndIf}
 SectionEnd
 
 !include "secciones.nsh"

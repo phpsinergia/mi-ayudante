@@ -3,6 +3,9 @@
 ; MODULO: PREREQUISITOS
 ;================================
 
+;--------------------------------
+; CONSTANTES
+;--------------------------------
 !define URL_PHP "https://www.apachefriends.org/download.html"
 !define URL_COMPOSER "https://getcomposer.org/download/"
 !define URL_MSVC "https://learn.microsoft.com/es-es/cpp/windows/latest-supported-vc-redist"
@@ -116,6 +119,7 @@ Function CheckPreRequisites
 	${NSD_CreateCheckbox} 100u 131u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
+	${NSD_FreeBitmap} $R2
 FunctionEnd
 
 Function OpenUrlPHP
@@ -142,7 +146,6 @@ Function DetectPHP
 PHPDetected:
 	${WordFind} "$1" "PHP" "+1" $2
 	${If} $2 != ""
-		;TODO: Limpiar y Guardar version detectada de PHP en componentes.ini
 		StrCpy $ResPHP $2
 	${Else}
 		Goto PHPNotDetected

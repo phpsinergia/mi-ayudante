@@ -1,7 +1,5 @@
 PENDIENTES:
 
-- Guardar version detectada de PHP en componentes.ini
-
 + Afinar las conexiones de CURL por FTPS y HTTPS
 
 + Crear App REST PHP para descargar herramientas con usuarios autenticados contra BD MySQL

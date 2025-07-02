@@ -4,6 +4,14 @@
 ;================================
 
 ;--------------------------------
+; CONSTANTES
+;--------------------------------
+!define MAX_COMPONENTES 20
+!define SEC_PROGRAMA 1
+!define SEC_RELEASE 4
+!define SEC_PHP 27
+
+;--------------------------------
 ; VARIABLES
 ;--------------------------------
 Var ComponentesTotal
@@ -255,6 +263,11 @@ SectionEnd
 
 Function CheckAllComponents
 	Call FetchCatalog
+	${If} $ResPHP != ""
+	${AndIf} $ResPHP != "NO"
+		${StrTok} $R0 "$ResPHP" " " "0" "1"
+		WriteINIStr "$InstDrive$INSTDIR\componentes.ini" "Installed" "php" "$R0"
+	${EndIf}
 	${If} $CatalogStatus == "OK"
 		Call CheckGroup0
 		Call CheckGroup1
@@ -542,10 +555,6 @@ SkipExtract:
 FunctionEnd
 
 Function AddToEnvUserPath
-	Exch $0
-	Push $1
-	Push $2
-	Push $3
 	Pop $0
 	${StrTrimNewLines} $0 $0
 	${StrRep} $0 $0 '"' ''
@@ -588,8 +597,4 @@ WriteAndBroadcast:
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndAdd:
-	Pop $3
-	Pop $2
-	Pop $1
-	Pop $0
 FunctionEnd
