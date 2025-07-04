@@ -1,7 +1,53 @@
 ﻿; secciones.nsh
 ;================================
-; MODULO: SECCIONES
+; MODULO: SECCIONES INSTALADOR
 ;================================
+
+Section "-Inicial" 0
+	Call WriteLogInicial
+SectionEnd
+
+Section "!${NAME} (*)" 1
+	Call WriteLogBase
+	CreateDirectory "$InstDrive$INSTDIR\compartidos"
+	CreateDirectory "$InstDrive$INSTDIR\datos"
+	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
+	CreateDirectory "$InstDrive$INSTDIR\logs"
+	CreateDirectory "$InstDrive$INSTDIR\respaldos"
+	CreateDirectory "$InstDrive$INSTDIR\extensiones"
+	CreateDirectory "$InstDrive${TOOLS}"
+	CreateDirectory "$InstDrive${VENDOR}"
+	CreateDirectory "${RESOURCES}"
+	SetOutPath "$InstDrive$INSTDIR\base"
+	File /r "..\app\base\*.*"
+	SetOutPath "$InstDrive$INSTDIR\img"
+	File /r "..\app\img\*.*"
+	SetOutPath "$InstDrive$INSTDIR"
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${APPFILE}"
+		File "..\app\${APPFILE}"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${READMEFILE}"
+		File "..\app\${READMEFILE}"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${LICENSEFILE}"
+		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	${EndIf}
+	SetOutPath "$InstDrive$INSTDIR\datos"
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\datos\basico_proyectos.txt"
+		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
+	${EndIf}
+	SetOutPath "$InstDrive$INSTDIR\entornos\basico"
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\entornos\basico\config.ini"
+		File /r "..\app\base\entorno\*.*"
+	${EndIf}
+	SetOutPath "$InstDrive$INSTDIR"
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\config.ini"
+		File "config.ini"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\componentes.ini"
+		File "componentes.ini"
+	${EndIf}
+SectionEnd ;2
 
 !insertmacro MCreateSectionLog 2 3
 
@@ -262,3 +308,82 @@ SectionGroup "-" 210 ;CATEGORIA 9
 	!insertmacro MCreateSectionComponent "9" 210 229
 	!insertmacro MCreateSectionComponent "9" 210 230
 SectionGroupEnd ;231
+
+Section "-"
+	Call WriteLogConfig
+SectionEnd
+
+Section "-Config"
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	${GetSize} "$InstDrive\home" "/S=0K" $R1 $R2 $R3
+	DetailPrint "$R1 KB"
+	IntFmt $R1 "0x%08X" $R1
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R1"
+	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
+	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
+	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
+	WriteRegStr HKCU "Software\${NAME}" "Protocol" "$Protocol"
+	WriteRegStr HKCU "Software\${NAME}" "SkipPrereq" "$SkipPrereq"
+	WriteRegStr HKCU "Software\${NAME}" "SkipConfirm" "$SkipConfirm"
+	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
+	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
+	WriteRegStr HKCU "Software\${NAME}" "ResourcesPath" "${RESOURCES}"
+	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutStartMenu" "$ShortcutStartMenu"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutDesktop" "$ShortcutDesktop"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutUpdater" "$ShortcutUpdater"
+	WriteRegStr HKCU "Software\${NAME}" "ShortcutWindowsStart" "$ShortcutWindowsStart"
+	WriteRegStr HKCU "Software\${NAME}" "Installer" "$EXEPATH"
+	${If} $RememberCreds == "1"
+		${If} $Pass != ""
+			Call EncryptPw
+			WriteRegStr HKCU "Software\${NAME}" "Pass" "$EncPass"
+		${EndIf}
+		WriteRegStr HKCU "Software\${NAME}" "User" "$User"
+	${Else}
+		DeleteRegValue HKCU "Software\${NAME}" "User"
+		DeleteRegValue HKCU "Software\${NAME}" "Pass"
+	${EndIf}
+	StrCpy $User ""
+	StrCpy $Pass ""
+	WriteRegStr HKCU "${HKCUNI}" "DisplayName" "${NAME}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayIcon" "$InstDrive$INSTDIR\${ICON}"
+	WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
+	WriteRegStr HKCU "${HKCUNI}" "Publisher" "${PUBLISHER}"
+	WriteRegStr HKCU "${HKCUNI}" "UninstallString" "$InstDrive$INSTDIR\${UNINSTALLER}"
+	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
+	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
+	SetOutPath "$InstDrive$INSTDIR"
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_LogPostInstall)"
+	${If} $ShortcutStartMenu == "1"
+		CreateDirectory "$SMPROGRAMS\${NAME}"
+		CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+		CreateShortCut "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutDesktop == "1"
+		CreateShortCut "$DESKTOP\${INSTALLER_NAME}.lnk" "$EXEPATH" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutUpdater == "1"
+		CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
+	${EndIf}
+	${If} $ShortcutWindowsStart == "1"
+		StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+		CreateDirectory $StartUpDir
+		CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
+	${EndIf}
+	;TODO: Quitar al cambiar el Programa
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
+		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+SectionEnd
+
+Section "-Final"
+	Call WriteLogFinal
+SectionEnd

@@ -1,4 +1,10 @@
-PENDIENTES:
+PENDIENTES DESINSTALADOR:
+
+- Check para desinstalar Programa Mi Ayudante
+- Check para mantener entornos y datos de Mi Ayudante
+- 
+
+-----------------------
 
 + Afinar las conexiones de CURL por FTPS y HTTPS
 
@@ -18,6 +24,8 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 │   ├── secciones.nsh
 │   ├── componentes.nsh
 │   ├── confirmacion.nsh
+│   ├── desinstalar.nsh
+│   ├── instalar.nsh
 │   ├── registro.nsh
 │   ├── txt_spanish.nsh
 │   ├── head.bmp

@@ -1,4 +1,4 @@
-﻿; prereqs.nsh
+﻿; prerequisitos.nsh
 ;================================
 ; MODULO: PREREQUISITOS
 ;================================
