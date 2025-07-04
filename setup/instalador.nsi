@@ -49,6 +49,10 @@ Var TextFinish
 Var TextCaption
 Var unToolsCheckboxState
 Var unToolsCheckbox
+Var unVendorCheckboxState
+Var unVendorCheckbox
+Var unResourcesCheckboxState
+Var unResourcesCheckbox
 Var EncPass
 Var StartUpDir
 
@@ -139,11 +143,11 @@ VIAddVersionKey /LANG=${LANG_SPANISH} "LegalCopyright" "${PUBLISHER}"
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfUpdate
 !insertmacro MUI_PAGE_LICENSE "..\${LICENSEFILE}"
-Page custom ShowOptionsForm SaveOptionsForm " "
-Page custom CheckPreRequisites LeavePreRequisites " "
+Page custom ShowOptionsForm LeaveOptionsForm " "
+Page custom ShowConfirmInstall LeaveConfirmInstall " "
+Page custom ShowPreRequisites LeavePreRequisites " "
 !define MUI_PAGE_CUSTOMFUNCTION_PRE CheckAllComponents
 !insertmacro MUI_PAGE_COMPONENTS
-Page custom ShowConfirmInstall LeaveConfirmInstall " "
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 ;--------------------------------
@@ -192,8 +196,6 @@ Function .onInit
 		StrCpy $TextFinish "$(TXT_InstruccionesFinishInstalador)"
 	${EndIf}
 	SetOutPath "$PluginsDir"
-	File /oname=head.bmp "head.bmp"
-	File /oname=left.bmp "left.bmp"
 	File /oname=ok.bmp "ok.bmp"
 	File /oname=no.bmp "no.bmp"
 FunctionEnd
@@ -242,7 +244,7 @@ Function GetConfigValues
 		StrCpy $ShortcutStartMenu "1"
 		StrCpy $ShortcutDesktop "1"
 		StrCpy $ShortcutUpdater "1"
-		StrCpy $ShortcutWindowsStart "1"
+		StrCpy $ShortcutWindowsStart "0"
 	${EndIf}
 	Pop $0
 FunctionEnd
@@ -267,8 +269,10 @@ Function RunUninstaller
 	MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(TXT_MsgConfirmaDesinstalacion)" IDNO EndAsk
 		StrCpy $0 "$InstDrive$INSTDIR\${UNINSTALLER}"
 		IfFileExists "$0" 0 NoUninst
-		Exec '"$0"'
-		Quit
+		HideWindow
+		ExecShell "open" "$0"
+		Sleep 100
+		System::Call 'kernel32::ExitProcess(i0)'
 NoUninst:
 	MessageBox MB_ICONSTOP "$(TXT_MsgUninstallNoEncontrado)$\n$0"
 EndAsk:
@@ -377,15 +381,24 @@ FunctionEnd
 Function un.ShowOptionsUninstall
 	nsDialogs::Create 1018
 	Pop $0
-	${NSD_CreateLabel} 0 0 100% 12u "$(TXT_EtiqDesinstalarHerramientas)"
+	${NSD_CreateLabel} 0 0 100% 12u "$(TXT_EtiqDesinstalarComponentes)"
 	Pop $0
-	${NSD_CreateCheckbox} 0 16u 100% 12u "$(TXT_EtiqRemoverTodas)"
+	${NSD_CreateCheckbox} 0 16u 100% 12u "$(TXT_EtiqRemoverTools) ($InstDrive${TOOLS})"
 	Pop $unToolsCheckbox
+	${NSD_Check} $unToolsCheckbox
+	${NSD_CreateCheckbox} 0 32u 100% 12u "$(TXT_EtiqRemoverResources) (${RESOURCES})"
+	Pop $unResourcesCheckbox
+	${NSD_Check} $unResourcesCheckbox
+	${NSD_CreateCheckbox} 0 48u 100% 12u "$(TXT_EtiqRemoverVendor) ($InstDrive${VENDOR})"
+	Pop $unVendorCheckbox
+	${NSD_Check} $unVendorCheckbox
 	nsDialogs::Show
 FunctionEnd
 
 Function un.ReadChoiceUninstall
 	${NSD_GetState} $unToolsCheckbox $unToolsCheckboxState
+	${NSD_GetState} $unVendorCheckbox $unVendorCheckboxState
+	${NSD_GetState} $unResourcesCheckbox $unResourcesCheckboxState
 FunctionEnd
 
 Function un.RemoveDirIfEmpty
@@ -443,6 +456,7 @@ FunctionEnd
 	Push $R2
 	Push $R3
 	Push $R4
+	Push $R5
 	StrCpy $R2 "$PluginsDir\componentes.ini"
 	IfFileExists "$R2" 0 EndUninstall
 	FileOpen $R0 "$R2" r
@@ -464,9 +478,30 @@ LoopRead:
 		${WordFind} "$R1" "=" "+2" $R4
 		${unStrRep} $R4 $R4 '"' ''
 		${If} $R4 != ""
-			RMDir /r "$R4"
-			Push "$R4"
-			Call un.RemoveFromEnvUserPath
+			${If} $unToolsCheckboxState == "1"
+				${unStrStr} $R5 $R4 "$InstDrive${TOOLS}"
+				${If} $R5 != ""
+					RMDir /r "$R4"
+					Push "$R4"
+					Call un.RemoveFromEnvUserPath
+				${EndIf}
+			${EndIf}
+			${If} $unVendorCheckboxState == "1"
+				${unStrStr} $R5 $R4 "$InstDrive${VENDOR}"
+				${If} $R5 != ""
+					RMDir /r "$R4"
+					Push "$R4"
+					Call un.RemoveFromEnvUserPath
+				${EndIf}
+			${EndIf}
+			${If} $unResourcesCheckboxState == "1"
+				${unStrStr} $R5 $R4 "${RESOURCES}"
+				${If} $R5 != ""
+					RMDir /r "$R4"
+					Push "$R4"
+					Call un.RemoveFromEnvUserPath
+				${EndIf}
+			${EndIf}
 		${EndIf}
 		Goto LoopRead
 	${EndIf}
@@ -474,6 +509,7 @@ LoopRead:
 CloseFile:
 	FileClose $R0
 EndUninstall:
+	Pop $R5
 	Pop $R4
 	Pop $R3
 	Pop $R2
@@ -498,8 +534,8 @@ Section "!${NAME} (*)" 1
 	CreateDirectory "$InstDrive$INSTDIR\respaldos"
 	CreateDirectory "$InstDrive$INSTDIR\extensiones"
 	CreateDirectory "$InstDrive${TOOLS}"
-	CreateDirectory "$InstDrive${RESOURCES}"
 	CreateDirectory "$InstDrive${VENDOR}"
+	CreateDirectory "${RESOURCES}"
 	SetOutPath "$InstDrive$INSTDIR\base"
 	File /r "..\app\base\*.*"
 	SetOutPath "$InstDrive$INSTDIR\img"
@@ -554,6 +590,7 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "SkipConfirm" "$SkipConfirm"
 	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
+	WriteRegStr HKCU "Software\${NAME}" "ResourcesPath" "${RESOURCES}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	WriteRegStr HKCU "Software\${NAME}" "ShortcutStartMenu" "$ShortcutStartMenu"
 	WriteRegStr HKCU "Software\${NAME}" "ShortcutDesktop" "$ShortcutDesktop"
@@ -580,7 +617,8 @@ Section "-Config"
 	WriteRegStr HKCU "${HKCUNI}" "NoRepair" "1"
 	WriteUninstaller "$InstDrive$INSTDIR\${UNINSTALLER}"
 	SetOutPath "$InstDrive$INSTDIR"
-	DetailPrint "$(TXT_LogCreateShortCut)"
+	DetailPrint ${SEPARATOR}
+	DetailPrint "$(TXT_LogPostInstall)"
 	${If} $ShortcutStartMenu == "1"
 		CreateDirectory "$SMPROGRAMS\${NAME}"
 		CreateShortCut "$SMPROGRAMS\${NAME}\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
@@ -614,23 +652,33 @@ Section "Uninstall"
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"
 	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 	Delete "$INSTDIR\*.*"
+	Delete "$StartUpDir\${NAME}.lnk"
 	Delete "$DESKTOP\${NAME}.lnk"
 	Delete "$DESKTOP\${INSTALLER_NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${NAME}.lnk"
-	Delete "$StartUpDir\${NAME}.lnk"
 	Delete "$SMPROGRAMS\${NAME}\${INSTALLER_NAME}.lnk"
 	RMDir /r "$SMPROGRAMS\${NAME}"
 	DeleteRegKey HKCU "Software\${NAME}"
 	DeleteRegKey HKCU "${HKCUNI}"
 	SetOutPath "$PluginsDir"
 	RMDir /r "$INSTDIR"
-	StrCmp $unToolsCheckboxState "1" 0 Done
+	${If} $unToolsCheckboxState != "1"
+	${AndIf} $unVendorCheckboxState != "1"
+	${AndIf} $unResourcesCheckboxState != "1"
+		Goto Done
+	${EndIf}
 	!insertmacro MUninstallAllComponents
-	Push "$InstDrive${TOOLS}"
-	Call un.RemoveDirIfEmpty
-	Push "${RESOURCES}"
-	Call un.RemoveDirIfEmpty
-	RMDir /r "$InstDrive${VENDOR}"
+	${If} $unToolsCheckboxState == "1"
+		Push "$InstDrive${TOOLS}"
+		Call un.RemoveDirIfEmpty
+	${EndIf}
+	${If} $unVendorCheckboxState == "1"
+		Push "$InstDrive${VENDOR}"
+		Call un.RemoveDirIfEmpty
+	${EndIf}
+	${If} $unResourcesCheckboxState == "1"
+		Push "${RESOURCES}"
+		Call un.RemoveDirIfEmpty
+	${EndIf}
 Done:
-	RMDir /r "$InstDrive${APPDIR}"
 SectionEnd

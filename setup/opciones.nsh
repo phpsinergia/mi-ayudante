@@ -29,8 +29,8 @@ Function ShowOptionsForm
 		StrCpy $Protocol "---"
 	${EndIf}
 	!insertmacro MUI_HEADER_TEXT "$(TXT_TituloComponentes)" "$(TXT_SubtituloComponentes)"
-	; 1. Grupo: **Ruta de instalación**
-	${NSD_CreateGroupBox} 5u 2u 290u 38u "$(TXT_EtiqRutaInstalacion)"
+	; 1. Grupo: **Disco de instalación**
+	${NSD_CreateGroupBox} 5u 2u 290u 38u "$(TXT_EtiqDiscoInstalacion)"
 	Pop $0
 		${NSD_CreateLabel} 15u 18u 90u 10u "$(TXT_EtiqUnidadDestino)"
 		Pop $0
@@ -82,7 +82,7 @@ Function ShowOptionsForm
 	Pop $0
 FunctionEnd
 
-Function SaveOptionsForm
+Function LeaveOptionsForm
 	Push $0
 	${NSD_GetText} $DriveDropList $0
 	StrCpy $InstDrive $0 2
@@ -135,6 +135,7 @@ Function TestConnection
 	System::Call 'user32::EnableWindow(p$btnTest,i1)'
 FunctionEnd
 
+;TODO: Corregir "curl" en FTPS
 Function TestFtpConnection
 	Push $R0
 	Push $R1
@@ -165,6 +166,7 @@ Function TestFtpConnection
 	Pop $R0
 FunctionEnd
 
+;TODO: Corregir "curl" en HTTPS
 Function TestHttpConnection
 	Push $R0
 	Push $R1

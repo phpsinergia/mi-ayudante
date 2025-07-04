@@ -7,7 +7,7 @@
 
 SectionGroup /e "-" 3 ;CATEGORIA 0
 	!insertmacro MCreateFunctionsComponent "0"
-	!insertmacro MCreateSectionComponent "0" 3 4
+	!insertmacro MCreateSectionComponent "0" 3 4 ;Reservado para SEC_RELEASE
 	!insertmacro MCreateSectionComponent "0" 3 5
 	!insertmacro MCreateSectionComponent "0" 3 6
 	!insertmacro MCreateSectionComponent "0" 3 7
@@ -33,7 +33,7 @@ SectionGroupEnd ;24
 
 SectionGroup /e "-" 26 ;CATEGORIA 1
 	!insertmacro MCreateFunctionsComponent "1"
-	!insertmacro MCreateSectionComponent "1" 26 27
+	!insertmacro MCreateSectionComponent "1" 26 27 ;Reservado para SEC_PHP
 	!insertmacro MCreateSectionComponent "1" 26 28
 	!insertmacro MCreateSectionComponent "1" 26 29
 	!insertmacro MCreateSectionComponent "1" 26 30

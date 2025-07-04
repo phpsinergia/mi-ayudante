@@ -24,7 +24,7 @@ Var ResNotepad
 ; FUNCIONES
 ;--------------------------------
 
-Function CheckPreRequisites
+Function ShowPreRequisites
 	${If} $SkipPrereq == "1"
 		Abort
 	${EndIf}

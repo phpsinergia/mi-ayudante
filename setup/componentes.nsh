@@ -316,6 +316,7 @@ Function HideSectionGroup
 	${Next}
 FunctionEnd
 
+;TODO: Corregir "curl" en HTTPS y FTPS
 Function FetchCatalog
 	StrCpy $CatalogPath "$InstDrive$INSTDIR\${CATALOGFILE}"
 	CreateDirectory "$InstDrive$INSTDIR"
@@ -449,6 +450,7 @@ SkipTool:
 	Push "NO"
 FunctionEnd
 
+;TODO: Corregir "curl" en HTTPS y FTPS
 Function DownloadFile
 	DetailPrint ${SEPARATOR}
 	DetailPrint "$(TXT_MsgDescargando) ($Protocol): $ToolName"
