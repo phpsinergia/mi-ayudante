@@ -1,10 +1,4 @@
-PENDIENTES DESINSTALADOR:
-
-- Check para desinstalar Programa Mi Ayudante
-- Check para mantener entornos y datos de Mi Ayudante
-- 
-
------------------------
+PENDIENTES:
 
 + Afinar las conexiones de CURL por FTPS y HTTPS
 
@@ -18,15 +12,16 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 
 /mi-ayudante/
 ├── setup/
-│   ├── instalador.nsi (*)
+│   ├── base.nsi (*)
 │   ├── opciones.nsh
-│   ├── prereqs.nsh
+│   ├── prerequisitos.nsh
 │   ├── secciones.nsh
 │   ├── componentes.nsh
 │   ├── confirmacion.nsh
-│   ├── desinstalar.nsh
-│   ├── instalar.nsh
 │   ├── registro.nsh
+│   ├── instalar.nsh
+│   ├── desinstalar.nsh
+│   ├── secciones.un.nsh
 │   ├── txt_spanish.nsh
 │   ├── head.bmp
 │   ├── left.bmp
@@ -36,9 +31,9 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 │   ├── config.ini
 │   └── catalogo.json
 ├── dist/
-│   └── Instalar-MiAyudante.exe
+│   └── Actualizar-MiAyudante.exe
 ├── app/
-│   └── [Aplicación a instalar]
+│   └── [Aplicación Mi Ayudante]
 └── ...
 
 -----------------------

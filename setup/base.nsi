@@ -1,4 +1,4 @@
-﻿; instalador.nsi
+﻿; base.nsi
 ;================================
 ; INSTALADOR DE MI-AYUDANTE
 ;================================
@@ -59,7 +59,7 @@ Var StartUpDir
 ;--------------------------------
 !define INSTALLER_VERSION "0.0.0.1"
 !define INSTALLER_NAME "Actualizador"
-!define INSTALLER "..\dist\Instalar-MiAyudante.exe"
+!define INSTALLER "..\dist\Actualizar-MiAyudante.exe"
 !define UNINSTALLER "desinstalar.exe"
 !define DESCRIPTION "${INSTALLER_NAME} ${NAME}"
 !define RESOURCES "$DOCUMENTS\mi-ayudante"
@@ -172,10 +172,8 @@ Page custom ShowPreRequisites LeavePreRequisites " "
 ;--------------------------------
 !insertmacro MUI_UNPAGE_WELCOME
 !insertmacro MUI_UNPAGE_CONFIRM
-;UninstPage custom un.ShowOptionsUninstall un.ReadChoiceUninstall
 !insertmacro MUI_UNPAGE_COMPONENTS
 !insertmacro MUI_UNPAGE_INSTFILES
-
 ;--------------------------------
 ; TEXTOS DE INTERFAZ USUARIO
 ;--------------------------------
@@ -185,13 +183,18 @@ Page custom ShowPreRequisites LeavePreRequisites " "
 ;--------------------------------
 ; MACROS DE EXTENSIONES
 ;--------------------------------
+!insertmacro GetTime
+!insertmacro WordFind
+;--------------------------------
 ${StrTrimNewLines}
 ${StrRep}
 ${StrStr}
 ${StrCase}
 ${StrTok}
-!insertmacro GetTime
-!insertmacro WordFind
+;--------------------------------
+${unStrTrimNewLines}
+${unStrRep}
+${unStrStr}
 
 ;--------------------------------
 ; MODULOS
@@ -204,4 +207,5 @@ ${StrTok}
 !include "registro.nsh"
 !include "secciones.nsh"
 ;--------------------------------
+!include "secciones.un.nsh"
 !include "desinstalar.nsh"
