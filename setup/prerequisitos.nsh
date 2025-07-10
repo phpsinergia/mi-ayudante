@@ -114,12 +114,6 @@ FunctionEnd
 
 Function LeavePreRequisites
 	${NSD_GetState} $SkipPreCheckbox $SkipPrereq
-	${If} $ResPHP != "NO"
-	${AndIf} $ResComposer != "NO"
-	${AndIf} $ResMSVC != "NO"
-	${AndIf} $ResNotepad != "NO"
-		StrCpy $SkipPrereq "1"
-	${EndIf}
 FunctionEnd
 
 ;--------------------------------

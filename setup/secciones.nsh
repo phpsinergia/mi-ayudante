@@ -7,8 +7,19 @@ Section "-Inicial" 0
 	Call WriteLogInicial
 SectionEnd
 
-Section "!${NAME} (*)" 1
+Section "${NAME} (*)" 1
 	Call WriteLogBase
+	SetOutPath "$InstDrive$INSTDIR"
+	File "..\app\${ICON}"
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${APPFILE}"
+		File "..\app\${APPFILE}"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${READMEFILE}"
+		File "..\app\${READMEFILE}"
+	${EndIf}
+	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${LICENSEFILE}"
+		File /oname=LICENSE.txt "..\${LICENSEFILE}"
+	${EndIf}
 	CreateDirectory "$InstDrive$INSTDIR\compartidos"
 	CreateDirectory "$InstDrive$INSTDIR\datos"
 	CreateDirectory "$InstDrive$INSTDIR\entornos\basico"
@@ -22,16 +33,6 @@ Section "!${NAME} (*)" 1
 	File /r "..\app\base\*.*"
 	SetOutPath "$InstDrive$INSTDIR\img"
 	File /r "..\app\img\*.*"
-	SetOutPath "$InstDrive$INSTDIR"
-	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${APPFILE}"
-		File "..\app\${APPFILE}"
-	${EndIf}
-	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${READMEFILE}"
-		File "..\app\${READMEFILE}"
-	${EndIf}
-	${IfNot} ${FileExists} "$InstDrive$INSTDIR\${LICENSEFILE}"
-		File /oname=LICENSE.txt "..\${LICENSEFILE}"
-	${EndIf}
 	SetOutPath "$InstDrive$INSTDIR\datos"
 	${IfNot} ${FileExists} "$InstDrive$INSTDIR\datos\basico_proyectos.txt"
 		File /oname=basico_proyectos.txt "..\app\base\proyectos.txt"
@@ -371,7 +372,6 @@ Section "-Config"
 		CreateShortCut "$DESKTOP\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}"
 	${EndIf}
 	${If} $ShortcutWindowsStart == "1"
-		StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 		CreateDirectory $StartUpDir
 		CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
 	${EndIf}

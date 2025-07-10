@@ -51,3 +51,7 @@ Ajusta tu backend HTTP para aceptar el JSON (o header) indicado y devolver 200 O
 -----------------------
 
 Futuro trabajo pendiente (TODO)
+
+
+26528
+36470
