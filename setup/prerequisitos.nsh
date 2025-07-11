@@ -19,6 +19,10 @@ Var ResPHP
 Var ResComposer
 Var ResMSVC
 Var ResNotepad
+Var BitmapPHP
+Var BitmapComposer
+Var BitmapMSVC
+Var BitmapNotepad
 
 ;--------------------------------
 ; FUNCIONES
@@ -28,6 +32,11 @@ Function ShowPreRequisites
 	${If} $SkipPrereq == "1"
 		Abort
 	${EndIf}
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
 	nsDialogs::Create 1018
 	Pop $0
 	!insertmacro MUI_HEADER_TEXT "$(TXT_TituloPrereq)" "$(TXT_SubtituloPrereq)"
@@ -42,69 +51,74 @@ Function ShowPreRequisites
 	${If} $ResPHP != "NO"
 		${NSD_CreateLabel} 35u 15u 240u 9u "$ResPHP"
 		Pop $R0
-		${NSD_SetBitmap} $R1 "ok.bmp" $R2
+		${NSD_SetBitmap} $R1 "$PluginsDir\ok.bmp" $BitmapPHP
 	${Else}
 		${NSD_CreateLabel} 35u 15u 80u 9u "$(TXT_EtiqNoDetectado)"
 		Pop $R0
 		${NSD_CreateLink} 130u 15u 140u 9u "$(TXT_EtiqDescargarDeSitioOficial) (XAMPP)"
 		Pop $R0
 		${NSD_OnClick} $R0 OpenUrlPHP
-		${NSD_SetBitmap} $R1 "no.bmp" $R2
+		${NSD_SetBitmap} $R1 "$PluginsDir\no.bmp" $BitmapPHP
 	${EndIf}
 	;2. Composer
 	${NSD_CreateGroupBox} 5u 32u 290u 32u "Composer"
 	Pop $R0
 	${NSD_CreateBitmap} 13u 43u 100% 100% ""
-	Pop $R1
+	Pop $R2
 	${If} $ResComposer != "NO"
 		${NSD_CreateLabel} 35u 47u 240u 9u "$ResComposer"
 		Pop $R0
-		${NSD_SetBitmap} $R1 "ok.bmp" $R2
+		${NSD_SetBitmap} $R2 "$PluginsDir\ok.bmp" $BitmapComposer
 	${Else}
 		${NSD_CreateLabel} 35u 47u 80u 9u "$(TXT_EtiqNoDetectado)"
 		Pop $R0
 		${NSD_CreateLink} 130u 47u 140u 9u "$(TXT_EtiqDescargarDeSitioOficial) (Composer)"
 		Pop $R0
 		${NSD_OnClick} $R0 OpenUrlComposer
-		${NSD_SetBitmap} $R1 "no.bmp" $R2
+		${NSD_SetBitmap} $R2 "$PluginsDir\no.bmp" $BitmapComposer
 	${EndIf}
 	;3. Visual C++ Redistributable
 	${NSD_CreateGroupBox} 5u 64u 290u 32u "Visual C++ Redistributable"
 	Pop $R0
 	${NSD_CreateBitmap} 13u 75u 100% 100% ""
-	Pop $R1
+	Pop $R3
 	${If} $ResMSVC != "NO"
 		${NSD_CreateLabel} 35u 79u 240u 9u "$ResMSVC"
 		Pop $R0
-		${NSD_SetBitmap} $R1 "ok.bmp" $R2
+		${NSD_SetBitmap} $R3 "$PluginsDir\ok.bmp" $BitmapMSVC
 	${Else}
 		${NSD_CreateLabel} 35u 79u 80u 9u "$(TXT_EtiqNoDetectado)"
 		Pop $R0
 		${NSD_CreateLink} 130u 79u 140u 9u "$(TXT_EtiqDescargarDeSitioOficial) (MSVC)"
 		Pop $R0
 		${NSD_OnClick} $R0 OpenUrlMSVC
-		${NSD_SetBitmap} $R1 "no.bmp" $R2
+		${NSD_SetBitmap} $R3 "$PluginsDir\no.bmp" $BitmapMSVC
 	${EndIf}
 	;4. Notepad++
 	${NSD_CreateGroupBox} 5u 96u 290u 32u "Notepad++ ($(TXT_EtiqOpcional))"
 	Pop $R0
 	${NSD_CreateBitmap} 13u 107u 100% 100% ""
-	Pop $R1
+	Pop $R4
 	${If} $ResNotepad != "NO"
 		${NSD_CreateLabel} 35u 111u 240u 9u "$ResNotepad"
 		Pop $R0
-		${NSD_SetBitmap} $R1 "ok.bmp" $R2
+		${NSD_SetBitmap} $R4 "$PluginsDir\ok.bmp" $BitmapNotepad
 	${Else}
 		${NSD_CreateLabel} 35u 111u 80u 9u "$(TXT_EtiqNoDetectado)"
 		Pop $R0
 		${NSD_CreateLink} 130u 111u 140u 9u "$(TXT_EtiqDescargarDeSitioOficial) (Notepad++)"
 		Pop $R0
 		${NSD_OnClick} $R0 OpenUrlNotepad
-		${NSD_SetBitmap} $R1 "no.bmp" $R2
+		${NSD_SetBitmap} $R4 "$PluginsDir\no.bmp" $BitmapNotepad
 	${EndIf}
 	${NSD_CreateCheckbox} 100u 131u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd
 
 Function LeavePreRequisites
@@ -112,6 +126,13 @@ Function LeavePreRequisites
 FunctionEnd
 
 ;--------------------------------
+
+Function DetectPreRequisites
+	Call DetectPHP
+	Call DetectComposer
+	Call DetectMSVC
+	Call DetectNotepad
+FunctionEnd
 
 Function DetectPHP
 	nsExec::ExecToStack 'php -v'
@@ -168,6 +189,12 @@ Function DetectNotepad
 	ReadRegStr $0 HKLM "SOFTWARE\Notepad++" ""
 	${If} $0 != ""
 		StrCpy $ResNotepad "$0"
+	${Else}
+		${If} ${FileExists} "$PROGRAMFILES64\Notepad++"
+			StrCpy $ResNotepad "$PROGRAMFILES64\Notepad++"
+		${ElseIf} ${FileExists} "$PROGRAMFILES32\Notepad++"
+			StrCpy $ResNotepad "$PROGRAMFILES32\Notepad++"
+		${EndIf}
 	${EndIf}
 FunctionEnd
 

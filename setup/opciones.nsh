@@ -54,9 +54,9 @@ Function ShowOptionsForm
 		Pop $ProtocolDropList
 			${NSD_CB_AddString} $ProtocolDropList "---"
 			${NSD_CB_AddString} $ProtocolDropList "HTTP"
-			${NSD_CB_AddString} $ProtocolDropList "HTTPS"
+			;${NSD_CB_AddString} $ProtocolDropList "HTTPS"
 			${NSD_CB_AddString} $ProtocolDropList "FTP"
-			${NSD_CB_AddString} $ProtocolDropList "FTPS"
+			;${NSD_CB_AddString} $ProtocolDropList "FTPS"
 			${NSD_CB_SelectString} $ProtocolDropList "$Protocol"
 		${NSD_CreateLabel} 15u 77u 90u 10u "$(TXT_EtiqDominioServidor)"
 		Pop $0

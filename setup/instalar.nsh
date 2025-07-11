@@ -28,10 +28,7 @@ Function .onInit
 		StrCpy $TextFinish "$(TXT_InstruccionesFinishInstalador)"
 	${EndIf}
 	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-	Call DetectPHP
-	Call DetectComposer
-	Call DetectMSVC
-	Call DetectNotepad
+	Call DetectPreRequisites
 FunctionEnd
 
 Function SetDateTimeStamp
