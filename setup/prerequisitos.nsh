@@ -34,12 +34,8 @@ Function ShowPreRequisites
 	${If} ${RunningX64}
 		SetRegView 64
 	${EndIf}
-	Call DetectPHP
-	Call DetectComposer
-	Call DetectMSVC
-	Call DetectNotepad
 	;1. PHP
-	${NSD_CreateGroupBox} 5u 0u 290u 32u "PHP (cli)"
+	${NSD_CreateGroupBox} 5u 0u 290u 32u "PHP-cli"
 	Pop $R0
 	${NSD_CreateBitmap} 13u 11u 100% 100% ""
 	Pop $R1
@@ -90,7 +86,7 @@ Function ShowPreRequisites
 		${NSD_SetBitmap} $R1 "no.bmp" $R2
 	${EndIf}
 	;4. Notepad++
-	${NSD_CreateGroupBox} 5u 96u 290u 32u "Notepad++"
+	${NSD_CreateGroupBox} 5u 96u 290u 32u "Notepad++ ($(TXT_EtiqOpcional))"
 	Pop $R0
 	${NSD_CreateBitmap} 13u 107u 100% 100% ""
 	Pop $R1
@@ -109,7 +105,6 @@ Function ShowPreRequisites
 	${NSD_CreateCheckbox} 100u 131u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
-	${NSD_FreeBitmap} $R2
 FunctionEnd
 
 Function LeavePreRequisites

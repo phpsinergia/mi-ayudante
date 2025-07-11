@@ -63,6 +63,7 @@ LangString TXT_EtiqEscritorioPrograma ${LANG_SPANISH} "Enlace a ${NAME} en el Es
 LangString TXT_EtiqEscritorioActualizador ${LANG_SPANISH} "Enlace al Actualizador (este Asistente)"
 LangString TXT_EtiqInicioWindows ${LANG_SPANISH} "Configuración de inicio"
 LangString TXT_EtiqEjecutarInicio ${LANG_SPANISH} "Ejecutar ${NAME} al iniciar Windows"
+LangString TXT_EtiqOpcional ${LANG_SPANISH} "opcional"
 ;--------------------------------
 LangString TXT_BotonDesinstalar ${LANG_SPANISH} "Desinstalar"
 LangString TXT_BotonComprobar ${LANG_SPANISH} "Comprobar"
