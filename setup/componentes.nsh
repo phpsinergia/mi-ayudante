@@ -41,17 +41,15 @@ Var CatalogStatus
 ;--------------------------------
 
 !macro MJsonLoadComponents CATEGORIA
-	StrCpy $ComponentesTotal "0"
-	ClearErrors
-	nsJSON::Get /count /index ${CATEGORIA} /end
-	IfErrors EndJsonLoad${CATEGORIA}
-	Pop $ComponentesTotal
 	nsArray::Get GroupByPosSectionIndex ${CATEGORIA}
-	IfErrors EndJsonLoad${CATEGORIA}
 	Pop $GroupIndex
 	nsArray::Get GroupByPosSectionName ${CATEGORIA}
-	IfErrors EndJsonLoad${CATEGORIA}
 	Pop $GroupName
+	ClearErrors
+	nsJSON::Get /count /index ${CATEGORIA} /end
+	Pop $ComponentesTotal
+	IfErrors 0 +2
+		StrCpy $ComponentesTotal "0"
 	${If} $ComponentesTotal > 0
 	${AndIf} $GroupIndex > 0
 		SectionSetText $GroupIndex "$GroupName"
@@ -99,9 +97,7 @@ Var CatalogStatus
 !macroend
 
 !macro MCheckGroupComponents CATEGORIA
-	ClearErrors
 	Call JsonLoad${CATEGORIA}
-	IfErrors EndCheckGroup${CATEGORIA}
 	StrCpy $ComponentesVisibles "0"
 	${If} $ComponentesTotal > 0
 		IntOp $Aux $ComponentesTotal - 1
@@ -182,14 +178,12 @@ Function InstallByIndex${CATEGORIA}
 FunctionEnd
 Function JsonLoad${CATEGORIA}
 	!insertmacro MJsonLoadComponents "${CATEGORIA}"
-	EndJsonLoad${CATEGORIA}:
 FunctionEnd
 Function GetInfo${CATEGORIA}
 	!insertmacro MGetInfoComponent "${CATEGORIA}"
 FunctionEnd
 Function CheckGroup${CATEGORIA}
 	!insertmacro MCheckGroupComponents "${CATEGORIA}"
-	EndCheckGroup${CATEGORIA}:
 FunctionEnd
 !macroend
 
