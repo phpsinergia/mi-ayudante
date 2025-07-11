@@ -11,8 +11,8 @@ CargarConfigIni() {
 	local seccion, claves, valor, disco, lanzamiento, herramientas
 	; Cargar valores desde config.ini
 	IniRead, valor, config.ini, Base, Entorno, % ""
-	IniRead, lanzamiento, config.ini, Base, Lanzamiento, % ""
-	IniRead, herramientas, config.ini, Base, RutaHerramientas, % ""
+	RegRead, lanzamiento, HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Mi Ayudante, DisplayVersion
+	RegRead, herramientas, HKCU\Software\Mi Ayudante, ToolsPath
     ; Inicializar valores esenciales
     EnvGet, disco, HOMEDRIVE
 	CfgIni := A_ScriptDir . "\entornos\" . valor . "\config.ini"

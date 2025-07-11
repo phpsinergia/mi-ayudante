@@ -248,7 +248,6 @@ SectionEnd
 	${If} $ToolId == "release"
 		StrCpy $Version $ToolVersion
 		WriteRegStr HKCU "${HKCUNI}" "DisplayVersion" "$Version"
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
 	${EndIf}
 	DetailPrint "$ToolName $ToolVersion ($ToolId) → OK"
 	StrCpy $ToolId ""

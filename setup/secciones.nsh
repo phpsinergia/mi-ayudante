@@ -319,10 +319,19 @@ Section "-Config"
 	Push $R1
 	Push $R2
 	Push $R3
-	${GetSize} "$InstDrive\home" "/S=0K" $R1 $R2 $R3
-	DetailPrint "$R1 KB"
-	IntFmt $R1 "0x%08X" $R1
-	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R1"
+	Push $R4
+	StrCpy $R4 "0"
+	${GetSize} "$InstDrive${VENDOR}" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
+	${GetSize} "$InstDrive${TOOLS}" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
+	${GetSize} "$InstDrive$INSTDIR" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
+	${GetSize} "${RESOURCES}" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
+	DetailPrint "$R4 KB"
+	IntFmt $R4 "0x%08X" $R4
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R4"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${NAME}" "Install_Drive" "$InstDrive"
 	WriteRegStr HKCU "Software\${NAME}" "Server" "$Server"
@@ -375,9 +384,7 @@ Section "-Config"
 		CreateDirectory $StartUpDir
 		CreateShortCut "$StartUpDir\${NAME}.lnk" "$InstDrive$INSTDIR\${APPFILE}" "" "$InstDrive$INSTDIR\${ICON}" "" SW_SHOWMINIMIZED
 	${EndIf}
-	;TODO: Quitar al cambiar el Programa
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base RutaHerramientas $InstDrive${TOOLS}
-		WriteINIStr $InstDrive$INSTDIR\config.ini Base Lanzamiento $Version
+	Pop $R4
 	Pop $R3
 	Pop $R2
 	Pop $R1
