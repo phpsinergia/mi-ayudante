@@ -8,16 +8,21 @@
 ; ====================
 
 CargarConfigIni() {
-	local seccion, claves, valor, disco, lanzamiento, herramientas
+	local seccion, claves, valor, disco, lanzamiento, herramientas, vendor, recursos, appdata, instalador, desarrollador
 	; Cargar valores desde config.ini
 	IniRead, valor, config.ini, Base, Entorno, % ""
 	RegRead, lanzamiento, HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Mi Ayudante, DisplayVersion
+	RegRead, desarrollador, HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Mi Ayudante, Publisher
 	RegRead, herramientas, HKCU\Software\Mi Ayudante, ToolsPath
+	RegRead, vendor, HKCU\Software\Mi Ayudante, VendorPath
+	RegRead, recursos, HKCU\Software\Mi Ayudante, ResourcesPath
+	RegRead, appdata, HKCU\Software\Mi Ayudante, AppDataPath
+	RegRead, instalador, HKCU\Software\Mi Ayudante, Installer
     ; Inicializar valores esenciales
     EnvGet, disco, HOMEDRIVE
 	CfgIni := A_ScriptDir . "\entornos\" . valor . "\config.ini"
 	Config := {}
-	Config.Base := {AppDir: A_ScriptDir, Disco: disco, App: "", RutaProyecto: "", IdProyecto: 1, CfgIni: CfgIni, Entorno: valor, Lanzamiento: lanzamiento, RutaHerramientas: herramientas, Programa: "Mi Ayudante", Desarrollador: "Rubén Araya Tagle"}
+	Config.Base := {AppDir: A_ScriptDir, Disco: disco, App: "", RutaProyecto: "", IdProyecto: 1, CfgIni: CfgIni, Entorno: valor, Lanzamiento: lanzamiento, RutaHerramientas: herramientas, RutaVendor: vendor, RutaRecursos: recursos, RutaAppData: appdata, RutaInstalador: instalador, Programa: "Mi Ayudante", Desarrollador: desarrollador}
 	; Cargar valores desde CfgIni
     local secciones := {App: {Nombre: "Ayudante", Descripcion: "", Autor: "", Version: "0.1"}, Usuario: {ProyectoActual: "", winX: 120, winY: 120, formX: 0, formY: 0, MostrarFavoritos: 0}, Gui: {AnchoVentana: 320, ColorFondo: "White", ColorTexto: "Black", FuenteNombre: "Segoe UI", FuenteTamano: 9, Transparencia: 255, MargenSup: 10, MargenInf: 10, MargenIzq: 10, AnchoListaProy: 200, AnchoTabsFavoritos: 260, AltoFavorito: 25, AnchoBotonBarra: 24, AltoBotonBarra: 24, PosListaProy: 70, PosOpcionFavoritos: 70}, Comandos: {CamposArchivo: "", CamposGuardar: "", DirTrabajo: "", ConsolaTitulo: "Consola CLI", AnchoForm: 320, AnchoCampo: 180, AnchoEtiq: 100},  Rutas: {MisProyectos: "", EditorTxt: "notepad.exe", ArchivoLogs: "registro.log", DefComandos: "", DefMenus: "", DefProyectos: "", DefBotones: "", DefFavoritos: "", ImgDir: "", Logo: ""}}
     for seccion, claves in secciones {
