@@ -150,11 +150,13 @@ Function TestFtpConnection
 	${EndIf}
 	Push $R0
 	Push $R1
-	${If} $Protocol == "FTPS"
+	${Select} $Protocol
+	${Case} "FTP"
+		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server/herramientas/${CATALOGFILE}" -o "$PluginsDir\${CATALOGFILE}" --silent --show-error --fail --connect-timeout 5'
+	${Case} "FTPS"
 		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "ftps://$Server" --silent --list-only --connect-timeout 5'
-	${Else}
-		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server" --silent --list-only --connect-timeout 5'
-	${EndIf}
+	${Default}
+	${EndSelect}
 	Pop $R0
 	Pop $R1
 	${If} $R0 == 0
@@ -170,11 +172,13 @@ FunctionEnd
 Function TestHttpConnection
 	Push $R0
 	Push $R1
-	${If} $Protocol == "HTTPS"
-		nsExec::ExecToStack '"curl.exe" -s -S -L -I -X POST "https://$Server/herramientas/${CATALOGFILE}" --connect-timeout 5 --write-out "%{http_code}" -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o NUL'
-	${Else}
+	${Select} $Protocol
+	${Case} "HTTP"
 		nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "http://$Server/herramientas/${CATALOGFILE}"'
-	${EndIf}
+	${Case} "HTTPS"
+		nsExec::ExecToStack '"curl.exe" -s -S -L -I -X POST "https://$Server/herramientas/${CATALOGFILE}" --connect-timeout 5 --write-out "%{http_code}" -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o NUL'
+	${Default}
+	${EndSelect}
 	Pop $R1
 	Pop $R0
 	${If} $R0 == "200"

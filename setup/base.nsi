@@ -65,6 +65,7 @@ Var StartUpDir
 !define RESOURCES "$DOCUMENTS\mi-ayudante"
 !define TOOLS "\home\herramientas"
 !define VENDOR "\home\vendor"
+!define APPDATA "$LOCALAPPDATA\mi-ayudante"
 !define APPDIR "\home\mi-ayudante"
 !define APPFILE "ayudante.exe"
 !define LICENSEFILE "LICENSE"
@@ -172,6 +173,7 @@ Page custom ShowPreRequisites LeavePreRequisites " "
 ;--------------------------------
 !insertmacro MUI_UNPAGE_WELCOME
 !insertmacro MUI_UNPAGE_CONFIRM
+!define MUI_PAGE_CUSTOMFUNCTION_PRE un.CheckAllComponents
 !insertmacro MUI_UNPAGE_COMPONENTS
 !insertmacro MUI_UNPAGE_INSTFILES
 ;--------------------------------

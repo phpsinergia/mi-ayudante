@@ -15,10 +15,6 @@ Function un.onInit
 	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 	StrCpy $unComponentsIniTemp "$PluginsDir\componentes.ini"
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"
-	SectionSetFlags ${SEC_01} ${SF_SELECTED}
-	SectionSetFlags ${SEC_02} ${SF_SELECTED}
-	SectionSetFlags ${SEC_03} ${SF_SELECTED}
-	SectionSetFlags ${SEC_04} ${SF_SELECTED}
 	Pop $0
 FunctionEnd
 
@@ -67,6 +63,7 @@ LoopRead:
 		${If} $unComponentValue != ""
 			${unStrStr} $R2 "$unComponentValue" "$unComponentsDir"
 			${If} $R2 != ""
+				
 				DetailPrint "..."
 				DetailPrint "$(TXT_LogDesinstalando): $unComponentKey"
 				Delete "$unComponentValue\*.*"
@@ -124,4 +121,46 @@ TrimEnds:
 	WriteRegExpandStr HKCU "Environment" "Path" "$1"
 	System::Call 'Kernel32::SendMessageTimeout(i 0xffff,i ${WM_SETTINGCHANGE},i 0,t "Environment",i 0,i 1000,*i .r0)'
 EndRm:
+FunctionEnd
+
+Function un.CheckAllComponents
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	SectionSetFlags ${SEC_01} ${SF_SELECTED}
+	${GetSize} "$INSTDIR" "/S=0K" $R1 $R2 $R3
+	SectionSetSize ${SEC_01} $R1
+	${If} ${FileExists} "$InstDrive${TOOLS}"
+		SectionSetFlags ${SEC_02} ${SF_SELECTED}
+		${GetSize} "$InstDrive${TOOLS}" "/S=0K" $R1 $R2 $R3
+		SectionSetSize ${SEC_02} $R1
+	${Else}
+		SectionSetText ${SEC_02} ""
+	${EndIf}
+	${If} ${FileExists} "${RESOURCES}"
+		SectionSetFlags ${SEC_03} ${SF_SELECTED}
+		${GetSize} "${RESOURCES}" "/S=0K" $R1 $R2 $R3
+		SectionSetSize ${SEC_03} $R1
+	${Else}
+		SectionSetText ${SEC_03} ""
+	${EndIf}
+	${If} ${FileExists} "$InstDrive${VENDOR}"
+		SectionSetFlags ${SEC_04} ${SF_SELECTED}
+		${GetSize} "$InstDrive${VENDOR}" "/S=0K" $R1 $R2 $R3
+		SectionSetSize ${SEC_04} $R1
+	${Else}
+		SectionSetText ${SEC_04} ""
+	${EndIf}
+	${If} ${FileExists} "${APPDATA}"
+		SectionSetFlags ${SEC_05} ${SF_SELECTED}
+		${GetSize} "${APPDATA}" "/S=0K" $R1 $R2 $R3
+		SectionSetSize ${SEC_05} $R1
+	${Else}
+		SectionSetText ${SEC_05} ""
+	${EndIf}
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd

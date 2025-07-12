@@ -29,6 +29,7 @@ Section "${NAME} (*)" 1
 	CreateDirectory "$InstDrive${TOOLS}"
 	CreateDirectory "$InstDrive${VENDOR}"
 	CreateDirectory "${RESOURCES}"
+	CreateDirectory "${APPDATA}"
 	SetOutPath "$InstDrive$INSTDIR\base"
 	File /r "..\app\base\*.*"
 	SetOutPath "$InstDrive$INSTDIR\img"
@@ -329,6 +330,8 @@ Section "-Config"
 	IntOp $R4 $R4 + $R1
 	${GetSize} "${RESOURCES}" "/S=0K" $R1 $R2 $R3
 	IntOp $R4 $R4 + $R1
+	${GetSize} "${APPDATA}" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
 	DetailPrint "$R4 KB"
 	IntFmt $R4 "0x%08X" $R4
 	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R4"
@@ -341,6 +344,7 @@ Section "-Config"
 	WriteRegStr HKCU "Software\${NAME}" "VendorPath" "$InstDrive${VENDOR}"
 	WriteRegStr HKCU "Software\${NAME}" "ToolsPath" "$InstDrive${TOOLS}"
 	WriteRegStr HKCU "Software\${NAME}" "ResourcesPath" "${RESOURCES}"
+	WriteRegStr HKCU "Software\${NAME}" "AppDataPath" "${APPDATA}"
 	WriteRegStr HKCU "Software\${NAME}" "RememberCreds" "$RememberCreds"
 	WriteRegStr HKCU "Software\${NAME}" "ShortcutStartMenu" "$ShortcutStartMenu"
 	WriteRegStr HKCU "Software\${NAME}" "ShortcutDesktop" "$ShortcutDesktop"
