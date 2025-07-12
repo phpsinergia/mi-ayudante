@@ -128,6 +128,9 @@ FunctionEnd
 ;--------------------------------
 
 Function DetectPreRequisites
+	SetOutPath "$PluginsDir"
+	File /oname=ok.bmp "ok.bmp"
+	File /oname=no.bmp "no.bmp"
 	Call DetectPHP
 	Call DetectComposer
 	Call DetectMSVC

@@ -80,6 +80,7 @@ Function ShowOptionsForm
 		${NSD_OnClick} $btnTest TestConnection
 	nsDialogs::Show
 	Pop $0
+	Call DetectPreRequisites
 FunctionEnd
 
 Function LeaveOptionsForm

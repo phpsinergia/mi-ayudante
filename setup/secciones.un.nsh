@@ -83,32 +83,7 @@ SectionEnd
 
 Section "-un.Final" SEC_06
 	${IfNot} ${SectionIsSelected} ${SEC_01}
-		StrCpy $R4 "0"
-		${GetSize} "$INSTDIR" "/S=0K" $R1 $R2 $R3
-		IntOp $R4 $R4 + $R1
-		ClearErrors
-		${GetSize} "$InstDrive${VENDOR}" "/S=0K" $R1 $R2 $R3
-		IfErrors 0 +2
-			StrCpy $R1 "0"
-		IntOp $R4 $R4 + $R1
-		ClearErrors
-		${GetSize} "$InstDrive${TOOLS}" "/S=0K" $R1 $R2 $R3
-		IfErrors 0 +2
-			StrCpy $R1 "0"
-		IntOp $R4 $R4 + $R1
-		ClearErrors
-		${GetSize} "${RESOURCES}" "/S=0K" $R1 $R2 $R3
-		IfErrors 0 +2
-			StrCpy $R1 "0"
-		IntOp $R4 $R4 + $R1
-		ClearErrors
-		${GetSize} "${APPDATA}" "/S=0K" $R1 $R2 $R3
-		IfErrors 0 +2
-			StrCpy $R1 "0"
-		IntOp $R4 $R4 + $R1
-		DetailPrint "$R4 KB"
-		IntFmt $R4 "0x%08X" $R4
-		WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R4"
+		!insertmacro UpdateSizeTotal $INSTDIR
 	${EndIf}
 	Call un.WriteLogFinal
 SectionEnd

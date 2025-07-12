@@ -9,10 +9,6 @@
 
 Function .onInit
 	InitPluginsDir
-	SetOutPath "$PluginsDir"
-	File /oname=favicon.ico "..\app\${ICON}"
-	File /oname=ok.bmp "ok.bmp"
-	File /oname=no.bmp "no.bmp"
 	Call GetConfigValues
 	${If} $IsUpdateInstall == "1"
 		StrCpy $TextCaption "$(TXT_VentanaActualizador)"
@@ -28,7 +24,6 @@ Function .onInit
 		StrCpy $TextFinish "$(TXT_InstruccionesFinishInstalador)"
 	${EndIf}
 	StrCpy $StartUpDir "$APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-	Call DetectPreRequisites
 FunctionEnd
 
 Function SetDateTimeStamp

@@ -199,6 +199,45 @@ ${unStrRep}
 ${unStrStr}
 ${unStrCase}
 
+!macro UpdateSizeTotal DIR_BASE
+	Push $R0
+	Push $R1
+	Push $R2
+	Push $R3
+	Push $R4
+	StrCpy $R4 "0"
+	${GetSize} "${DIR_BASE}" "/S=0K" $R1 $R2 $R3
+	IntOp $R4 $R4 + $R1
+	ClearErrors
+	${GetSize} "$InstDrive${VENDOR}" "/S=0K" $R1 $R2 $R3
+	IfErrors 0 +2
+		StrCpy $R1 "0"
+	IntOp $R4 $R4 + $R1
+	ClearErrors
+	${GetSize} "$InstDrive${TOOLS}" "/S=0K" $R1 $R2 $R3
+	IfErrors 0 +2
+		StrCpy $R1 "0"
+	IntOp $R4 $R4 + $R1
+	ClearErrors
+	${GetSize} "${RESOURCES}" "/S=0K" $R1 $R2 $R3
+	IfErrors 0 +2
+		StrCpy $R1 "0"
+	IntOp $R4 $R4 + $R1
+	ClearErrors
+	${GetSize} "${APPDATA}" "/S=0K" $R1 $R2 $R3
+	IfErrors 0 +2
+		StrCpy $R1 "0"
+	IntOp $R4 $R4 + $R1
+	DetailPrint "$R4 KB"
+	IntFmt $R4 "0x%08X" $R4
+	WriteRegDWORD HKCU "${HKCUNI}" "EstimatedSize" "$R4"
+	Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
+!macroend
+
 ;--------------------------------
 ; MODULOS
 ;--------------------------------
