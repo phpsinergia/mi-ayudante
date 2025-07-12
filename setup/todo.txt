@@ -21,6 +21,7 @@ ESTRUCTURA DE DIRECTORIOS Y ARCHIVOS
 │   ├── registro.nsh
 │   ├── instalar.nsh
 │   ├── desinstalar.nsh
+│   ├── registro.un.nsh
 │   ├── secciones.un.nsh
 │   ├── txt_spanish.nsh
 │   ├── head.bmp

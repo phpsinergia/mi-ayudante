@@ -82,7 +82,7 @@ LangString TXT_LogPostInstall ${LANG_SPANISH} "Configurando elementos Post-insta
 LangString TXT_LogWriteReg ${LANG_SPANISH} "Escribiendo el Registro de Windows"
 LangString TXT_LogGuardado ${LANG_SPANISH} "Archivo de registro de instalación en"
 LangString TXT_LogNoGuardado ${LANG_SPANISH} "No se pudo guardar el archivo de registro de Instalación"
-LangString TXT_LogDesinstalando ${LANG_SPANISH} "Desinstalando"
+LangString TXT_LogDesinstalando ${LANG_SPANISH} "DESINSTALANDO"
 LangString TXT_LogRemoviendo ${LANG_SPANISH} "Removiendo componente"
 ;--------------------------------
 LangString TXT_TituloInstFinalizada ${LANG_SPANISH} "Instalación completada"

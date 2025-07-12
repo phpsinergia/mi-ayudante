@@ -49,7 +49,7 @@ Section "${NAME} (*)" 1
 	${IfNot} ${FileExists} "$InstDrive$INSTDIR\componentes.ini"
 		File "componentes.ini"
 	${EndIf}
-SectionEnd ;2
+SectionEnd
 
 !insertmacro MCreateSectionLog 2 3
 

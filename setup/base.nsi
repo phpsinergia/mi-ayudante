@@ -197,6 +197,7 @@ ${StrTok}
 ${unStrTrimNewLines}
 ${unStrRep}
 ${unStrStr}
+${unStrCase}
 
 ;--------------------------------
 ; MODULOS
@@ -210,4 +211,5 @@ ${unStrStr}
 !include "secciones.nsh"
 ;--------------------------------
 !include "secciones.un.nsh"
+!include "registro.un.nsh"
 !include "desinstalar.nsh"

@@ -9,6 +9,7 @@
 
 Function un.onInit
 	Push $0
+	ReadRegStr $Version HKCU "${HKCUNI}" "DisplayVersion"
 	ReadRegStr $0 HKCU "Software\${NAME}" "Install_Drive"
 	StrCpy $InstDrive $0
 	InitPluginsDir
@@ -16,6 +17,18 @@ Function un.onInit
 	StrCpy $unComponentsIniTemp "$PluginsDir\componentes.ini"
 	CopyFiles /SILENT /FILESONLY "$INSTDIR\componentes.ini" "$PluginsDir\"
 	Pop $0
+FunctionEnd
+
+Function un.SetDateTimeStamp
+	Push $1
+	${GetTime} "" "L" $Day $Month $Year $1 $Hour $Min $Sec
+	IntFmt $Year "%04d" $Year
+	IntFmt $Month "%02d" $Month
+	IntFmt $Day "%02d" $Day
+	IntFmt $Hour "%02d" $Hour
+	IntFmt $Min "%02d" $Min
+	StrCpy $Timestamp "$Year$Month$Day-$Hour$Min"
+	Pop $1
 FunctionEnd
 
 Function un.RemoveDirIfEmpty
