@@ -114,6 +114,10 @@ Function ShowPreRequisites
 	${NSD_CreateCheckbox} 100u 131u 150u 10u "$(TXT_EtiqNomostrarDenuevo)"
 	Pop $SkipPreCheckbox
 	nsDialogs::Show
+	${NSD_FreeBitmap} $BitmapPHP
+	${NSD_FreeBitmap} $BitmapComposer
+	${NSD_FreeBitmap} $BitmapMSVC
+	${NSD_FreeBitmap} $BitmapNotepad
 	Pop $R4
 	Pop $R3
 	Pop $R2

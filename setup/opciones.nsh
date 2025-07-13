@@ -80,7 +80,9 @@ Function ShowOptionsForm
 		${NSD_OnClick} $btnTest TestConnection
 	nsDialogs::Show
 	Pop $0
-	Call DetectPreRequisites
+	${IfNot} $SkipPrereq == "1"
+		Call DetectPreRequisites
+	${EndIf}
 FunctionEnd
 
 Function LeaveOptionsForm
@@ -156,7 +158,6 @@ Function TestFtpConnection
 		nsExec::ExecToStack '"curl.exe" -u $User@$Server:$Pass "ftp://$Server/herramientas/${CATALOGFILE}" -o "$PluginsDir\${CATALOGFILE}" --silent --show-error --fail --connect-timeout 5'
 	${Case} "FTPS"
 		nsExec::ExecToStack '"curl.exe" --ftp-ssl -u $User@$Server:$Pass "ftps://$Server" --silent --list-only --connect-timeout 5'
-	${Default}
 	${EndSelect}
 	Pop $R0
 	Pop $R1
@@ -178,7 +179,6 @@ Function TestHttpConnection
 		nsExec::ExecToStack '"curl.exe" -s -S -L -I --connect-timeout 5 --write-out "%{http_code}" -o NUL "http://$Server/herramientas/${CATALOGFILE}"'
 	${Case} "HTTPS"
 		nsExec::ExecToStack '"curl.exe" -s -S -L -I -X POST "https://$Server/herramientas/${CATALOGFILE}" --connect-timeout 5 --write-out "%{http_code}" -H "Content-Type: application/json" --data "{\"user\":\"$User\",\"pass\":\"$Pass\"}" -o NUL'
-	${Default}
 	${EndSelect}
 	Pop $R1
 	Pop $R0
