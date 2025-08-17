@@ -49,5 +49,12 @@ Ajusta tu backend HTTP para aceptar el JSON (o header) indicado y devolver 200 O
 Futuro trabajo pendiente (TODO)
 
 
-26528
-36470
+-----------------------
+DEUDA$:
+
+26528 (MP3-1)
+36470 (MP3-2)
++40000 (enchufe)
++10000+21100 (tabaco)
+
+-50000 (abono)

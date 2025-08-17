@@ -1,6 +1,6 @@
-﻿; base.nsi
+﻿; actualizador.nsi
 ;================================
-; INSTALADOR DE MI-AYUDANTE
+; ACTUALIZADOR DE MI-AYUDANTE
 ;================================
 
 ;--------------------------------

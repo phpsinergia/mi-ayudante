@@ -96,7 +96,7 @@ SelectorHacerVolver:
 	if (rutaBase = "")
 		rutaBase := Config.Base.RutaProyecto
 	; Ejecutar selección según tipo
-	if param in carpeta,folder,dir
+	if param in carpeta,folder,dir,origen,destino
 	{
 		FileSelectFolder, selPath, *%rutaBase%, 0, Selecciona una carpeta
 	}
@@ -183,7 +183,7 @@ MostrarFormComando(script, comando, args, tmenu, titulo) {
 			isArchivo := false, isCarpeta := false
 			if param in %camposArchivo%
 				isArchivo := true
-			if param in carpeta,folder,dir
+			if param in carpeta,folder,dir,origen,destino
 				isCarpeta := true
 			if (isArchivo || isCarpeta) 
 			{
@@ -344,5 +344,5 @@ EnviarComandoConsola(comando) {
 }
 
 EsCampoCarpeta(param) {
-    return (param = "carpeta" || param = "folder" || param = "dir")
+    return (param = "carpeta" || param = "folder" || param = "dir" || param = "origen" || param = "destino")
 }
